@@ -112,8 +112,9 @@ class TestPSMIK:
         #  'pitchendlink-maininsertionlink', 2
         #  'maininsertionlink-toolrolllink', 3
         #  'toolrolllink-toolpitchlink', 4
-        #  'toolpitchlink-toolgripper1link', 5a
-        #  'toolpitchlink-toolgripper2link', 5b
+        #  'toolpitchlink-toolyawlink', 5
+        #  'toolyawlink-toolgripper1link', 6a
+        #  'toolyawlink-toolgripper2link', 6b
 
     def run(self):
         while not rospy.is_shutdown():
@@ -152,8 +153,9 @@ class TestPSMIK:
                 self.base1.set_joint_pos('pitchendlink-maininsertionlink', computed_q[2])
                 self.base1.set_joint_pos('maininsertionlink-toolrolllink', computed_q[3])
                 self.base1.set_joint_pos('toolrolllink-toolpitchlink', computed_q[4])
-                self.base1.set_joint_pos('toolpitchlink-toolgripper1link', -computed_q[5]+gr)
-                self.base1.set_joint_pos('toolpitchlink-toolgripper2link', computed_q[5]+gr)
+                self.base1.set_joint_pos('toolpitchlink-toolyawlink', -computed_q[5])
+                self.base1.set_joint_pos('toolyawlink-toolgripper1link', gr)
+                self.base1.set_joint_pos('toolyawlink-toolgripper2link', gr)
 
             if self.run_psm_two is True:
                 self.obj_gui2.App.update()
@@ -189,8 +191,9 @@ class TestPSMIK:
                 self.base2.set_joint_pos('pitchendlink-maininsertionlink', computed_q[2])
                 self.base2.set_joint_pos('maininsertionlink-toolrolllink', computed_q[3])
                 self.base2.set_joint_pos('toolrolllink-toolpitchlink', computed_q[4])
-                self.base2.set_joint_pos('toolpitchlink-toolgripper1link', -computed_q[5]+gr)
-                self.base2.set_joint_pos('toolpitchlink-toolgripper2link', computed_q[5]+gr)
+                self.base2.set_joint_pos('toolpitchlink-toolyawlink', -computed_q[5])
+                self.base2.set_joint_pos('toolyawlink-toolgripper1link', gr)
+                self.base2.set_joint_pos('toolyawlink-toolgripper2link', gr)
 
             time.sleep(0.005)
 
