@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/Surgical Robotics Challenge.iml" filepath="$PROJECT_DIR$/.idea/Surgical Robotics Challenge.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../ambf/ambf_ros_modules/ambf_comm/examples/.idea/examples.iml" filepath="$PROJECT_DIR$/../ambf/ambf_ros_modules/ambf_comm/examples/.idea/examples.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../ambf/ambf_ros_modules/ambf_comm/scripts/.idea/scripts.iml" filepath="$PROJECT_DIR$/../ambf/ambf_ros_modules/ambf_comm/scripts/.idea/scripts.iml" />
+    </modules>
+  </component>
+</project>

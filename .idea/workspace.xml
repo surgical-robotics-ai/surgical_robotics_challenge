@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="f0677f9e-9ad9-4b48-97bb-3540f5c2df09" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ProjectId" id="1dVkjX0R9B1FXmOcuYipjXXHHxO" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../ambf/ambf_ros_modules/ambf_comm/examples" />
+  </component>
+  <component name="RunManager">
+    <configuration name="testIK" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Surgical Robotics Challenge" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scripts" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/testIK.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.testIK" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f0677f9e-9ad9-4b48-97bb-3540f5c2df09" name="Default Changelist" comment="" />
+      <created>1592517782865</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1592517782865</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="3938" y="213" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1592594632015">
+      <screen x="2560" y="0" width="2560" height="1080" />
+    </state>
+    <state x="3938" y="213" key="#com.intellij.execution.impl.EditConfigurationsDialog/2560.0.2560.1080/0.32.2560.1408@2560.0.2560.1080" timestamp="1592594632015" />
+    <state x="3623" y="313" width="424" height="491" key="FileChooserDialogImpl" timestamp="1592519286720">
+      <screen x="2560" y="0" width="2560" height="1080" />
+    </state>
+    <state x="3623" y="313" width="424" height="491" key="FileChooserDialogImpl/2560.0.2560.1080/0.32.2560.1408@2560.0.2560.1080" timestamp="1592519286720" />
+    <state width="1259" height="275" key="GridCell.Tab.0.bottom" timestamp="1592596348446">
+      <screen x="2560" y="0" width="2560" height="1080" />
+    </state>
+    <state width="1259" height="275" key="GridCell.Tab.0.bottom/2560.0.2560.1080/0.32.2560.1408@2560.0.2560.1080" timestamp="1592596348446" />
+    <state width="1259" height="275" key="GridCell.Tab.0.center" timestamp="1592596348446">
+      <screen x="2560" y="0" width="2560" height="1080" />
+    </state>
+    <state width="1259" height="275" key="GridCell.Tab.0.center/2560.0.2560.1080/0.32.2560.1408@2560.0.2560.1080" timestamp="1592596348446" />
+    <state width="1259" height="275" key="GridCell.Tab.0.left" timestamp="1592596348445">
+      <screen x="2560" y="0" width="2560" height="1080" />
+    </state>
+    <state width="1259" height="275" key="GridCell.Tab.0.left/2560.0.2560.1080/0.32.2560.1408@2560.0.2560.1080" timestamp="1592596348445" />
+    <state width="1259" height="275" key="GridCell.Tab.0.right" timestamp="1592596348446">
+      <screen x="2560" y="0" width="2560" height="1080" />
+    </state>
+    <state width="1259" height="275" key="GridCell.Tab.0.right/2560.0.2560.1080/0.32.2560.1408@2560.0.2560.1080" timestamp="1592596348446" />
+    <state x="4093" y="255" width="774" height="600" key="find.popup" timestamp="1592535340583">
+      <screen x="2560" y="0" width="2560" height="1080" />
+    </state>
+    <state x="4093" y="255" width="774" height="600" key="find.popup/2560.0.2560.1080/0.32.2560.1408@2560.0.2560.1080" timestamp="1592535340583" />
+  </component>
+</project>
