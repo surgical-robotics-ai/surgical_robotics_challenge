@@ -1,3 +1,5 @@
 *.blend1
 *.old
 *~
+*.pyc
+.idea/
