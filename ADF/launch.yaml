@@ -8,3 +8,5 @@ multibody configs:
   - "./psm2.yaml" #1
   - "./target1.yaml" #2
   - "./target2.yaml" #3
+  - "./sensors_actuators_psm1.yaml" #4
+  - "./sensors_actuators_psm2.yaml" #5
