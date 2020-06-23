@@ -73,8 +73,13 @@ class TestPSMIK:
         self.base2 = None
         self.target1 = None
         self.target2 = None
+        self.sensor1 = None
+        self.actuators1 = []
+        self.grasped1 = []
         self.run_psm_one = run_psm_one
         self.run_psm_two = run_psm_two
+        self.psm1_scale = 10.0
+        self.psm2_scale = 10.0
 
         self.obj_gui1 = None
         self.obj_gui2 = None
@@ -85,11 +90,18 @@ class TestPSMIK:
             print('PREPARING TO LOAD IK FOR PSM1')
             self.base1 = self.c.get_obj_handle('psm1/baselink')
             self.target1 = self.c.get_obj_handle('psm1/target')
+            self.sensor1 = self.c.get_obj_handle('psm1/Sensor0')
+            self.actuators1.append(self.c.get_obj_handle('psm1/Actuator0'))
+            self.actuators1.append(self.c.get_obj_handle('psm1/Actuator1'))
+            self.actuators1.append(self.c.get_obj_handle('psm1/Actuator2'))
+            self.grasped1.append(False)
+            self.grasped1.append(False)
+            self.grasped1.append(False)
             self.obj_gui1 = OG1
             base_pos = self.base1.get_pos()
             print "Base Pos 1"
             print base_pos
-            init_xyz = [base_pos.x, base_pos.y, base_pos.z-0.15]
+            init_xyz = [base_pos.x, base_pos.y, base_pos.z - 0.10 * self.psm1_scale]
             self.obj_gui1.set_init_xyz(init_xyz)
 
         if self.run_psm_two is True:
@@ -100,7 +112,7 @@ class TestPSMIK:
             base_pos = self.base2.get_pos()
             print "Base Pos 2"
             print base_pos
-            init_xyz = [base_pos.x, base_pos.y, base_pos.z-0.15]
+            init_xyz = [base_pos.x, base_pos.y, base_pos.z - 0.10 * self.psm2_scale]
             self.obj_gui2.set_init_xyz(init_xyz)
 
         if not run_psm_one and not run_psm_two:
@@ -143,6 +155,9 @@ class TestPSMIK:
                 R_t_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
                 T_t_w = Frame(R_t_w, P_t_w)
                 T_t_b = T_b_w.Inverse() * T_t_w
+                # P_t_b = T_t_b.p
+                # P_t_b_scaled = P_t_b / self.psm1_scale
+                # T_t_b.p = P_t_b_scaled
                 computed_q = compute_IK(T_t_b)
 
                 # print('SETTING JOINTS: ')
@@ -156,6 +171,20 @@ class TestPSMIK:
                 self.base1.set_joint_pos('toolpitchlink-toolyawlink', -computed_q[5])
                 self.base1.set_joint_pos('toolyawlink-toolgripper1link', gr)
                 self.base1.set_joint_pos('toolyawlink-toolgripper2link', gr)
+
+                for i in range(3):
+                    if self.sensor1.is_triggered(i) and gr <= 0.5:
+                        sensed_obj = self.sensor1.get_sensed_object(i)
+                        if sensed_obj == 'Needle':
+                            if not self.grasped1[i]:
+                                self.actuators1[i].actuate(sensed_obj)
+                                self.grasped1[i] = True
+                                print('Grasping Sensed Object Names', sensed_obj)
+                    else:
+                        if gr > 0.5:
+                            self.actuators1[i].deactuate()
+                            self.grasped1[i] = False
+                            # print('Releasing Actuator ', i)
 
             if self.run_psm_two is True:
                 self.obj_gui2.App.update()

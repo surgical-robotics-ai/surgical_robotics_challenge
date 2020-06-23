@@ -1,7 +1,7 @@
 bodies: []
 joints: []
 sensors: [SENSOR Sensor0]
-actuators: [ACTUATOR Actuator0, ACTUATOR Actuator1, ACTUATOR Actuator3]
+actuators: [ACTUATOR Actuator0, ACTUATOR Actuator1, ACTUATOR Actuator2]
 high resolution path: .
 low resolution path: .
 ignore inter-collision: true
@@ -13,28 +13,28 @@ SENSOR Sensor0:
   type: Proximity
   location:
     orientation: {p: 0.0, r: 0.0, y: 0.0}
-    position: {x: 0.0, y: -0.003, z: 0.0}
+    position: {x: 0.0, y: -0.03, z: 0.0}
   array:
     -
-      offset: {x: 0.0, y: 0.0, z: 0.001}
+      offset: {x: 0.0, y: 0.0, z: 0.01}
       direction: {x: 0.0, y: -1.0, z: 0.0}
     -
       offset: {x: 0.0, y: 0.0, z: 0.0}
       direction: {x: 0.0, y: -1.0, z: 0.0}
     -
-      offset: {x: 0.0, y: -0.0, z: -0.001}
+      offset: {x: 0.0, y: -0.0, z: -0.01}
       direction: {x: 0.0, y: -1.0, z: 0.0}
-  range: 0.008
+  range: 0.08
   parent: /ambf/env/psm2/BODY tool yaw link
   visible: True
-  visible size: 0.0005
+  visible size: 0.005
 
 ACTUATOR Actuator0:
   name: Actuator0
   type: Constraint
   location:
     orientation: {p: 0.0, r: 0.0, y: 0.0}
-    position: {x: 0.0, y: -0.011, z: 0.001}
+    position: {x: 0.0, y: -0.11, z: 0.01}
   parent: /ambf/env/psm2/BODY tool yaw link
   visible: True
 
@@ -43,7 +43,7 @@ ACTUATOR Actuator1:
   type: Constraint
   location:
     orientation: {p: 0.0, r: 0.0, y: 0.0}
-    position: {x: 0.0, y: -0.011, z: 0.0}
+    position: {x: 0.0, y: -0.11, z: 0.0}
   parent: /ambf/env/psm2/BODY tool yaw link
   visible: True
 
@@ -52,6 +52,6 @@ ACTUATOR Actuator2:
   type: Constraint
   location:
     orientation: {p: 0.0, r: 0.0, y: 0.0}
-    position: {x: 0.0, y: -0.011, z: -0.001}
+    position: {x: 0.0, y: -0.11, z: -0.01}
   parent: /ambf/env/psm2/BODY tool yaw link
   visible: True
