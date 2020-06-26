@@ -76,6 +76,8 @@ class TestPSMIK:
         self.sensor1 = None
         self.actuators1 = []
         self.grasped1 = []
+        self.actuators2 = []
+        self.grasped2 = []
         self.run_psm_one = run_psm_one
         self.run_psm_two = run_psm_two
         self.psm1_scale = 10.0
@@ -108,6 +110,13 @@ class TestPSMIK:
             print('PREPARING TO LOAD IK FOR PSM2')
             self.base2 = self.c.get_obj_handle('psm2/baselink')
             self.target2 = self.c.get_obj_handle('psm2/target')
+            self.sensor2 = self.c.get_obj_handle('psm2/Sensor0')
+            self.actuators2.append(self.c.get_obj_handle('psm2/Actuator0'))
+            self.actuators2.append(self.c.get_obj_handle('psm2/Actuator1'))
+            self.actuators2.append(self.c.get_obj_handle('psm2/Actuator2'))
+            self.grasped2.append(False)
+            self.grasped2.append(False)
+            self.grasped2.append(False)
             self.obj_gui2 = OG2
             base_pos = self.base2.get_pos()
             print "Base Pos 2"
@@ -173,7 +182,7 @@ class TestPSMIK:
                 self.base1.set_joint_pos('toolyawlink-toolgripper2link', gr)
 
                 for i in range(3):
-                    if self.sensor1.is_triggered(i) and gr <= 0.5:
+                    if self.sensor1.is_triggered(i) and gr <= 0.2:
                         sensed_obj = self.sensor1.get_sensed_object(i)
                         if sensed_obj == 'Needle':
                             if not self.grasped1[i]:
@@ -181,7 +190,7 @@ class TestPSMIK:
                                 self.grasped1[i] = True
                                 print('Grasping Sensed Object Names', sensed_obj)
                     else:
-                        if gr > 0.5:
+                        if gr > 0.2:
                             self.actuators1[i].deactuate()
                             self.grasped1[i] = False
                             # print('Releasing Actuator ', i)
@@ -224,6 +233,20 @@ class TestPSMIK:
                 self.base2.set_joint_pos('toolyawlink-toolgripper1link', gr)
                 self.base2.set_joint_pos('toolyawlink-toolgripper2link', gr)
 
+                for i in range(3):
+                    if self.sensor2.is_triggered(i) and gr <= 0.2:
+                        sensed_obj = self.sensor2.get_sensed_object(i)
+                        if sensed_obj == 'Needle':
+                            if not self.grasped2[i]:
+                                self.actuators2[i].actuate(sensed_obj)
+                                self.grasped2[i] = True
+                                print('Grasping Sensed Object Names', sensed_obj)
+                    else:
+                        if gr > 0.2:
+                            self.actuators2[i].deactuate()
+                            self.grasped2[i] = False
+                            # print('Releasing Actuator ', i)
+
             time.sleep(0.005)
 
 
@@ -243,13 +266,13 @@ if __name__ == "__main__":
         # Initial Target Offset for PSM1
         psm1_xyz = [0.0, 0.0, 0.0]
         psm1_rpy = [3.14, 0, -1.57079]
-        OG1 = obj_control_gui.ObjectGUI('psm1/baselink', psm1_xyz, psm1_rpy, 1.0, 3.14, 0.0001)
+        OG1 = obj_control_gui.ObjectGUI('psm1/baselink', psm1_xyz, psm1_rpy, 3.0, 3.14, 0.000001)
 
     if parsed_args.run_psm_two is True:
         # Initial Target Offset for PSM2
         psm2_xyz = [0.0, 0.0, 0.0]
         psm2_rpy = [3.14, 0, -1.57079]
-        OG2 = obj_control_gui.ObjectGUI('psm2/baselink', psm2_xyz, psm2_rpy, 1.0, 3.14, 0.0001)
+        OG2 = obj_control_gui.ObjectGUI('psm2/baselink', psm2_xyz, psm2_rpy, 3.0, 3.14, 0.000001)
 
     psmIK = TestPSMIK(parsed_args.run_psm_one, parsed_args.run_psm_two, OG1, OG2)
     psmIK.run()

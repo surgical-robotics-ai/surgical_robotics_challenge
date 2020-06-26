@@ -1,7 +1,7 @@
-# Blender MTL File: 'psm.blend'
+# Blender MTL File: 'psm2.blend'
 # Material Count: 1
 
-newmtl pitch_end_linkmat.001
+newmtl pitch_end_linkmat
 Ns 323.999994
 Ka 1.000000 1.000000 1.000000
 Kd 0.141800 0.162700 0.447900

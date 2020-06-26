@@ -1,7 +1,7 @@
-# Blender MTL File: 'psm.blend'
+# Blender MTL File: 'psm2.blend'
 # Material Count: 1
 
-newmtl tool_gripper2_linkmat.001
+newmtl tool_gripper2_linkmat
 Ns 323.999994
 Ka 1.000000 1.000000 1.000000
 Kd 0.074000 0.076300 0.085700
