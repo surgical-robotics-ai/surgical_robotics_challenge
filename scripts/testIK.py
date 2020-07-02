@@ -191,7 +191,7 @@ class TestPSMIK:
             if self.run_psm_two is True:
                 self.runOneArm(self.PSM2)
 
-            if self.run_psm_two is True:
+            if self.run_psm_three is True:
                 self.runOneArm(self.PSM3)
                 
             time.sleep(0.005)
@@ -209,7 +209,8 @@ if __name__ == "__main__":
 
     OG1 = None
     OG2 = None
-
+    OG3 = None
+    
     if parsed_args.run_psm_one is True:
         # Initial Target Offset for PSM1
         psm1_xyz = [0.0, 0.0, 0.0]
