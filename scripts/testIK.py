@@ -63,68 +63,58 @@ def test_ik():
     print('Test Q: ', test_q[0:6])
     print('Comp Q: ', computed_q)
 
+class PSM:
+    def __init__(self, client, namespace, OG, scale):
+        self.c = client
+        self.scale = scale
+        self.base = self.c.get_obj_handle(namespace + '/baselink') 
+        self.target = self.c.get_obj_handle(namespace + '/target')
+        self.sensor = self.c.get_obj_handle(namespace + '/Sensor0')
+        self.actuators = []
+        self.actuators.append(self.c.get_obj_handle(namespace + '/Actuator0'))
+        self.actuators.append(self.c.get_obj_handle(namespace + '/Actuator1'))
+        self.actuators.append(self.c.get_obj_handle(namespace + '/Actuator2'))
+        self.grasped = []
+        self.grasped.append(False)
+        self.grasped.append(False)
+        self.grasped.append(False)
+        self.obj_gui = OG
+        base_pos = self.base.get_pos()
+        print "Base Pos 2"
+        print base_pos
+        init_xyz = [base_pos.x, base_pos.y, base_pos.z - 0.10 * self.scale]
+        self.obj_gui.set_init_xyz(init_xyz)
 
+    
 class TestPSMIK:
-    def __init__(self, run_psm_one, run_psm_two, OG1=None, OG2=None):
+    def __init__(self, run_psm_one, run_psm_two, run_psm_three, OG1=None, OG2=None, PG3=None):
         self.c = Client()
         self.c.connect()
 
-        self.base1 = None
-        self.base2 = None
-        self.target1 = None
-        self.target2 = None
-        self.sensor1 = None
-        self.actuators1 = []
-        self.grasped1 = []
-        self.actuators2 = []
-        self.grasped2 = []
-        self.run_psm_one = run_psm_one
-        self.run_psm_two = run_psm_two
         self.psm1_scale = 10.0
         self.psm2_scale = 10.0
+        self.psm3_scale = 10.0
 
-        self.obj_gui1 = None
-        self.obj_gui2 = None
+        self.run_psm_one = run_psm_one
+        self.run_psm_two = run_psm_two
+        self.run_psm_three = run_psm_three
 
         time.sleep(1.0)
 
         if self.run_psm_one is True:
             print('PREPARING TO LOAD IK FOR PSM1')
-            self.base1 = self.c.get_obj_handle('psm1/baselink')
-            self.target1 = self.c.get_obj_handle('psm1/target')
-            self.sensor1 = self.c.get_obj_handle('psm1/Sensor0')
-            self.actuators1.append(self.c.get_obj_handle('psm1/Actuator0'))
-            self.actuators1.append(self.c.get_obj_handle('psm1/Actuator1'))
-            self.actuators1.append(self.c.get_obj_handle('psm1/Actuator2'))
-            self.grasped1.append(False)
-            self.grasped1.append(False)
-            self.grasped1.append(False)
-            self.obj_gui1 = OG1
-            base_pos = self.base1.get_pos()
-            print "Base Pos 1"
-            print base_pos
-            init_xyz = [base_pos.x, base_pos.y, base_pos.z - 0.10 * self.psm1_scale]
-            self.obj_gui1.set_init_xyz(init_xyz)
-
+            self.PSM1 = PSM(self.c, 'psm1', OG1, self.psm1_scale)
+           
         if self.run_psm_two is True:
             print('PREPARING TO LOAD IK FOR PSM2')
-            self.base2 = self.c.get_obj_handle('psm2/baselink')
-            self.target2 = self.c.get_obj_handle('psm2/target')
-            self.sensor2 = self.c.get_obj_handle('psm2/Sensor0')
-            self.actuators2.append(self.c.get_obj_handle('psm2/Actuator0'))
-            self.actuators2.append(self.c.get_obj_handle('psm2/Actuator1'))
-            self.actuators2.append(self.c.get_obj_handle('psm2/Actuator2'))
-            self.grasped2.append(False)
-            self.grasped2.append(False)
-            self.grasped2.append(False)
-            self.obj_gui2 = OG2
-            base_pos = self.base2.get_pos()
-            print "Base Pos 2"
-            print base_pos
-            init_xyz = [base_pos.x, base_pos.y, base_pos.z - 0.10 * self.psm2_scale]
-            self.obj_gui2.set_init_xyz(init_xyz)
+            self.PSM2 = PSM(self.c, 'psm2', OG2, self.psm2_scale)
 
-        if not run_psm_one and not run_psm_two:
+        if self.run_psm_three is True:
+            print('PREPARING TO LOAD IK FOR PSM3')
+            self.PSM3 = PSM(self.c, 'psm3', OG3, self.psm3_scale)
+
+            
+        if not run_psm_one and not run_psm_two and not run_psm_three:
             print('YOU HAVE TO RUN ATLEAST ONE PSMS IK FOR THIS SCRIPT TO DO ANYTHING')
 
         # The following are the names of the controllable joints.
@@ -137,116 +127,73 @@ class TestPSMIK:
         #  'toolyawlink-toolgripper1link', 6a
         #  'toolyawlink-toolgripper2link', 6b
 
+    def runOneArm(self, arm):
+        arm.obj_gui.App.update()
+        # Move the Target Position Based on the GUI
+        x = arm.obj_gui.x
+        y = arm.obj_gui.y
+        z = arm.obj_gui.z
+        ro = arm.obj_gui.ro
+        pi = arm.obj_gui.pi
+        ya = arm.obj_gui.ya
+        gr = arm.obj_gui.gr
+        arm.target.set_pos(x, y, z)
+        arm.target.set_rpy(ro, pi, ya)
+
+        p = arm.base.get_pos()
+        q = arm.base.get_rot()
+        P_b_w = Vector(p.x, p.y, p.z)
+        R_b_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
+        T_b_w = Frame(R_b_w, P_b_w)
+        p = arm.target.get_pos()
+        q = arm.target.get_rot()
+        P_t_w = Vector(p.x, p.y, p.z)
+        R_t_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
+        T_t_w = Frame(R_t_w, P_t_w)
+        T_t_b = T_b_w.Inverse() * T_t_w
+        # P_t_b = T_t_b.p
+        # P_t_b_scaled = P_t_b / self.psm1_scale
+        # T_t_b.p = P_t_b_scaled
+        computed_q = compute_IK(T_t_b)
+        
+        # print('SETTING JOINTS: ')
+        # print(computed_q)
+
+        arm.base.set_joint_pos('baselink-yawlink', computed_q[0])
+        arm.base.set_joint_pos('yawlink-pitchbacklink', computed_q[1])
+        arm.base.set_joint_pos('pitchendlink-maininsertionlink', computed_q[2])
+        arm.base.set_joint_pos('maininsertionlink-toolrolllink', computed_q[3])
+        arm.base.set_joint_pos('toolrolllink-toolpitchlink', computed_q[4])
+        arm.base.set_joint_pos('toolpitchlink-toolyawlink', -computed_q[5])
+        arm.base.set_joint_pos('toolyawlink-toolgripper1link', gr)
+        arm.base.set_joint_pos('toolyawlink-toolgripper2link', gr)
+
+        for i in range(3):
+            if arm.sensor.is_triggered(i) and gr <= 0.2:
+                sensed_obj = arm.sensor.get_sensed_object(i)
+                if sensed_obj == 'Needle':
+                    if not arm.grasped[i]:
+                        arm.actuators[i].actuate(sensed_obj)
+                        arm.grasped[i] = True
+                        print('Grasping Sensed Object Names', sensed_obj)
+                else:
+                    if gr > 0.2:
+                        arm.actuators[i].deactuate()
+                        arm.grasped[i] = False
+                        # print('Releasing Actuator ', i)
+            
     def run(self):
         while not rospy.is_shutdown():
 
             if self.run_psm_one is True:
-                self.obj_gui1.App.update()
-                # Move the Target Position Based on the GUI
-                x = self.obj_gui1.x
-                y = self.obj_gui1.y
-                z = self.obj_gui1.z
-                ro = self.obj_gui1.ro
-                pi = self.obj_gui1.pi
-                ya = self.obj_gui1.ya
-                gr = self.obj_gui1.gr
-                self.target1.set_pos(x, y, z)
-                self.target1.set_rpy(ro, pi, ya)
-
-                p = self.base1.get_pos()
-                q = self.base1.get_rot()
-                P_b_w = Vector(p.x, p.y, p.z)
-                R_b_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
-                T_b_w = Frame(R_b_w, P_b_w)
-                p = self.target1.get_pos()
-                q = self.target1.get_rot()
-                P_t_w = Vector(p.x, p.y, p.z)
-                R_t_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
-                T_t_w = Frame(R_t_w, P_t_w)
-                T_t_b = T_b_w.Inverse() * T_t_w
-                # P_t_b = T_t_b.p
-                # P_t_b_scaled = P_t_b / self.psm1_scale
-                # T_t_b.p = P_t_b_scaled
-                computed_q = compute_IK(T_t_b)
-
-                # print('SETTING JOINTS: ')
-                # print(computed_q)
-
-                self.base1.set_joint_pos('baselink-yawlink', computed_q[0])
-                self.base1.set_joint_pos('yawlink-pitchbacklink', computed_q[1])
-                self.base1.set_joint_pos('pitchendlink-maininsertionlink', computed_q[2])
-                self.base1.set_joint_pos('maininsertionlink-toolrolllink', computed_q[3])
-                self.base1.set_joint_pos('toolrolllink-toolpitchlink', computed_q[4])
-                self.base1.set_joint_pos('toolpitchlink-toolyawlink', -computed_q[5])
-                self.base1.set_joint_pos('toolyawlink-toolgripper1link', gr)
-                self.base1.set_joint_pos('toolyawlink-toolgripper2link', gr)
-
-                for i in range(3):
-                    if self.sensor1.is_triggered(i) and gr <= 0.2:
-                        sensed_obj = self.sensor1.get_sensed_object(i)
-                        if sensed_obj == 'Needle':
-                            if not self.grasped1[i]:
-                                self.actuators1[i].actuate(sensed_obj)
-                                self.grasped1[i] = True
-                                print('Grasping Sensed Object Names', sensed_obj)
-                    else:
-                        if gr > 0.2:
-                            self.actuators1[i].deactuate()
-                            self.grasped1[i] = False
-                            # print('Releasing Actuator ', i)
+                self.runOneArm(self.PSM1)
+                
+            if self.run_psm_two is True:
+                self.runOneArm(self.PSM2)
 
             if self.run_psm_two is True:
-                self.obj_gui2.App.update()
-                # Move the Target Position Based on the GUI
-                x = self.obj_gui2.x
-                y = self.obj_gui2.y
-                z = self.obj_gui2.z
-                ro = self.obj_gui2.ro
-                pi = self.obj_gui2.pi
-                ya = self.obj_gui2.ya
-                gr = self.obj_gui2.gr
-                self.target2.set_pos(x, y, z)
-                self.target2.set_rpy(ro, pi, ya)
-
-                p = self.base2.get_pos()
-                q = self.base2.get_rot()
-                P_b_w = Vector(p.x, p.y, p.z)
-                R_b_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
-                T_b_w = Frame(R_b_w, P_b_w)
-                p = self.target2.get_pos()
-                q = self.target2.get_rot()
-                P_t_w = Vector(p.x, p.y, p.z)
-                R_t_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
-                T_t_w = Frame(R_t_w, P_t_w)
-                T_t_b = T_b_w.Inverse() * T_t_w
-                computed_q = compute_IK(T_t_b)
-
-                # print('SETTING JOINTS: ')
-                # print(computed_q)
-
-                self.base2.set_joint_pos('baselink-yawlink', computed_q[0])
-                self.base2.set_joint_pos('yawlink-pitchbacklink', computed_q[1])
-                self.base2.set_joint_pos('pitchendlink-maininsertionlink', computed_q[2])
-                self.base2.set_joint_pos('maininsertionlink-toolrolllink', computed_q[3])
-                self.base2.set_joint_pos('toolrolllink-toolpitchlink', computed_q[4])
-                self.base2.set_joint_pos('toolpitchlink-toolyawlink', -computed_q[5])
-                self.base2.set_joint_pos('toolyawlink-toolgripper1link', gr)
-                self.base2.set_joint_pos('toolyawlink-toolgripper2link', gr)
-
-                for i in range(3):
-                    if self.sensor2.is_triggered(i) and gr <= 0.2:
-                        sensed_obj = self.sensor2.get_sensed_object(i)
-                        if sensed_obj == 'Needle':
-                            if not self.grasped2[i]:
-                                self.actuators2[i].actuate(sensed_obj)
-                                self.grasped2[i] = True
-                                print('Grasping Sensed Object Names', sensed_obj)
-                    else:
-                        if gr > 0.2:
-                            self.actuators2[i].deactuate()
-                            self.grasped2[i] = False
-                            # print('Releasing Actuator ', i)
-
+                self.runOneArm(self.PSM3)
+                
             time.sleep(0.005)
 
 
@@ -254,6 +201,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
+    parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=True)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
@@ -274,5 +222,11 @@ if __name__ == "__main__":
         psm2_rpy = [3.14, 0, -1.57079]
         OG2 = obj_control_gui.ObjectGUI('psm2/baselink', psm2_xyz, psm2_rpy, 3.0, 3.14, 0.000001)
 
-    psmIK = TestPSMIK(parsed_args.run_psm_one, parsed_args.run_psm_two, OG1, OG2)
+    if parsed_args.run_psm_three is True:
+        # Initial Target Offset for PSM2
+        psm3_xyz = [0.0, 0.0, 0.0]
+        psm3_rpy = [3.14, 0, -1.57079]
+        OG3 = obj_control_gui.ObjectGUI('psm3/baselink', psm3_xyz, psm3_rpy, 3.0, 3.14, 0.000001)
+        
+    psmIK = TestPSMIK(parsed_args.run_psm_one, parsed_args.run_psm_two, parsed_args.run_psm_three, OG1, OG2, OG3)
     psmIK.run()

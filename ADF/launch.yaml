@@ -11,3 +11,6 @@ multibody configs:
   - "./sensors_actuators_psm1.yaml" #4
   - "./sensors_actuators_psm2.yaml" #5
   - "./env.yaml" #6
+  - "./psm3.yaml" #7
+  - "./target3.yaml" #8
+  - "./sensors_actuators_psm3.yaml" #9
