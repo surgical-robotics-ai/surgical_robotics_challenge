@@ -64,7 +64,7 @@ def test_ik():
     print('Comp Q: ', computed_q)
 
 class PSM:
-    def __init__(self, client, namespace, OG, scale):
+    def __init__(self, client, namespace, OG, scale, init_xyz=None):
         self.c = client
         self.scale = scale
         self.base = self.c.get_obj_handle(namespace + '/baselink') 
@@ -79,10 +79,11 @@ class PSM:
         self.grasped.append(False)
         self.grasped.append(False)
         self.obj_gui = OG
-        base_pos = self.base.get_pos()
-        print "Base Pos 2"
-        print base_pos
-        init_xyz = [base_pos.x, base_pos.y, base_pos.z - 0.10 * self.scale]
+        if init_xyz is None:
+            base_pos = self.base.get_pos()
+            print "Base Pos 2"
+            print base_pos
+            init_xyz = [base_pos.x, base_pos.y, base_pos.z - 0.10 * self.scale]
         self.obj_gui.set_init_xyz(init_xyz)
 
     
@@ -103,15 +104,18 @@ class TestPSMIK:
 
         if self.run_psm_one is True:
             print('PREPARING TO LOAD IK FOR PSM1')
-            self.PSM1 = PSM(self.c, 'psm1', OG1, self.psm1_scale)
+            init_xyz = [0.1, -0.85, -0.15]
+            self.PSM1 = PSM(self.c, 'psm1', OG1, self.psm1_scale, init_xyz)
            
         if self.run_psm_two is True:
+            init_xyz = [-0.1, -0.8, -0.15]
             print('PREPARING TO LOAD IK FOR PSM2')
-            self.PSM2 = PSM(self.c, 'psm2', OG2, self.psm2_scale)
+            self.PSM2 = PSM(self.c, 'psm2', OG2, self.psm2_scale, init_xyz)
 
         if self.run_psm_three is True:
             print('PREPARING TO LOAD IK FOR PSM3')
-            self.PSM3 = PSM(self.c, 'psm3', OG3, self.psm3_scale)
+            init_xyz = [0, -1.0, -0.1]
+            self.PSM3 = PSM(self.c, 'psm3', OG3, self.psm3_scale, init_xyz)
 
             
         if not run_psm_one and not run_psm_two and not run_psm_three:

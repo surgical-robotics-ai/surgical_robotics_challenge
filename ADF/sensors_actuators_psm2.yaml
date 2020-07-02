@@ -26,7 +26,7 @@ SENSOR Sensor0:
       direction: {x: 0.0, y: -1.0, z: 0.0}
   range: 0.08
   parent: /ambf/env/psm2/BODY tool yaw link
-  visible: True
+  visible: False
   visible size: 0.005
 
 ACTUATOR Actuator0:
@@ -36,7 +36,7 @@ ACTUATOR Actuator0:
     orientation: {p: 0.0, r: 0.0, y: 0.0}
     position: {x: 0.0, y: -0.11, z: 0.01}
   parent: /ambf/env/psm2/BODY tool yaw link
-  visible: True
+  visible: False
 
 ACTUATOR Actuator1:
   name: Actuator1
@@ -45,7 +45,7 @@ ACTUATOR Actuator1:
     orientation: {p: 0.0, r: 0.0, y: 0.0}
     position: {x: 0.0, y: -0.11, z: 0.0}
   parent: /ambf/env/psm2/BODY tool yaw link
-  visible: True
+  visible: False
 
 ACTUATOR Actuator2:
   name: Actuator2
@@ -54,4 +54,4 @@ ACTUATOR Actuator2:
     orientation: {p: 0.0, r: 0.0, y: 0.0}
     position: {x: 0.0, y: -0.11, z: -0.01}
   parent: /ambf/env/psm2/BODY tool yaw link
-  visible: True
+  visible: False
