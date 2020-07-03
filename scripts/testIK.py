@@ -63,6 +63,7 @@ def test_ik():
     print('Test Q: ', test_q[0:6])
     print('Comp Q: ', computed_q)
 
+
 class PSM:
     def __init__(self, client, namespace, OG, scale, init_xyz=None):
         self.c = client
@@ -173,18 +174,20 @@ class TestPSMIK:
         arm.base.set_joint_pos('toolyawlink-toolgripper2link', gr)
 
         for i in range(3):
-            if arm.sensor.is_triggered(i) and gr <= 0.2:
-                sensed_obj = arm.sensor.get_sensed_object(i)
-                if sensed_obj == 'Needle':
-                    if not arm.grasped[i]:
-                        arm.actuators[i].actuate(sensed_obj)
-                        arm.grasped[i] = True
-                        print('Grasping Sensed Object Names', sensed_obj)
-                else:
-                    if gr > 0.2:
-                        arm.actuators[i].deactuate()
-                        arm.grasped[i] = False
-                        # print('Releasing Actuator ', i)
+            if gr <= 0.2:
+                if arm.sensor.is_triggered(i):
+                    sensed_obj = arm.sensor.get_sensed_object(i)
+                    if sensed_obj == 'Needle':
+                        if not arm.grasped[i]:
+                            arm.actuators[i].actuate(sensed_obj)
+                            arm.grasped[i] = True
+                            print('Grasping Sensed Object Names', sensed_obj)
+            else:
+                arm.actuators[i].deactuate()
+                if arm.grasped[i] is True:
+                    print('Releasing Needle')
+                arm.grasped[i] = False
+                # print('Releasing Actuator ', i)
             
     def run(self):
         while not rospy.is_shutdown():
