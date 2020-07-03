@@ -8,24 +8,45 @@ def attach_needle(client, needle_name, psm_name):
     # psm_name =
     tool_yaw_link = client.get_obj_handle(psm_name + '/toolyawlink')
 
-    p = tool_yaw_link.get_pos()
-    q = tool_yaw_link.get_rot()
+    error = 1000
+    while error > 0.1:
+        P_tINw = Vector(tool_yaw_link.get_pos().x,
+                        tool_yaw_link.get_pos().y,
+                        tool_yaw_link.get_pos().z)
 
-    R_tINw = Rotation.Quaternion(q.x, q.y, q.z, q.w)
+        # R_tINw = Rotation.Quaternion(tool_yaw_link.get_rot().x,
+        #                              tool_yaw_link.get_rot().y,
+        #                              tool_yaw_link.get_rot().x,
+        #                              tool_yaw_link.get_rot().w)
 
-    # we need to move the needle based on the Pose of the toolyawlink.
-    # The yawlink's negative Y direction faces the grasp
-    # position. Therefore, lets add a small offset to the P of yawlink.
-    y_offset = -0.09
-    P_nINw = Vector(p.x, p.y, p.z) + R_tINw * Vector(0, y_offset, 0)
+        R_tINw = Rotation.RPY(tool_yaw_link.get_rpy()[0],
+                              tool_yaw_link.get_rpy()[1],
+                              tool_yaw_link.get_rpy()[2])
 
-    # If you want to rotate the needle to a certain relative orientation
-    # add another Rotation and multiply on the R.H.S of R_tINw in the
-    # Equation below.
-    R_nINw = R_tINw
+        # we need to move the needle based on the Pose of the toolyawlink.
+        # The yawlink's negative Y direction faces the graspp
+        # position. Therefore, lets add a small offset to the P of yawlink.
+        y_offset = Vector(0, -0.09, 0)
+        P_nINw = P_tINw + R_tINw * y_offset
 
-    needle.set_pos(P_nINw[0], P_nINw[1], P_nINw[2])
-    needle.set_rpy(R_nINw.GetRPY()[0], R_nINw.GetRPY()[1], R_nINw.GetRPY()[2])
+        # If you want to rotate the needle to a certain relative orientation
+        # add another Rotation and multiply on the R.H.S of R_tINw in the
+        # Equation below.
+        R_nINw = R_tINw
+
+        needle.set_pos(P_nINw[0],
+                       P_nINw[1],
+                       P_nINw[2])
+        needle.set_rot(R_nINw.GetQuaternion())
+        time.sleep(0.001)
+        P_tINw = Vector(tool_yaw_link.get_pos().x,
+                        tool_yaw_link.get_pos().y,
+                        tool_yaw_link.get_pos().z)
+        P_nINw = Vector(needle.get_pos().x,
+                        needle.get_pos().y,
+                        needle.get_pos().z)
+        error = (P_tINw - P_nINw).Norm()
+        print error
 
     # Wait for the needle to get there
     time.sleep(3)
