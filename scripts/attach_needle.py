@@ -9,7 +9,7 @@ def attach_needle(client, needle_name, psm_name):
     tool_yaw_link = client.get_obj_handle(psm_name + '/toolyawlink')
 
     error = 1000
-    while error > 0.1:
+    while error > 0.2:
         P_tINw = Vector(tool_yaw_link.get_pos().x,
                         tool_yaw_link.get_pos().y,
                         tool_yaw_link.get_pos().z)

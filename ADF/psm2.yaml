@@ -318,9 +318,9 @@ BODY tool gripper1 link:
     ambient:
       level: 1.0
     diffuse:
-      b: 0.3
-      g: 0.3
-      r: 0.3
+      b: 0.5
+      g: 0.5
+      r: 0.5
     specular:
       b: 1.0
       g: 1.0
@@ -398,9 +398,9 @@ BODY tool gripper2 link:
     ambient:
       level: 1.0
     diffuse:
-      b: 0.3
-      g: 0.3
-      r: 0.3
+      b: 0.5
+      g: 0.5
+      r: 0.5
     specular:
       b: 1.0
       g: 1.0
