@@ -11,7 +11,7 @@ ignore inter-collision: true
 namespace: /ambf/env/
 BODY target:
   name: target
-  mesh: target.OBJ
+#  mesh: target.OBJ
   mass: 0.0
   collision margin: 0.001
   scale: 1.0
