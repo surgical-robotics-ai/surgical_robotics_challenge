@@ -4,7 +4,7 @@ cameras: [camera1, camera2]
 environment: "./checkered_floor.yaml"
 namespace: /ambf/env/
 max iterations: 50
-gravity: {x: 0.0, y: 0.0, z: -9.81}
+gravity: {x: 0.0, y: 0.0, z: -3.81}
 shaders:
   path: ../ambf_shaders/normal_map
   vertex: "shader.vs"
