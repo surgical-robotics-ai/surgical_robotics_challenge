@@ -9,7 +9,7 @@ def attach_needle(client, needle_name, psm_name):
     tool_yaw_link = client.get_obj_handle(psm_name + '/toolyawlink')
 
     error = 1000
-    while error > 0.2:
+    while error > 0.1:
         P_tINw = Vector(tool_yaw_link.get_pos().x,
                         tool_yaw_link.get_pos().y,
                         tool_yaw_link.get_pos().z)
@@ -32,7 +32,7 @@ def attach_needle(client, needle_name, psm_name):
         # If you want to rotate the needle to a certain relative orientation
         # add another Rotation and multiply on the R.H.S of R_tINw in the
         # Equation below.
-        R_nINw = R_tINw
+        R_nINw = R_tINw * Rotation.RPY(0, 0, 3.14)
 
         needle.set_pos(P_nINw[0],
                        P_nINw[1],
