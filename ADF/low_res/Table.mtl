@@ -1,8 +1,8 @@
-# Blender MTL File: 'environment.blend'
+# Blender MTL File: 'env.blend'
 # Material Count: 1
 
 newmtl Tablemat
-Ns 96.078431
+Ns 96.078443
 Ka 1.000000 1.000000 1.000000
 Kd 0.091920 0.091920 0.091920
 Ks 0.500000 0.500000 0.500000

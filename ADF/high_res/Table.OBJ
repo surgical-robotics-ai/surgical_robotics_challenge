@@ -1,7 +1,7 @@
-# Blender v2.79 (sub 0) OBJ File: 'environment.blend'
+# Blender v2.83.1 OBJ File: 'env.blend'
 # www.blender.org
 mtllib Table.mtl
-o Table
+o /ambf/env/Table_Table
 v -1.154245 -1.154245 -0.032885
 v -1.154245 -1.154245 0.032885
 v -1.154245 1.154245 0.032885
@@ -17,7 +17,7 @@ vn 0.0000 -1.0000 0.0000
 vn 0.0000 0.0000 -1.0000
 vn 0.0000 0.0000 1.0000
 usemtl Tablemat
-s off
+s 1
 f 1//1 2//1 3//1
 f 1//1 3//1 4//1
 f 4//2 3//2 5//2
