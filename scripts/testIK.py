@@ -118,7 +118,6 @@ class TestPSMIK:
             init_xyz = [0, -1.0, -0.1]
             self.PSM3 = PSM(self.c, 'psm3', OG3, self.psm3_scale, init_xyz)
 
-            
         if not run_psm_one and not run_psm_two and not run_psm_three:
             print('YOU HAVE TO RUN ATLEAST ONE PSMS IK FOR THIS SCRIPT TO DO ANYTHING')
 
@@ -142,19 +141,19 @@ class TestPSMIK:
         pi = arm.obj_gui.pi
         ya = arm.obj_gui.ya
         gr = arm.obj_gui.gr
-        arm.target.set_pos(x, y, z)
-        arm.target.set_rpy(ro, pi, ya)
+        if arm.target is not None:
+            arm.target.set_pos(x, y, z)
+            arm.target.set_rpy(ro, pi, ya)
+
+        P_t_w = Vector(x, y, z)
+        R_t_w = Rotation.RPY(ro, pi, ya)
+        T_t_w = Frame(R_t_w, P_t_w)
 
         p = arm.base.get_pos()
         q = arm.base.get_rot()
         P_b_w = Vector(p.x, p.y, p.z)
         R_b_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
         T_b_w = Frame(R_b_w, P_b_w)
-        p = arm.target.get_pos()
-        q = arm.target.get_rot()
-        P_t_w = Vector(p.x, p.y, p.z)
-        R_t_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
-        T_t_w = Frame(R_t_w, P_t_w)
         T_t_b = T_b_w.Inverse() * T_t_w
         # P_t_b = T_t_b.p
         # P_t_b_scaled = P_t_b / self.psm1_scale
@@ -177,7 +176,7 @@ class TestPSMIK:
             if gr <= 0.2:
                 if arm.sensor.is_triggered(i):
                     sensed_obj = arm.sensor.get_sensed_object(i)
-                    if sensed_obj == 'Needle':
+                    if sensed_obj == 'Needle' or 'T' in sensed_obj:
                         if not arm.grasped[i]:
                             arm.actuators[i].actuate(sensed_obj)
                             arm.grasped[i] = True
@@ -185,7 +184,7 @@ class TestPSMIK:
             else:
                 arm.actuators[i].deactuate()
                 if arm.grasped[i] is True:
-                    print('Releasing Needle')
+                    print('Releasing Grasped Object')
                 arm.grasped[i] = False
                 # print('Releasing Actuator ', i)
             
