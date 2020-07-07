@@ -5,12 +5,13 @@ color config: ./color/colors.yaml
 input devices config: ./input_devices/input_devices.yaml
 multibody configs:
   - "./psm1.yaml" #0
-  - "./psm2.yaml" #1
+  - "./sensors_actuators_psm1.yaml" #1
   - "./target1.yaml" #2
-  - "./target2.yaml" #3
-  - "./sensors_actuators_psm1.yaml" #4
-  - "./sensors_actuators_psm2.yaml" #5
-  - "./env.yaml" #6
-  - "./psm3.yaml" #7
+  - "./psm2.yaml" #3
+  - "./sensors_actuators_psm2.yaml" #4
+  - "./target2.yaml" #5
+  - "./psm3.yaml" #6
+  - "./sensors_actuators_psm3.yaml" #7
   - "./target3.yaml" #8
-  - "./sensors_actuators_psm3.yaml" #9
+  - "./env.yaml" #9
+  - "./gynae.yaml" #10
