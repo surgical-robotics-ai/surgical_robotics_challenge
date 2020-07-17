@@ -1,6 +1,7 @@
 from ambf_client import Client
 from PyKDL import Vector, Rotation
 import time
+import rospy
 
 
 def attach_needle(client, needle_name, psm_name):
@@ -9,7 +10,7 @@ def attach_needle(client, needle_name, psm_name):
     tool_yaw_link = client.get_obj_handle(psm_name + '/toolyawlink')
 
     error = 1000
-    while error > 0.1:
+    while error > 0.1 and not rospy.is_shutdown():
         P_tINw = Vector(tool_yaw_link.get_pos().x,
                         tool_yaw_link.get_pos().y,
                         tool_yaw_link.get_pos().z)
