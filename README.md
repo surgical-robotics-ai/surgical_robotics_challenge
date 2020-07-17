@@ -1,8 +1,14 @@
 ### How to Run
 
-1. Clone, build and source AMBF's `feat-communication` branch.
+1. Clone, build and source AMBF's `ambf-1.0` branch.
 
-https://github.com/WPI-AIM/ambf/tree/feat-communication
+https://github.com/WPI-AIM/ambf/tree/ambf-1.0
+
+```bash
+git checkout origin/ambf-1.0
+git checkout -b ambf-1.0
+git pull origin ambf-1.0
+```
 
 2. Clone this repo outside AMBF source tree. Maybe your home folder.
 Lets call the root of this repo as
