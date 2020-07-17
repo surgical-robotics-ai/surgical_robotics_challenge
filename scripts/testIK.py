@@ -178,7 +178,8 @@ class TestPSMIK:
                     sensed_obj = arm.sensor.get_sensed_object(i)
                     if sensed_obj == 'Needle' or 'T' in sensed_obj:
                         if not arm.grasped[i]:
-                            arm.actuators[i].actuate(sensed_obj)
+                            qualified_nane = '/ambf/env/BODY ' + sensed_obj
+                            arm.actuators[i].actuate(qualified_nane)
                             arm.grasped[i] = True
                             print('Grasping Sensed Object Names', sensed_obj)
             else:
