@@ -6,12 +6,14 @@ input devices config: ./input_devices/input_devices.yaml
 multibody configs:
   - "./psm1.yaml" #0
   - "./sensors_actuators_psm1.yaml" #1
-  - "./target1.yaml" #2
+  - "./target1_ik.yaml" #2
   - "./psm2.yaml" #3
   - "./sensors_actuators_psm2.yaml" #4
-  - "./target2.yaml" #5
+  - "./target2_ik.yaml" #5
   - "./psm3.yaml" #6
   - "./sensors_actuators_psm3.yaml" #7
-  - "./target3.yaml" #8
+  - "./target3_ik.yaml" #8
   - "./env.yaml" #9
   - "./gynae.yaml" #10
+  - "./all_targets.yaml" #11
+  - "./psm_debug.yaml" #12

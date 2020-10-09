@@ -1,0 +1,13 @@
+# Blender MTL File: 'target3_ik.blend'
+# Material Count: 1
+
+newmtl Markermat
+Ns 96.078443
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.264627 0.051893
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /home/adnan/surgical_robotics_challenge/ADF/high_res/.png

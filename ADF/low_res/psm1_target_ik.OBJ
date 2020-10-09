@@ -1,7 +1,7 @@
-# Blender v2.82 (sub 7) OBJ File: 'target2.blend'
+# Blender v2.83.5 OBJ File: 'target1_ik.blend'
 # www.blender.org
-mtllib target.mtl
-o psm2/target_/ambf/env/Marker_Marker
+mtllib psm1_target_ik.mtl
+o psm1_target_ik_/ambf/env/psm1/target_ik
 v 0.000000 -0.000000 0.011966
 v 0.000000 0.002334 0.011736
 v 0.002289 0.002334 0.011510

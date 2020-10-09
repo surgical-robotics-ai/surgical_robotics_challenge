@@ -69,7 +69,8 @@ class PSM:
         self.c = client
         self.scale = scale
         self.base = self.c.get_obj_handle(namespace + '/baselink') 
-        self.target = self.c.get_obj_handle(namespace + '/target')
+        self.target_IK = self.c.get_obj_handle(namespace + '_target_ik')
+        self.target_FK = self.c.get_obj_handle(namespace + '_target_fk')
         self.sensor = self.c.get_obj_handle(namespace + '/Sensor0')
         self.actuators = []
         self.actuators.append(self.c.get_obj_handle(namespace + '/Actuator0'))
@@ -89,7 +90,7 @@ class PSM:
 
     
 class TestPSMIK:
-    def __init__(self, run_psm_one, run_psm_two, run_psm_three, OG1=None, OG2=None, PG3=None):
+    def __init__(self, run_psm_one, run_psm_two, run_psm_three, OG1=None, OG2=None, OG3=None):
         self.c = Client()
         self.c.connect()
 
@@ -106,6 +107,7 @@ class TestPSMIK:
         if self.run_psm_one is True:
             print('PREPARING TO LOAD IK FOR PSM1')
             init_xyz = [0.1, -0.85, -0.15]
+            # init_xyz = [0.65256, 1.36340, -0.5]
             self.PSM1 = PSM(self.c, 'psm1', OG1, self.psm1_scale, init_xyz)
            
         if self.run_psm_two is True:
@@ -141,12 +143,18 @@ class TestPSMIK:
         pi = arm.obj_gui.pi
         ya = arm.obj_gui.ya
         gr = arm.obj_gui.gr
-        if arm.target is not None:
-            arm.target.set_pos(x, y, z)
-            arm.target.set_rpy(ro, pi, ya)
+        if arm.target_IK is not None:
+            arm.target_IK.set_pos(x, y, z)
+            arm.target_IK.set_rpy(ro, pi, ya)
+            # euler = Rotation.EulerZYX(ya, pi, ro)
+            # arm.target.set_rot([euler.GetQuaternion()[0],
+            #                    euler.GetQuaternion()[1],
+            #                    euler.GetQuaternion()[2],
+            #                    euler.GetQuaternion()[3]])
 
         P_t_w = Vector(x, y, z)
         R_t_w = Rotation.RPY(ro, pi, ya)
+        # R_t_w = Rotation.EulerZYX(ya, pi, ro)
         T_t_w = Frame(R_t_w, P_t_w)
 
         p = arm.base.get_pos()
@@ -159,35 +167,47 @@ class TestPSMIK:
         # P_t_b_scaled = P_t_b / self.psm1_scale
         # T_t_b.p = P_t_b_scaled
         computed_q = compute_IK(T_t_b)
+
+        if arm.target_FK is not None:
+            computed_q.append(0)
+            T_7_0 = convert_mat_to_frame(compute_FK(computed_q))
+            T_7_w = T_b_w * T_7_0
+            P_7_0 = T_7_w.p
+            RPY_7_0 = T_7_w.M.GetRPY()
+            arm.target_FK.set_pos(P_7_0[0], P_7_0[1], P_7_0[2])
+            arm.target_FK.set_rpy(RPY_7_0[0], RPY_7_0[1], RPY_7_0[2])
         
         # print('SETTING JOINTS: ')
         # print(computed_q)
 
+        computed_q = enforce_limits(computed_q)
         arm.base.set_joint_pos('baselink-yawlink', computed_q[0])
         arm.base.set_joint_pos('yawlink-pitchbacklink', computed_q[1])
         arm.base.set_joint_pos('pitchendlink-maininsertionlink', computed_q[2])
         arm.base.set_joint_pos('maininsertionlink-toolrolllink', computed_q[3])
         arm.base.set_joint_pos('toolrolllink-toolpitchlink', computed_q[4])
-        arm.base.set_joint_pos('toolpitchlink-toolyawlink', -computed_q[5])
-        arm.base.set_joint_pos('toolyawlink-toolgripper1link', gr)
-        arm.base.set_joint_pos('toolyawlink-toolgripper2link', gr)
+        arm.base.set_joint_pos('toolpitchlink-toolyawlink', computed_q[5])
+        arm.base.set_joint_pos('toolyawlink-toolgripper1link', 0)
+        arm.base.set_joint_pos('toolyawlink-toolgripper2link', 0)
 
         for i in range(3):
             if gr <= 0.2:
-                if arm.sensor.is_triggered(i):
-                    sensed_obj = arm.sensor.get_sensed_object(i)
-                    if sensed_obj == 'Needle' or 'T' in sensed_obj:
-                        if not arm.grasped[i]:
-                            qualified_nane = '/ambf/env/BODY ' + sensed_obj
-                            arm.actuators[i].actuate(qualified_nane)
-                            arm.grasped[i] = True
-                            print('Grasping Sensed Object Names', sensed_obj)
+                if arm.sensor is not None:
+                    if arm.sensor.is_triggered(i):
+                        sensed_obj = arm.sensor.get_sensed_object(i)
+                        if sensed_obj == 'Needle' or 'T' in sensed_obj:
+                            if not arm.grasped[i]:
+                                qualified_nane = '/ambf/env/BODY ' + sensed_obj
+                                arm.actuators[i].actuate(qualified_nane)
+                                arm.grasped[i] = True
+                                print('Grasping Sensed Object Names', sensed_obj)
             else:
-                arm.actuators[i].deactuate()
-                if arm.grasped[i] is True:
-                    print('Releasing Grasped Object')
-                arm.grasped[i] = False
-                # print('Releasing Actuator ', i)
+                if arm.actuators[i] is not None:
+                    arm.actuators[i].deactuate()
+                    if arm.grasped[i] is True:
+                        print('Releasing Grasped Object')
+                    arm.grasped[i] = False
+                    # print('Releasing Actuator ', i)
             
     def run(self):
         while not rospy.is_shutdown():
@@ -217,12 +237,26 @@ if __name__ == "__main__":
     OG1 = None
     OG2 = None
     OG3 = None
+
+    if parsed_args.run_psm_one in ['True', 'true', '1']:
+        parsed_args.run_psm_one = True
+    elif parsed_args.run_psm_one in ['False', 'false', '0']:
+        parsed_args.run_psm_one = False
+
+    if parsed_args.run_psm_two in ['True', 'true', '1']:
+        parsed_args.run_psm_two = True
+    elif parsed_args.run_psm_two in ['False', 'false', '0']:
+        parsed_args.run_psm_two = False
+    if parsed_args.run_psm_three in ['True', 'true', '1']:
+        parsed_args.run_psm_three = True
+    elif parsed_args.run_psm_three in ['False', 'false', '0']:
+        parsed_args.run_psm_three = False
     
     if parsed_args.run_psm_one is True:
         # Initial Target Offset for PSM1
         psm1_xyz = [0.0, 0.0, 0.0]
         psm1_rpy = [3.14, 0, -1.57079]
-        OG1 = obj_control_gui.ObjectGUI('psm1/baselink', psm1_xyz, psm1_rpy, 3.0, 3.14, 0.000001)
+        OG1 = obj_control_gui.ObjectGUI('psm1/baselink', psm1_xyz, psm1_rpy, 5.0, 4.5, 0.000001)
 
     if parsed_args.run_psm_two is True:
         # Initial Target Offset for PSM2
@@ -235,6 +269,6 @@ if __name__ == "__main__":
         psm3_xyz = [0.0, 0.0, 0.0]
         psm3_rpy = [3.14, 0, -1.57079]
         OG3 = obj_control_gui.ObjectGUI('psm3/baselink', psm3_xyz, psm3_rpy, 3.0, 3.14, 0.000001)
-        
+
     psmIK = TestPSMIK(parsed_args.run_psm_one, parsed_args.run_psm_two, parsed_args.run_psm_three, OG1, OG2, OG3)
     psmIK.run()
