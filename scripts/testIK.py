@@ -187,8 +187,8 @@ class TestPSMIK:
         arm.base.set_joint_pos('maininsertionlink-toolrolllink', computed_q[3])
         arm.base.set_joint_pos('toolrolllink-toolpitchlink', computed_q[4])
         arm.base.set_joint_pos('toolpitchlink-toolyawlink', computed_q[5])
-        arm.base.set_joint_pos('toolyawlink-toolgripper1link', 0)
-        arm.base.set_joint_pos('toolyawlink-toolgripper2link', 0)
+        arm.base.set_joint_pos('toolyawlink-toolgripper1link', gr)
+        arm.base.set_joint_pos('toolyawlink-toolgripper2link', gr)
 
         for i in range(3):
             if gr <= 0.2:
