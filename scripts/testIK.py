@@ -70,6 +70,7 @@ class PSM:
         self.scale = scale
         self.base = self.c.get_obj_handle(namespace + '/baselink') 
         self.target_IK = self.c.get_obj_handle(namespace + '_target_ik')
+        self.palm_joint_IK = self.c.get_obj_handle(namespace + '_palm_joint_ik')
         self.target_FK = self.c.get_obj_handle(namespace + '_target_fk')
         self.sensor = self.c.get_obj_handle(namespace + '/Sensor0')
         self.actuators = []
@@ -97,6 +98,7 @@ class TestPSMIK:
         self.psm1_scale = 10.0
         self.psm2_scale = 10.0
         self.psm3_scale = 10.0
+        self.counter = 0
 
         self.run_psm_one = run_psm_one
         self.run_psm_two = run_psm_two
@@ -146,11 +148,8 @@ class TestPSMIK:
         if arm.target_IK is not None:
             arm.target_IK.set_pos(x, y, z)
             arm.target_IK.set_rpy(ro, pi, ya)
-            # euler = Rotation.EulerZYX(ya, pi, ro)
-            # arm.target.set_rot([euler.GetQuaternion()[0],
-            #                    euler.GetQuaternion()[1],
-            #                    euler.GetQuaternion()[2],
-            #                    euler.GetQuaternion()[3]])
+            # euler = Rotation.RPY(ro, pi, ya)
+            # arm.target_IK.set_rpy(euler.GetRPY()[0], euler.GetRPY()[1], euler.GetRPY()[2])
 
         P_t_w = Vector(x, y, z)
         R_t_w = Rotation.RPY(ro, pi, ya)
@@ -166,7 +165,16 @@ class TestPSMIK:
         # P_t_b = T_t_b.p
         # P_t_b_scaled = P_t_b / self.psm1_scale
         # T_t_b.p = P_t_b_scaled
-        computed_q = compute_IK(T_t_b)
+        computed_q = enforce_limits(compute_IK(T_t_b))
+
+        if arm.palm_joint_IK is not None:
+            T_PalmJoint_0 = get_T_PalmJoint_0()
+            if T_PalmJoint_0 is not None:
+                T_PalmJoint_w = T_b_w * T_PalmJoint_0
+                arm.palm_joint_IK.set_pos(T_PalmJoint_w.p[0], T_PalmJoint_w.p[1], T_PalmJoint_w.p[2])
+                arm.palm_joint_IK.set_rpy(T_PalmJoint_w.M.GetRPY()[0], T_PalmJoint_w.M.GetRPY()[1], T_PalmJoint_w.M.GetRPY()[2])
+            else:
+                print "T_PalmJoint_0 is Not Set"
 
         if arm.target_FK is not None:
             computed_q.append(0)
@@ -176,11 +184,12 @@ class TestPSMIK:
             RPY_7_0 = T_7_w.M.GetRPY()
             arm.target_FK.set_pos(P_7_0[0], P_7_0[1], P_7_0[2])
             arm.target_FK.set_rpy(RPY_7_0[0], RPY_7_0[1], RPY_7_0[2])
-        
-        # print('SETTING JOINTS: ')
-        # print(computed_q)
 
-        computed_q = enforce_limits(computed_q)
+        # self.counter = self.counter + 1
+        # if self.counter % 10 == 0:
+        #     self.counter = 0
+        #     print ["{0:0.2f}".format(i) for i in computed_q]
+
         arm.base.set_joint_pos('baselink-yawlink', computed_q[0])
         arm.base.set_joint_pos('yawlink-pitchbacklink', computed_q[1])
         arm.base.set_joint_pos('pitchendlink-maininsertionlink', computed_q[2])
@@ -256,7 +265,7 @@ if __name__ == "__main__":
         # Initial Target Offset for PSM1
         psm1_xyz = [0.0, 0.0, 0.0]
         psm1_rpy = [3.14, 0, -1.57079]
-        OG1 = obj_control_gui.ObjectGUI('psm1/baselink', psm1_xyz, psm1_rpy, 5.0, 4.5, 0.000001)
+        OG1 = obj_control_gui.ObjectGUI('psm1/baselink', psm1_xyz, psm1_rpy, 3.0, 3.14, 0.000001)
 
     if parsed_args.run_psm_two is True:
         # Initial Target Offset for PSM2

@@ -48,6 +48,7 @@ import rospy
 #
 # is the direction between the difference of A and B expressed in C.
 
+T_PalmJoint_0 = None
 
 def enforce_limits(j_raw):
     # Min to Max Limits
@@ -69,7 +70,13 @@ def enforce_limits(j_raw):
     return [j_limited[0], j_limited[1], j_limited[2], j_limited[3], j_limited[4], j_limited[5]]
 
 
+def get_T_PalmJoint_0():
+    global T_PalmJoint_0
+    return T_PalmJoint_0
+
+
 def compute_IK(T_7_0):
+    global T_PalmJoint_0
     L_pitch2yaw = 0.09 # Fixed length from the palm joint to the pinch joint
     L_yaw2ctrlpnt = 0.106 # Fixed length from the pinch joint to the pinch tip
     L_tool2rcm_offset = 0.229 # Delta between tool tip and the Remote Center of Motion
@@ -120,25 +127,20 @@ def compute_IK(T_7_0):
     # Calculate insertion_depth to check if the tool is past the RCM
     insertion_depth = T_PalmJoint_0.p.Norm()
 
-    if insertion_depth <= L_tool2rcm_offset:
-        sign = 1
-    elif insertion_depth > L_tool2rcm_offset:
-        sign = -1
-
     # Now having the end point of the shaft or the PalmJoint, we can calculate some
     # angles as follows
-    # xz_diagonal = math.sqrt(T_PalmJoint_0.p[0] ** 2 + T_PalmJoint_0.p[2] ** 2)
+    xz_diagonal = math.sqrt(T_PalmJoint_0.p[0] ** 2 + T_PalmJoint_0.p[2] ** 2)
     # # print ('XZ Diagonal: ', xz_diagonal)
-    # j1 = np.sign(T_PalmJoint_0.p[0]) * math.acos(-T_PalmJoint_0.p[2] / xz_diagonal)
-    j1 = math.atan2(T_PalmJoint_0.p[0], sign * T_PalmJoint_0.p[2])
 
-    # yz_diagonal = math.sqrt(T_PalmJoint_0.p[1] ** 2 + T_PalmJoint_0.p[2] ** 2)
+    yz_diagonal = math.sqrt(T_PalmJoint_0.p[1] ** 2 + T_PalmJoint_0.p[2] ** 2)
     # # print('YZ Diagonal: ', yz_diagonal)
+
+    j1 = math.atan2(T_PalmJoint_0.p[0], -T_PalmJoint_0.p[2])
+
     # j2 = np.sign(T_PalmJoint_0.p[0]) * math.acos(-T_PalmJoint_0.p[2] / yz_diagonal)
-    j2 = -math.atan2(T_PalmJoint_0.p[1], sign * T_PalmJoint_0.p[2])
+    j2 = -math.atan2(T_PalmJoint_0.p[1], xz_diagonal)
 
     j3 = insertion_depth + L_tool2rcm_offset
-
 
     # Calculate j4
     # This is an important case and has to be dealt carefully. Based on some inspection, we can find that
