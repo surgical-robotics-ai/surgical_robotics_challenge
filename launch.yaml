@@ -1,0 +1,20 @@
+# This is the base file for Coordination Application
+world config: ADF/world/world.yaml
+# world config: ./world/raven_world.yaml
+color config: ADF/color/colors.yaml
+input devices config: ADF/input_devices/input_devices.yaml
+multibody configs:
+  - "ADF/psm1.yaml" #0
+  - "ADF/sensors_actuators_psm1.yaml" #1
+  - "ADF/target1_ik.yaml" #2
+  - "ADF/psm2.yaml" #3
+  - "ADF/sensors_actuators_psm2.yaml" #4
+  - "ADF/target2_ik.yaml" #5
+  - "ADF/psm3.yaml" #6
+  - "ADF/sensors_actuators_psm3.yaml" #7
+  - "ADF/target3_ik.yaml" #8
+  - "ADF/env.yaml" #9
+  - "ADF/gynae.yaml" #10
+  - "ADF/all_targets.yaml" #11
+  - "ADF/psm_debug.yaml" #12
+  - "ADF/phantom.yaml" #12

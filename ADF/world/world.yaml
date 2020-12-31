@@ -1,6 +1,6 @@
 enclosure size: {length: 10.0, width: 10.0, height: 3.0}
 lights: [light1]
-cameras: [camera1]
+cameras: [camera1, camera2]
 environment: "./checkered_floor.yaml"
 namespace: /ambf/env/
 max iterations: 50
@@ -46,6 +46,7 @@ camera1:
   clipping plane: {near: 0.01, far: 50.0}
   field view angle: 0.8
   monitor: 0
+  # publish depth: True
   # multipass: True
 
 camera2:
