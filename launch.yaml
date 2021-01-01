@@ -17,4 +17,4 @@ multibody configs:
   - "ADF/gynae.yaml" #10
   - "ADF/all_targets.yaml" #11
   - "ADF/psm_debug.yaml" #12
-  - "ADF/phantom.yaml" #12
+  - "ADF/phantom.yaml" #13

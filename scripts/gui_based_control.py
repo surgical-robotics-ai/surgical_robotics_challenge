@@ -50,7 +50,8 @@ import rospy
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
 import obj_control_gui
-    
+
+
 class GUIController:
     def __init__(self, arm, gui_handle):
         self.counter = 0
@@ -69,17 +70,16 @@ class GUIController:
         # Move the Target Position Based on the GUI
         if self.arm.target_IK is not None:
             gui = self.GUI
-            self.arm.target_IK.set_pos(gui.x, gui.y, gui.z)
-            self.arm.target_IK.set_rpy(gui.ro, gui.pi, gui.ya)
+            T_ik_w = self.arm.get_T_b_w * Frame(Rotation.RPY(gui.ro, gui.pi, gui.ya), Vector(gui.x, gui.y, gui.z))
+            self.arm.target_IK.set_pos(T_ik_w.p[0], T_ik_w.p[1], T_ik_w.p[2])
+            self.arm.target_IK.set_rpy(T_ik_w.M.GetRPY()[0], T_ik_w.M.GetRPY()[1], T_ik_w.M.GetRPY()[2])
         if self.arm.target_FK is not None:
             ik_solution = self.arm.get_ik_solution()
             ik_solution = np.append(ik_solution, 0)
-            T_7_0 = convert_mat_to_frame(compute_FK(ik_solution))
-            T_7_w = self.arm.get_T_b_w() * T_7_0
-            P_7_0 = T_7_w.p
-            RPY_7_0 = T_7_w.M.GetRPY()
-            self.arm.target_FK.set_pos(P_7_0[0], P_7_0[1], P_7_0[2])
-            self.arm.target_FK.set_rpy(RPY_7_0[0], RPY_7_0[1], RPY_7_0[2])
+            T_t_b = convert_mat_to_frame(compute_FK(ik_solution))
+            T_t_w = self.arm.get_T_b_w() * T_t_b
+            self.arm.target_FK.set_pos(T_t_w.p[0], T_t_w.p[1], T_t_w.p[2])
+            self.arm.target_FK.set_rpy(T_t_w.M.GetRPY()[0], T_t_w.M.GetRPY()[1], T_t_w.M.GetRPY()[2])
 
     def run(self):
             self.update_arm_pose()
@@ -117,9 +117,9 @@ if __name__ == "__main__":
     
     if parsed_args.run_psm_one is True:
         # Initial Target Offset for PSM1
-        init_xyz = [0.1, -0.85, -0.15]
-        # init_xyz = [0.65256, 1.36340, -0.5]
-        init_rpy = [3.14, 0, -1.57079]
+        # init_xyz = [0.1, -0.85, -0.15]
+        init_xyz = [0, 0, -1.0]
+        init_rpy = [3.14, 0, 1.57079]
         arm_name = 'psm1'
         print('LOADING CONTROLLER FOR ', arm_name)
         gui = obj_control_gui.ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 3.14, 0.000001)
@@ -129,8 +129,8 @@ if __name__ == "__main__":
 
     if parsed_args.run_psm_two is True:
         # Initial Target Offset for PSM2
-        init_xyz = [-0.1, -0.8, -0.15]
-        init_rpy = [3.14, 0, -1.57079]
+        init_xyz = [0, 0.0, -1.0]
+        init_rpy = [3.14, 0, 1.57079]
         arm_name = 'psm2'
         print('LOADING CONTROLLER FOR ', arm_name)
         gui = obj_control_gui.ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 3.14, 0.000001)
@@ -140,8 +140,8 @@ if __name__ == "__main__":
 
     if parsed_args.run_psm_three is True:
         # Initial Target Offset for PSM2
-        init_xyz = [0, -1.0, -0.1]
-        init_rpy = [3.14, 0, -1.57079]
+        init_xyz = [0, 0.0, -1.0]
+        init_rpy = [3.14, 0, 1.57079]
         arm_name = 'psm3'
         print('LOADING CONTROLLER FOR ', arm_name)
         gui = obj_control_gui.ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 3.14, 0.000001)

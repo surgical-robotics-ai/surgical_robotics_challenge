@@ -52,13 +52,13 @@ camera1:
 camera2:
   namespace: cameras/
   name: default_camera2
-  location: {x: 0.0, y: -0.2, z: 0.01}
-  look at: {x: 0.0, y: -1.0, z: -0.5}
-  up: {x: 0.0, y: 0.0, z: 1.0}
-  clipping plane: {near: 0.01, far: 50.0}
+  location: {x: 0.0, y: 0.0, z: 0.0}
+  look at: {x: 0.0, y: 0.0, z: -1.0}
+  up: {x: -1.0, y: 0.0, z: 0.0}
+  clipping plane: {near: 0.01, far: 20.0}
   field view angle: 1.2
   monitor: 0
-  parent: BODY frame
+  parent: BODY CameraFrame
   # multipass: True
 
 # This example is to show how to parent w.r.t another body.

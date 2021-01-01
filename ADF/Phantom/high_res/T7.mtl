@@ -1,7 +1,7 @@
-# Blender MTL File: 'env.blend'
+# Blender MTL File: 'all_arms_with_phantom.blend'
 # Material Count: 1
 
-newmtl Thread
+newmtl Thread.013
 Ns 323.999994
 Ka 1.000000 1.000000 1.000000
 Kd 1.000000 0.661161 0.812572

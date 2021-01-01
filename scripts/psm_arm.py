@@ -46,6 +46,7 @@ from psmIK import *
 from PyKDL import Frame, Rotation, Vector
 import time
 
+
 class PSM:
     def __init__(self, client, namespace):
         self.client = client
@@ -74,9 +75,11 @@ class PSM:
         return self._ik_solution
 
     def get_T_b_w(self):
+        self._update_base_pose()
         return self._T_b_w
 
     def get_T_w_b(self):
+        self._update_base_pose()
         return self._T_w_b
 
     def _update_base_pose(self):
@@ -109,12 +112,10 @@ class PSM:
                     self.grasped[i] = False
                     # print('Releasing Actuator ', i)
 
-    def move_cp(self, T_t_w):
-        if type(T_t_w) in [np.matrix, np.array]:
-            T_t_w = convert_mat_to_frame(T_t_w)
+    def move_cp(self, T_t_b):
+        if type(T_t_b) in [np.matrix, np.array]:
+            T_t_b = convert_mat_to_frame(T_t_b)
 
-        self._update_base_pose()
-        T_t_b = self._T_w_b * T_t_w
         ik_solution = compute_IK(T_t_b)
         self._ik_solution = enforce_limits(ik_solution)
         self.move_jp(self._ik_solution)
