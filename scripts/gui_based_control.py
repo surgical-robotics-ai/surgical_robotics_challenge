@@ -61,8 +61,8 @@ class GUIController:
     def update_arm_pose(self):
         gui = self.GUI
         gui.App.update()
-        T_t_w = Frame(Rotation.RPY(gui.ro, gui.pi, gui.ya), Vector(gui.x, gui.y, gui.z))
-        self.arm.move_cp(T_t_w)
+        T_t_b = Frame(Rotation.RPY(gui.ro, gui.pi, gui.ya), Vector(gui.x, gui.y, gui.z))
+        self.arm.move_cp(T_t_b)
         self.arm.set_jaw_angle(gui.gr)
         self.arm.run_grasp_logic(gui.gr)
 
@@ -70,7 +70,7 @@ class GUIController:
         # Move the Target Position Based on the GUI
         if self.arm.target_IK is not None:
             gui = self.GUI
-            T_ik_w = self.arm.get_T_b_w * Frame(Rotation.RPY(gui.ro, gui.pi, gui.ya), Vector(gui.x, gui.y, gui.z))
+            T_ik_w = self.arm.get_T_b_w() * Frame(Rotation.RPY(gui.ro, gui.pi, gui.ya), Vector(gui.x, gui.y, gui.z))
             self.arm.target_IK.set_pos(T_ik_w.p[0], T_ik_w.p[1], T_ik_w.p[2])
             self.arm.target_IK.set_rpy(T_ik_w.M.GetRPY()[0], T_ik_w.M.GetRPY()[1], T_ik_w.M.GetRPY()[2])
         if self.arm.target_FK is not None:
@@ -122,7 +122,7 @@ if __name__ == "__main__":
         init_rpy = [3.14, 0, 1.57079]
         arm_name = 'psm1'
         print('LOADING CONTROLLER FOR ', arm_name)
-        gui = obj_control_gui.ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 3.14, 0.000001)
+        gui = obj_control_gui.ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 10.0, 0.000001)
         psm = PSM(c, arm_name)
         controller = GUIController(psm, gui)
         controllers.append(controller)

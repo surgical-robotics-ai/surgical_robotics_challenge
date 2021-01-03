@@ -50,42 +50,43 @@ import rospy
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
 from geomagic_device import GeomagicDevice
+from itertools import cycle
 
 
 class ControllerInterface:
-    def __init__(self, master, slave):
+    def __init__(self, master, slave_arms):
         self.counter = 0
         self.master = master
-        self.slave = slave
+        self.slave_arms = cycle(slave_arms)
+        self.active_salve = self.slave_arms.next()
 
-        self.init_xyz = Vector(0.0, 0.0, -1.0)
-        self.init_rpy = Rotation.RPY(3.14, 0.0, 1.57079)
-
-        self.cmd_xyz = self.init_xyz
-        self.cmd_rpy = self.init_rpy
-
+        self.cmd_xyz = self.active_salve.T_t_b_desired.p
+        self.cmd_rpy = None
         self.T_IK = None
+
+    def switch_slave(self):
+        self.active_salve = self.slave_arms.next()
+        print('Switching Control of Next Slave Arm: ', self.active_salve.name)
 
     def update_arm_pose(self):
         twist = self.master.measured_cv()
-        if not self.master.gripper_button_pressed:
-            self.cmd_xyz = self.cmd_xyz + twist.vel * 0.00005
+        self.cmd_xyz = self.active_salve.T_t_b_desired.p
+        if not self.master.clutch_button_pressed:
+            self.cmd_xyz = self.cmd_xyz + twist.vel * 0.0001
+            self.active_salve.T_t_b_desired.p = self.cmd_xyz
 
-        rot_offset_correction = Rotation.RPY(0.0, 0.0, 0.0)
-        self.cmd_rpy = self.master.measured_cp().M * self.init_rpy
-
+        self.cmd_rpy = self.master.measured_cp().M * self.active_salve.T_t_b_desired.M
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
-
-        self.slave.move_cp(self.T_IK)
-        self.slave.set_jaw_angle(self.master.get_jaw_angle())
-        self.slave.run_grasp_logic(self.master.get_jaw_angle())
+        self.active_salve.move_cp(self.T_IK)
+        self.active_salve.set_jaw_angle(self.master.get_jaw_angle())
+        self.active_salve.run_grasp_logic(self.master.get_jaw_angle())
 
     def update_visual_markers(self):
         # Move the Target Position Based on the GUI
-        if self.slave.target_IK is not None:
-            T_t_w = self.slave.get_T_b_w() * self.T_IK
-            self.slave.target_IK.set_pos(T_t_w.p[0], T_t_w.p[1], T_t_w.p[2])
-            self.slave.target_IK.set_rpy(T_t_w.M.GetRPY()[0], T_t_w.M.GetRPY()[1], T_t_w.M.GetRPY()[2])
+        if self.active_salve.target_IK is not None:
+            T_t_w = self.active_salve.get_T_b_w() * self.T_IK
+            self.active_salve.target_IK.set_pos(T_t_w.p[0], T_t_w.p[1], T_t_w.p[2])
+            self.active_salve.target_IK.set_rpy(T_t_w.M.GetRPY()[0], T_t_w.M.GetRPY()[1], T_t_w.M.GetRPY()[2])
         # if self.arm.target_FK is not None:
         #     ik_solution = self.arm.get_ik_solution()
         #     ik_solution = np.append(ik_solution, 0)
@@ -97,8 +98,11 @@ class ControllerInterface:
         #     self.arm.target_FK.set_rpy(RPY_7_0[0], RPY_7_0[1], RPY_7_0[2])
 
     def run(self):
-            self.update_arm_pose()
-            self.update_visual_markers()
+        if self.master.switch_slave:
+            self.switch_slave()
+            self.master.switch_slave = False
+        self.update_arm_pose()
+        self.update_visual_markers()
 
 
 if __name__ == "__main__":
@@ -129,25 +133,45 @@ if __name__ == "__main__":
     c.connect()
 
     controllers = []
-    
+    slave_arms = []
+
     if parsed_args.run_psm_one is True:
+        # Initial Target Offset for PSM1
+        # init_xyz = [0.1, -0.85, -0.15]
+        arm_name = 'psm1'
+        print('LOADING CONTROLLER FOR ', arm_name)
+        psm = PSM(c, arm_name)
+        slave_arms.append(psm)
+
+    if parsed_args.run_psm_two is True:
+        # Initial Target Offset for PSM1
+        # init_xyz = [0.1, -0.85, -0.15]
+        arm_name = 'psm2'
+        print('LOADING CONTROLLER FOR ', arm_name)
+        theta_base = -0.7
+        psm = PSM(c, arm_name)
+        slave_arms.append(psm)
+
+    if parsed_args.run_psm_three is True:
         # Initial Target Offset for PSM1
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm3'
         print('LOADING CONTROLLER FOR ', arm_name)
-        master = GeomagicDevice('/Geomagic/')
-        theta = -0.7
-        master.set_base_frame(Frame(Rotation.RPY(theta, 0, 0), Vector(0, 0, 0)))
-        master.set_tip_frame(Frame(Rotation.RPY(theta+0.7, 0, 0), Vector()))
         psm = PSM(c, arm_name)
-        controller = ControllerInterface(master, psm)
-        controllers.append(controller)
+        slave_arms.append(psm)
 
-    if len(controllers) == 0:
+    if len(slave_arms) == 0:
         print('No Valid PSM Arms Specified')
         print('Exiting')
 
     else:
+        master = GeomagicDevice('/Geomagic/')
+        theta_base = -0.7
+        theta_tip = 0.7
+        master.set_base_frame(Frame(Rotation.RPY(theta_base, 0, 0), Vector(0, 0, 0)))
+        master.set_tip_frame(Frame(Rotation.RPY(theta_base + theta_tip, 0, 0), Vector()))
+        controller = ControllerInterface(master, slave_arms)
+        controllers.append(controller)
         while not rospy.is_shutdown():
             for cont in controllers:
                 cont.run()

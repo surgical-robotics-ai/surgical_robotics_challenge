@@ -48,20 +48,22 @@ import time
 
 
 class PSM:
-    def __init__(self, client, namespace):
+    def __init__(self, client, name):
         self.client = client
-        self.namespace = namespace
-        self.base = self.client.get_obj_handle(namespace + '/baselink')
-        self.target_IK = self.client.get_obj_handle(namespace + '_target_ik')
-        self.palm_joint_IK = self.client.get_obj_handle(namespace + '_palm_joint_ik')
-        self.target_FK = self.client.get_obj_handle(namespace + '_target_fk')
-        self.sensor = self.client.get_obj_handle(namespace + '/Sensor0')
+        self.name = name
+        self.base = self.client.get_obj_handle(name + '/baselink')
+        self.target_IK = self.client.get_obj_handle(name + '_target_ik')
+        self.palm_joint_IK = self.client.get_obj_handle(name + '_palm_joint_ik')
+        self.target_FK = self.client.get_obj_handle(name + '_target_fk')
+        self.sensor = self.client.get_obj_handle(name + '/Sensor0')
         self.actuators = []
-        self.actuators.append(self.client.get_obj_handle(namespace + '/Actuator0'))
-        self.actuators.append(self.client.get_obj_handle(namespace + '/Actuator1'))
-        self.actuators.append(self.client.get_obj_handle(namespace + '/Actuator2'))
+        self.actuators.append(self.client.get_obj_handle(name + '/Actuator0'))
+        self.actuators.append(self.client.get_obj_handle(name + '/Actuator1'))
+        self.actuators.append(self.client.get_obj_handle(name + '/Actuator2'))
         time.sleep(0.5)
         self.grasped = [False, False, False]
+
+        self.T_t_b_desired = Frame(Rotation.RPY(3.14, 0.0, 1.57079), Vector(0, 0, -1.0))
 
         # Transform of Base in World
         self._T_b_w = None
@@ -70,6 +72,7 @@ class PSM:
         self._base_pose_updated = False
         self._num_joints = 6
         self._ik_solution = np.zeros([self._num_joints])
+        self._last_jp = np.zeros([self._num_joints])
 
     def get_ik_solution(self):
         return self._ik_solution
@@ -120,6 +123,10 @@ class PSM:
         self._ik_solution = enforce_limits(ik_solution)
         self.move_jp(self._ik_solution)
 
+    def optimize_jp(self, jp):
+        # Optimizing the tool shaft roll angle
+        pass
+
     def move_jp(self, jp):
         self.base.set_joint_pos('baselink-yawlink', jp[0])
         self.base.set_joint_pos('yawlink-pitchbacklink', jp[1])
@@ -131,4 +138,7 @@ class PSM:
     def set_jaw_angle(self, jaw_angle):
         self.base.set_joint_pos('toolyawlink-toolgripper1link', jaw_angle)
         self.base.set_joint_pos('toolyawlink-toolgripper2link', jaw_angle)
+
+    def measure_cp(self):
+        pass
 

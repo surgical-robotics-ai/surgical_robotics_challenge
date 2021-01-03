@@ -52,8 +52,8 @@ class GeomagicDevice:
         self._T_baseoffset = Frame(R_off, Vector(0, 0, 0))
         self._T_baseoffset_inverse = self._T_baseoffset.Inverse()
         self._T_tipoffset = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
-        self.grey_button_pressed = False # Used as Position Engage Clutch
-        self.white_button_pressed = False # Used as Gripper Open Close Binary Angle
+        self.clutch_button_pressed = False # Used as Position Engage Clutch
+        self.gripper_button_pressed = False # Used as Gripper Open Close Binary Angle
         self._force = DeviceFeedback()
         self._force.force.x = 0
         self._force.force.y = 0
@@ -66,6 +66,11 @@ class GeomagicDevice:
         self._twist_sub = rospy.Subscriber(twist_topic_name, Twist, self.twist_cb, queue_size=1)
         self._button_sub = rospy.Subscriber(button_topic_name, DeviceButtonEvent, self.buttons_cb, queue_size=1)
         self._force_pub = rospy.Publisher(force_topic_name, DeviceFeedback, queue_size=1)
+
+        self.switch_slave = False
+
+        self._button_msg_time = rospy.Time.now()
+        self._switch_slave_duration = rospy.Duration(0.5)
 
         print('Creating Geomagic Device Named: ', name, ' From ROS Topics')
         self._msg_counter = 0
@@ -105,8 +110,16 @@ class GeomagicDevice:
         pass
 
     def buttons_cb(self, msg):
-        self.white_button_pressed = msg.white_button
-        self.grey_button_pressed = msg.grey_button
+        self.gripper_button_pressed = msg.white_button
+        self.clutch_button_pressed = msg.grey_button
+
+        if self.clutch_button_pressed:
+            time_diff = rospy.Time.now() - self._button_msg_time
+            if time_diff.to_sec() < self._switch_slave_duration.to_sec():
+                print('Allow Slave Switch')
+                self.switch_slave = True
+            print(time_diff)
+            self._button_msg_time = rospy.Time.now()
 
     def command_force(self, force):
         pass
@@ -118,7 +131,7 @@ class GeomagicDevice:
         return self.twist
 
     def get_jaw_angle(self):
-        if self.grey_button_pressed:
+        if self.gripper_button_pressed:
             return 0.0
         else:
             return 0.8

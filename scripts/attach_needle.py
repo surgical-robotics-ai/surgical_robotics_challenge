@@ -2,27 +2,27 @@ from ambf_client import Client
 from PyKDL import Vector, Rotation
 import time
 import rospy
+import Tkinter
 
 
-def attach_needle(client, needle_name, psm_name):
-    needle = client.get_obj_handle(needle_name)
-    # psm_name =
-    tool_yaw_link = client.get_obj_handle(psm_name + '/toolyawlink')
-
+def attach_needle(needle, link):
     error = 1000
+    if link is None:
+        print ('Not a valid link, returning')
+        return
     while error > 0.1 and not rospy.is_shutdown():
-        P_tINw = Vector(tool_yaw_link.get_pos().x,
-                        tool_yaw_link.get_pos().y,
-                        tool_yaw_link.get_pos().z)
+        P_tINw = Vector(link.get_pos().x,
+                        link.get_pos().y,
+                        link.get_pos().z)
 
         # R_tINw = Rotation.Quaternion(tool_yaw_link.get_rot().x,
         #                              tool_yaw_link.get_rot().y,
         #                              tool_yaw_link.get_rot().x,
         #                              tool_yaw_link.get_rot().w)
 
-        R_tINw = Rotation.RPY(tool_yaw_link.get_rpy()[0],
-                              tool_yaw_link.get_rpy()[1],
-                              tool_yaw_link.get_rpy()[2])
+        R_tINw = Rotation.RPY(link.get_rpy()[0],
+                              link.get_rpy()[1],
+                              link.get_rpy()[2])
 
         # we need to move the needle based on the Pose of the toolyawlink.
         # The yawlink's negative Y direction faces the graspp
@@ -40,9 +40,9 @@ def attach_needle(client, needle_name, psm_name):
                        P_nINw[2])
         needle.set_rot(R_nINw.GetQuaternion())
         time.sleep(0.001)
-        P_tINw = Vector(tool_yaw_link.get_pos().x,
-                        tool_yaw_link.get_pos().y,
-                        tool_yaw_link.get_pos().z)
+        P_tINw = Vector(link.get_pos().x,
+                        link.get_pos().y,
+                        link.get_pos().z)
         P_nINw = Vector(needle.get_pos().x,
                         needle.get_pos().y,
                         needle.get_pos().z)
@@ -62,6 +62,36 @@ def attach_needle(client, needle_name, psm_name):
     needle.set_torque(0, 0, 0)
 
 
-c = Client('test')
+def psm1_btn_cb():
+    attach_needle(needle, link1)
+
+
+def psm2_btn_cb():
+    attach_needle(needle, link2)
+
+
+def psm3_btn_cb():
+    attach_needle(needle, link3)
+
+
+c = Client('attach_needle')
 c.connect()
-attach_needle(c, 'Needle', 'psm3')
+# psm_name =
+needle = c.get_obj_handle('Needle')
+link1 = c.get_obj_handle('psm1' + '/toolyawlink')
+link2 = c.get_obj_handle('psm2' + '/toolyawlink')
+link3 = c.get_obj_handle('psm3' + '/toolyawlink')
+
+tk = Tkinter.Tk()
+tk.title("Attache Needle")
+tk.geometry("250x250")
+link1_button = Tkinter.Button(tk, text="PSM 1", command=psm1_btn_cb, height=3, width=50, bg="red")
+link2_button = Tkinter.Button(tk, text="PSM 2", command=psm2_btn_cb, height=3, width=50, bg="green")
+link3_button = Tkinter.Button(tk, text="PSM 3", command=psm3_btn_cb, height=3, width=50, bg="blue")
+
+link1_button.pack()
+link2_button.pack()
+link3_button.pack()
+
+tk.mainloop()
+
