@@ -118,7 +118,6 @@ class GeomagicDevice:
             if time_diff.to_sec() < self._switch_slave_duration.to_sec():
                 print('Allow Slave Switch')
                 self.switch_slave = True
-            print(time_diff)
             self._button_msg_time = rospy.Time.now()
 
     def command_force(self, force):

@@ -54,7 +54,7 @@ from itertools import cycle
 
 
 class ControllerInterface:
-    def __init__(self, master, slave_arms):
+    def __init__(self, master, slave_arms, T_c_w):
         self.counter = 0
         self.master = master
         self.slave_arms = cycle(slave_arms)
@@ -63,19 +63,31 @@ class ControllerInterface:
         self.cmd_xyz = self.active_salve.T_t_b_desired.p
         self.cmd_rpy = None
         self.T_IK = None
+        self.T_c_w = T_c_w
+
+        self._T_b_c = None
+        self._T_b_c_updated = False
 
     def switch_slave(self):
+        self._T_b_c_updated = False
         self.active_salve = self.slave_arms.next()
         print('Switching Control of Next Slave Arm: ', self.active_salve.name)
 
+    def update_T_b_c(self):
+        if not self._T_b_c_updated:
+            self._T_b_c = self.active_salve.get_T_w_b() * self.T_c_w
+            self._T_b_c_updated = True
+
     def update_arm_pose(self):
+        self.update_T_b_c()
         twist = self.master.measured_cv()
         self.cmd_xyz = self.active_salve.T_t_b_desired.p
         if not self.master.clutch_button_pressed:
-            self.cmd_xyz = self.cmd_xyz + twist.vel * 0.0001
+            delta_t = self._T_b_c.M * twist.vel * 0.0002
+            self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_salve.T_t_b_desired.p = self.cmd_xyz
 
-        self.cmd_rpy = self.master.measured_cp().M * self.active_salve.T_t_b_desired.M
+        self.cmd_rpy = self._T_b_c.M * self.master.measured_cp().M * Rotation.RPY(np.pi, 0, np.pi/2)
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
         self.active_salve.move_cp(self.T_IK)
         self.active_salve.set_jaw_angle(self.master.get_jaw_angle())
@@ -132,6 +144,14 @@ if __name__ == "__main__":
     c = Client()
     c.connect()
 
+    cam_frame = c.get_obj_handle('CameraFrame')
+    time.sleep(0.5)
+    P_c_w = cam_frame.get_pos()
+    R_c_w = cam_frame.get_rpy()
+
+    T_c_w = Frame(Rotation.RPY(R_c_w[0], R_c_w[1], R_c_w[2]), Vector(P_c_w.x, P_c_w.y, P_c_w.z))
+    print(T_c_w)
+
     controllers = []
     slave_arms = []
 
@@ -141,7 +161,8 @@ if __name__ == "__main__":
         arm_name = 'psm1'
         print('LOADING CONTROLLER FOR ', arm_name)
         psm = PSM(c, arm_name)
-        slave_arms.append(psm)
+        if psm.is_present():
+            slave_arms.append(psm)
 
     if parsed_args.run_psm_two is True:
         # Initial Target Offset for PSM1
@@ -150,7 +171,8 @@ if __name__ == "__main__":
         print('LOADING CONTROLLER FOR ', arm_name)
         theta_base = -0.7
         psm = PSM(c, arm_name)
-        slave_arms.append(psm)
+        if psm.is_present():
+            slave_arms.append(psm)
 
     if parsed_args.run_psm_three is True:
         # Initial Target Offset for PSM1
@@ -158,7 +180,8 @@ if __name__ == "__main__":
         arm_name = 'psm3'
         print('LOADING CONTROLLER FOR ', arm_name)
         psm = PSM(c, arm_name)
-        slave_arms.append(psm)
+        if psm.is_present():
+            slave_arms.append(psm)
 
     if len(slave_arms) == 0:
         print('No Valid PSM Arms Specified')
@@ -166,11 +189,11 @@ if __name__ == "__main__":
 
     else:
         master = GeomagicDevice('/Geomagic/')
-        theta_base = -0.7
-        theta_tip = 0.7
+        theta_base = -0.3
+        theta_tip = -theta_base
         master.set_base_frame(Frame(Rotation.RPY(theta_base, 0, 0), Vector(0, 0, 0)))
-        master.set_tip_frame(Frame(Rotation.RPY(theta_base + theta_tip, 0, 0), Vector()))
-        controller = ControllerInterface(master, slave_arms)
+        master.set_tip_frame(Frame(Rotation.RPY(theta_base + theta_tip, 0, 0), Vector(0, 0, 0)))
+        controller = ControllerInterface(master, slave_arms, T_c_w)
         controllers.append(controller)
         while not rospy.is_shutdown():
             for cont in controllers:

@@ -74,6 +74,12 @@ class PSM:
         self._ik_solution = np.zeros([self._num_joints])
         self._last_jp = np.zeros([self._num_joints])
 
+    def is_present(self):
+        if self.base is None:
+            return False
+        else:
+            return True
+
     def get_ik_solution(self):
         return self._ik_solution
 
@@ -139,6 +145,6 @@ class PSM:
         self.base.set_joint_pos('toolyawlink-toolgripper1link', jaw_angle)
         self.base.set_joint_pos('toolyawlink-toolgripper2link', jaw_angle)
 
-    def measure_cp(self):
+    def measured_cp(self):
         pass
 
