@@ -81,11 +81,8 @@ class ControllerInterface:
 
     def update_arm_pose(self):
         self.update_T_b_c()
-        if master.coag_button_pressed:
-            w = PyKDL.Wrench()
-            w.force = Vector(0, 0, 0)
-            w.torque = Vector(0, 0, 0)
-            master.move_cf(w)
+        if master.coag_button_pressed or master.clutch_button_pressed:
+            master.optimize_wrist_platform()
         else:
             if master.is_active():
                 master.move_cp(master.pre_coag_pose_msg)
