@@ -86,7 +86,7 @@ class ControllerInterface:
         else:
             if master.is_active():
                 master.move_cp(master.pre_coag_pose_msg)
-        twist = self.master.measured_cv()
+        twist = self.master.measured_cv() * 0.5
         self.cmd_xyz = self.active_salve.T_t_b_desired.p
         if not self.master.clutch_button_pressed:
             delta_t = self._T_b_c.M * twist.vel
