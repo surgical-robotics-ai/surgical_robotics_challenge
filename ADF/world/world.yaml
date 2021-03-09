@@ -1,10 +1,10 @@
 enclosure size: {length: 10.0, width: 10.0, height: 3.0}
-lights: [light1, light2]
-cameras: [camera2]
+lights: [light1, light2, light3]
+cameras: [camera1, camera2]
 environment: "./checkered_floor.yaml"
 namespace: /ambf/env/
 max iterations: 50
-gravity: {x: 0.0, y: 0.0, z: 0.0}
+gravity: {x: 0.0, y: 0.0, z: -5.0}
 shaders:
   path: ../../ambf_shaders/normal_map
   vertex: "shader.vs"
@@ -30,12 +30,14 @@ light2:
   parent: BODY CameraFrame
 
 light3:
-  location: {x: -1.0, y: 0.0, z: 0.0}
+  namespace: lights/
+  name: light3
+  location: {x: 2.0, y: 0.0, z: 3.5}
   direction: {x: 0, y: 0, z: -1.0}
   spot exponent: 0.3
   shadow quality: 0
-  cutoff angle: 0.3
-  parent: BODY CameraFrame
+  cutoff angle: 1.4
+  # parent: BODY CameraFrame
 
 camera1:
   namespace: cameras/
@@ -52,44 +54,14 @@ camera1:
 camera2:
   namespace: cameras/
   name: default_camera2
-  location: {x: 0.0, y: 0.0, z: 0.0}
+  location: {x: 0.0, y: 0.0, z: -0.5}
   look at: {x: 0.0, y: 0.0, z: -1.0}
   up: {x: 0.0, y: 1.0, z: 0.0}
-  clipping plane: {near: 0.01, far: 20.0}
+  clipping plane: {near: 0.01, far: 10.0}
   field view angle: 1.2
-  monitor: 0
+  monitor: 1
   parent: BODY CameraFrame
   # multipass: True
-
-# This example is to show how to parent w.r.t another body.
-# When a parent is defined, the location, look at and up
-# vector are with respect to the parent and not the world origin
-cameraEndoscope:
-  namespace: cameras/
-  name: endo_camera
-  location: {x: 0.0, y: 0.0, z: -0.1}
-  look at: {x: 0.0, y: 0.0, z: -0.5}
-  up: {x: 1.0, y: 0.0, z: 0.0}
-  clipping plane: {near: 0.01, far: 10.0}
-  field view angle: 0.8
-  monitor: 0
-  # stereo: {mode: Passive, eye separation: 0.22, focal length: 2.0}
-  parent: /ambf/env/ecm/BODY remote center link
-  # multipass: True
-
-camera2:
-  namespace: cameras/
-  name: openhmd
-  location: {x: 3.0, y: 0.0, z: 2.0}
-  look at: {x: 0.0, y: 0.0, z: -1.0}
-  up: {x: 0.0, y: 0.0, z: 1.0}
-  clipping plane: {near: 0.01, far: 10.0}
-  field view angle: 0.8
-  stereo: {mode: Passive, eye separation: 0.22, focal length: 2.0}
-  monitor: 3
-  # parent: /ambf/env/BODY Occulus
-  # orthographic view width: 6
-  # device: Razer Hydra
 
 camera3:
   namespace: cameras/

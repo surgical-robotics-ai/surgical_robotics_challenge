@@ -5,7 +5,7 @@ actuators: [ACTUATOR Actuator0, ACTUATOR Actuator1, ACTUATOR Actuator2]
 high resolution path: .
 low resolution path: .
 ignore inter-collision: true
-namespace: /ambf/env/psm1
+namespace: /ambf/env/psm1/
 # publish children names: true
 
 SENSOR Sensor0:

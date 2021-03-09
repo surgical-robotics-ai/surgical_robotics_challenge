@@ -1,0 +1,14 @@
+# Blender MTL File: 'phantom.blend'
+# Material Count: 1
+
+newmtl Material.003
+Ns 223.529395
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump /home/adnan/surgical_robotics_challenge/ADF/Phantom/high_res/others_0001_normal_2k.png
+map_Kd /home/adnan/surgical_robotics_challenge/ADF/Phantom/high_res/others_0001_base_color_2k.png

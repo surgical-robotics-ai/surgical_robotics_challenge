@@ -133,7 +133,7 @@ class GeomagicDevice:
         if self.gripper_button_pressed:
             return 0.0
         else:
-            return 0.8
+            return 0.3
 
 
 def test():

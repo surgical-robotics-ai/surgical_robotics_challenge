@@ -65,29 +65,29 @@ class ControllerInterface:
         self.T_IK = None
         self.T_c_w = T_c_w
 
-        self._T_b_c = None
-        self._T_b_c_updated = False
+        self._T_c_b = None
+        self._T_c_b_updated = False
 
     def switch_slave(self):
-        self._T_b_c_updated = False
+        self._T_c_b_updated = False
         self.active_salve = self.slave_arms.next()
         print('Switching Control of Next Slave Arm: ', self.active_salve.name)
 
     def update_T_b_c(self):
-        if not self._T_b_c_updated:
-            self._T_b_c = self.active_salve.get_T_w_b() * self.T_c_w
-            self._T_b_c_updated = True
+        if not self._T_c_b_updated:
+            self._T_c_b = self.active_salve.get_T_w_b() * self.T_c_w
+            self._T_c_b_updated = True
 
     def update_arm_pose(self):
         self.update_T_b_c()
         twist = self.master.measured_cv()
         self.cmd_xyz = self.active_salve.T_t_b_desired.p
         if not self.master.clutch_button_pressed:
-            delta_t = self._T_b_c.M * twist.vel * 0.0002
+            delta_t = self._T_c_b.M * twist.vel * 0.00005
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_salve.T_t_b_desired.p = self.cmd_xyz
 
-        self.cmd_rpy = self._T_b_c.M * self.master.measured_cp().M * Rotation.RPY(np.pi, 0, np.pi/2)
+        self.cmd_rpy = self._T_c_b.M * self.master.measured_cp().M * Rotation.RPY(np.pi, 0, np.pi / 2)
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
         self.active_salve.move_cp(self.T_IK)
         self.active_salve.set_jaw_angle(self.master.get_jaw_angle())
@@ -189,7 +189,7 @@ if __name__ == "__main__":
 
     else:
         master = GeomagicDevice('/Geomagic/')
-        theta_base = -0.3
+        theta_base = -0.9
         theta_tip = -theta_base
         master.set_base_frame(Frame(Rotation.RPY(theta_base, 0, 0), Vector(0, 0, 0)))
         master.set_tip_frame(Frame(Rotation.RPY(theta_base + theta_tip, 0, 0), Vector(0, 0, 0)))

@@ -1,0 +1,12 @@
+# Blender MTL File: 'phantom.blend'
+# Material Count: 1
+
+newmtl Material.001
+Ns 223.529395
+Ka 1.000000 1.000000 1.000000
+Kd 0.638272 0.105752 0.133250
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
