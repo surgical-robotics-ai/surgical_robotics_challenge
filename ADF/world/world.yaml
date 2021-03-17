@@ -4,7 +4,7 @@ cameras: [camera1, camera2]
 environment: "./checkered_floor.yaml"
 namespace: /ambf/env/
 max iterations: 50
-gravity: {x: 0.0, y: 0.0, z: -5.0}
+gravity: {x: 0.0, y: 0.0, z: -0.0}
 shaders:
   path: ../../ambf_shaders/normal_map
   vertex: "shader.vs"
@@ -61,6 +61,7 @@ camera2:
   field view angle: 1.2
   monitor: 1
   parent: BODY CameraFrame
+  # publish depth: True
   # multipass: True
 
 camera3:

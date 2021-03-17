@@ -48,7 +48,8 @@ class GeomagicDevice:
         self._scale = 0.0002
         self.pose = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
         self.twist = PyKDL.Twist()
-        R_off = Rotation.RPY(0, 0, 0)
+        # This offset is to align the pitch with the view frame
+        R_off = Rotation.RPY(0.0, 0, 0)
         self._T_baseoffset = Frame(R_off, Vector(0, 0, 0))
         self._T_baseoffset_inverse = self._T_baseoffset.Inverse()
         self._T_tipoffset = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
