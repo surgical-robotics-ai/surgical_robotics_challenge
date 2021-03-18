@@ -50,7 +50,7 @@ import rospy
 import PyKDL
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
-from mtm_device import MTM
+from mtm_device_crtk import MTM
 from itertools import cycle
 
 
@@ -86,7 +86,7 @@ class ControllerInterface:
         else:
             if master.is_active():
                 master.move_cp(master.pre_coag_pose_msg)
-        twist = self.master.measured_cv() * 0.5
+        twist = self.master.measured_cv() * 0.2
         self.cmd_xyz = self.active_salve.T_t_b_desired.p
         if not self.master.clutch_button_pressed:
             delta_t = self._T_c_b.M * twist.vel
@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
-    print parsed_args
+    print(parsed_args)
 
     if parsed_args.run_psm_one in ['True', 'true', '1']:
         parsed_args.run_psm_one = True
@@ -193,8 +193,10 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        master = MTM('/dvrk/MTMR/')
+        master = MTM('/MTMR/')
         master.set_base_frame(Frame(Rotation.RPY(np.pi/2, 0, 0), Vector(0, 0, 0)))
+
+        rate = rospy.Rate(200)
 
         # rot_offset = Rotation.RPY(np.pi, -np.pi / 2, np.pi / 2).Inverse()
         # rot_offset = Rotation.RPY(0, 0, 0).Inverse()
@@ -206,5 +208,5 @@ if __name__ == "__main__":
         while not rospy.is_shutdown():
             for cont in controllers:
                 cont.run()
-            time.sleep(0.005)
+            rate.sleep()
 
