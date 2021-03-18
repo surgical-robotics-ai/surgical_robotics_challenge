@@ -63,7 +63,12 @@ class PSM:
         time.sleep(0.5)
         self.grasped = [False, False, False]
 
-        self.T_t_b_desired = Frame(Rotation.RPY(3.14, 0.0, 1.57079), Vector(0, 0, -1.0))
+        self.T_t_b_home = Frame(Rotation.RPY(3.14, 0.0, 1.57079), Vector(0.0, 0.0, -1.0))
+
+        if name == 'psm1':
+            self.T_t_b_home = Frame(Rotation.RPY(3.14, 0.0, 1.57079), Vector(0.56, 0.3, -1.27))
+        elif name == 'psm2':
+            self.T_t_b_home = Frame(Rotation.RPY(3.14, 0.0, 1.57079), Vector(-0.45, 0.3, -1.27))
 
         # Transform of Base in World
         self._T_b_w = None

@@ -1,6 +1,6 @@
 # This is the base file for Coordination Application
-world config: ADF/world/world.yaml
-# world config: ./world/raven_world.yaml
+# world config: ADF/world/world.yaml
+world config: ADF/world/world_stereo.yaml
 color config: ADF/color/colors.yaml
 input devices config: ADF/input_devices/input_devices.yaml
 multibody configs:

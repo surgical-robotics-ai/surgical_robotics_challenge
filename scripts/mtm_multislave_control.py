@@ -61,7 +61,7 @@ class ControllerInterface:
         self.slave_arms = cycle(slave_arms)
         self.active_salve = self.slave_arms.next()
 
-        self.cmd_xyz = self.active_salve.T_t_b_desired.p
+        self.cmd_xyz = self.active_salve.T_t_b_home.p
         self.cmd_rpy = None
         self.T_IK = None
         self.T_c_w = T_c_w
@@ -81,22 +81,22 @@ class ControllerInterface:
 
     def update_arm_pose(self):
         self.update_T_b_c()
-        if master.coag_button_pressed or master.clutch_button_pressed:
-            master.optimize_wrist_platform()
+        if self.master.coag_button_pressed or self.master.clutch_button_pressed:
+            self.master.optimize_wrist_platform()
         else:
-            if master.is_active():
-                master.move_cp(master.pre_coag_pose_msg)
-        twist = self.master.measured_cv() * 0.2
-        self.cmd_xyz = self.active_salve.T_t_b_desired.p
+            if self.master.is_active():
+                self.master.move_cp(self.master.pre_coag_pose_msg)
+        twist = self.master.measured_cv() * 0.35
+        self.cmd_xyz = self.active_salve.T_t_b_home.p
         if not self.master.clutch_button_pressed:
             delta_t = self._T_c_b.M * twist.vel
             self.cmd_xyz = self.cmd_xyz + delta_t
-            self.active_salve.T_t_b_desired.p = self.cmd_xyz
+            self.active_salve.T_t_b_home.p = self.cmd_xyz
         self.cmd_rpy = self._T_c_b.M * self.master.measured_cp().M
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
         self.active_salve.move_cp(self.T_IK)
         self.active_salve.set_jaw_angle(self.master.get_jaw_angle())
-        self.active_salve.run_grasp_logic(self.master.get_jaw_angle())
+        # self.active_salve.run_grasp_logic(self.master.get_jaw_angle())
 
     def update_visual_markers(self):
         # Move the Target Position Based on the GUI
@@ -119,7 +119,7 @@ class ControllerInterface:
             self.switch_slave()
             self.master.switch_slave = False
         self.update_arm_pose()
-        self.update_visual_markers()
+        # self.update_visual_markers()
 
 
 if __name__ == "__main__":
@@ -193,18 +193,18 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        master = MTM('/MTMR/')
-        master.set_base_frame(Frame(Rotation.RPY(np.pi/2, 0, 0), Vector(0, 0, 0)))
+        master1 = MTM('/MTML/')
+        master1.set_base_frame(Frame(Rotation.RPY((np.pi - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
+        controller1 = ControllerInterface(master1, [slave_arms[0]], T_c_w)
+        controllers.append(controller1)
+
+        master2 = MTM('/MTMR/')
+        master2.set_base_frame(Frame(Rotation.RPY((np.pi - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
+        controller2 = ControllerInterface(master2, [slave_arms[1]], T_c_w)
+        controllers.append(controller2)
 
         rate = rospy.Rate(200)
 
-        # rot_offset = Rotation.RPY(np.pi, -np.pi / 2, np.pi / 2).Inverse()
-        # rot_offset = Rotation.RPY(0, 0, 0).Inverse()
-        # tip_offset = Frame(rot_offset, Vector(0, 0, 0))
-        # master.set_tip_frame(Frame(tip_offset))
-
-        controller = ControllerInterface(master, slave_arms, T_c_w)
-        controllers.append(controller)
         while not rospy.is_shutdown():
             for cont in controllers:
                 cont.run()
