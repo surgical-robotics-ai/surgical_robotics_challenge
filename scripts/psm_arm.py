@@ -65,11 +65,6 @@ class PSM:
 
         self.T_t_b_home = Frame(Rotation.RPY(3.14, 0.0, 1.57079), Vector(0.0, 0.0, -1.0))
 
-        if name == 'psm1':
-            self.T_t_b_home = Frame(Rotation.RPY(3.14, 0.0, 1.57079), Vector(0.56, 0.3, -1.27))
-        elif name == 'psm2':
-            self.T_t_b_home = Frame(Rotation.RPY(3.14, 0.0, 1.57079), Vector(-0.45, 0.3, -1.27))
-
         # Transform of Base in World
         self._T_b_w = None
         # Transform of World in Base
@@ -78,6 +73,9 @@ class PSM:
         self._num_joints = 6
         self._ik_solution = np.zeros([self._num_joints])
         self._last_jp = np.zeros([self._num_joints])
+
+    def set_home_pose(self, pose):
+        self.T_t_b_home = pose
 
     def is_present(self):
         if self.base is None:

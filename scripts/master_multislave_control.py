@@ -83,7 +83,7 @@ class ControllerInterface:
         twist = self.master.measured_cv()
         self.cmd_xyz = self.active_salve.T_t_b_home.p
         if not self.master.clutch_button_pressed:
-            delta_t = self._T_c_b.M * twist.vel * 0.00005
+            delta_t = self._T_c_b.M * twist.vel * 0.00002
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_salve.T_t_b_home.p = self.cmd_xyz
 
@@ -162,6 +162,9 @@ if __name__ == "__main__":
         print('LOADING CONTROLLER FOR ', arm_name)
         psm = PSM(c, arm_name)
         if psm.is_present():
+            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
+            T_psmtip_b = psm.get_T_w_b() * T_c_w * T_psmtip_c
+            psm.set_home_pose(T_psmtip_b)
             slave_arms.append(psm)
 
     if parsed_args.run_psm_two is True:
@@ -169,9 +172,11 @@ if __name__ == "__main__":
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm2'
         print('LOADING CONTROLLER FOR ', arm_name)
-        theta_base = -0.7
         psm = PSM(c, arm_name)
         if psm.is_present():
+            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
+            T_psmtip_b = psm.get_T_w_b() * T_c_w * T_psmtip_c
+            psm.set_home_pose(T_psmtip_b)
             slave_arms.append(psm)
 
     if parsed_args.run_psm_three is True:
@@ -182,6 +187,8 @@ if __name__ == "__main__":
         psm = PSM(c, arm_name)
         if psm.is_present():
             slave_arms.append(psm)
+
+    rate = rospy.Rate(200)
 
     if len(slave_arms) == 0:
         print('No Valid PSM Arms Specified')
@@ -198,5 +205,5 @@ if __name__ == "__main__":
         while not rospy.is_shutdown():
             for cont in controllers:
                 cont.run()
-            time.sleep(0.005)
+            rate.sleep()
 

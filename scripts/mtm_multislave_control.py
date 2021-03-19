@@ -128,7 +128,7 @@ if __name__ == "__main__":
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=True)
-    parser.add_argument('--mtm', action='store', dest='mtm_name', help='Name of MTM to Bind', default='MTMR')
+    parser.add_argument('--mtm', action='store', dest='mtm_name', help='Name of MTM to Bind', default='/dvrk/MTMR/')
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
@@ -177,6 +177,9 @@ if __name__ == "__main__":
         print('LOADING CONTROLLER FOR ', arm_name)
         psm = PSM(c, arm_name)
         if psm.is_present():
+            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
+            T_psmtip_b = psm.get_T_w_b() * T_c_w * T_psmtip_c
+            psm.set_home_pose(T_psmtip_b)
             slave_arms.append(psm)
 
     if parsed_args.run_psm_two is True:
@@ -187,6 +190,9 @@ if __name__ == "__main__":
         theta_base = -0.7
         psm = PSM(c, arm_name)
         if psm.is_present():
+            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
+            T_psmtip_b = psm.get_T_w_b() * T_c_w * T_psmtip_c
+            psm.set_home_pose(T_psmtip_b)
             slave_arms.append(psm)
 
     if parsed_args.run_psm_three is True:
