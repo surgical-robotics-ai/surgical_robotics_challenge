@@ -50,7 +50,7 @@ import rospy
 import PyKDL
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
-from mtm_device_crtk import MTM
+from mtm_device import MTM
 from itertools import cycle
 
 
@@ -124,13 +124,23 @@ class ControllerInterface:
 
 if __name__ == "__main__":
     parser = ArgumentParser()
+    parser.add_argument('-c', action='store', dest='client_name', help='Client Name', default='ambf_client')
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=True)
+    parser.add_argument('--mtm', action='store', dest='mtm_name', help='Name of MTM to Bind', default='MTMR')
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
     print(parsed_args)
+
+    mtm_valid_list = ['/MTMR/, /MTML/', '/dvrk/MTMR/', '/dvrk/MTML/', 'MTMR', 'MTML']
+    if parsed_args.mtm_name in mtm_valid_list:
+        if parsed_args.mtm_name in ['MTMR', 'MTML']:
+            parsed_args.mtm_name = '/' + parsed_args.mtm_name + '/'
+    else:
+        print('ERROR! --mtm argument should be one of the following', mtm_valid_list)
+        raise ValueError
 
     if parsed_args.run_psm_one in ['True', 'true', '1']:
         parsed_args.run_psm_one = True
@@ -146,7 +156,7 @@ if __name__ == "__main__":
     elif parsed_args.run_psm_three in ['False', 'false', '0']:
         parsed_args.run_psm_three = False
 
-    c = Client()
+    c = Client(parsed_args.client_name)
     c.connect()
 
     cam_frame = c.get_obj_handle('CameraFrame')
@@ -193,15 +203,10 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        master1 = MTM('/MTML/')
-        master1.set_base_frame(Frame(Rotation.RPY((np.pi - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
-        controller1 = ControllerInterface(master1, [slave_arms[0]], T_c_w)
+        master = MTM(parsed_args.mtm_name)
+        master.set_base_frame(Frame(Rotation.RPY((np.pi - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
+        controller1 = ControllerInterface(master, slave_arms, T_c_w)
         controllers.append(controller1)
-
-        master2 = MTM('/MTMR/')
-        master2.set_base_frame(Frame(Rotation.RPY((np.pi - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
-        controller2 = ControllerInterface(master2, [slave_arms[1]], T_c_w)
-        controllers.append(controller2)
 
         rate = rospy.Rate(200)
 

@@ -88,6 +88,7 @@ class GUIController:
 
 if __name__ == "__main__":
     parser = ArgumentParser()
+    parser.add_argument('-c', action='store', dest='client_name', help='Client Name', default='ambf_client')
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=True)
@@ -105,12 +106,13 @@ if __name__ == "__main__":
         parsed_args.run_psm_two = True
     elif parsed_args.run_psm_two in ['False', 'false', '0']:
         parsed_args.run_psm_two = False
+
     if parsed_args.run_psm_three in ['True', 'true', '1']:
         parsed_args.run_psm_three = True
     elif parsed_args.run_psm_three in ['False', 'false', '0']:
         parsed_args.run_psm_three = False
 
-    c = Client()
+    c = Client(parsed_args.client_name)
     c.connect()
 
     controllers = []
