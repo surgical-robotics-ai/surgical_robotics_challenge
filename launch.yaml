@@ -18,3 +18,4 @@ multibody configs:
   - "ADF/all_targets.yaml" #11
   - "ADF/psm_debug.yaml" #12
   - "ADF/phantom.yaml" #13
+  - "ADF/ghosts.yaml" #14

@@ -4,7 +4,7 @@ cameras: [cameraL, cameraR]
 environment: "./checkered_floor.yaml"
 namespace: /ambf/env/
 max iterations: 50
-gravity: {x: 0.0, y: 0.0, z: -0.0}
+gravity: {x: 0.0, y: 0.0, z: -5.0}
 shaders:
   path: ../../ambf_shaders/normal_map
   vertex: "shader.vs"
@@ -49,7 +49,14 @@ cameraL:
   field view angle: 1.2
   monitor: 1
   parent: BODY CameraFrame
+  # publish image: True
+  # publish image resolution: {width: 1920, height: 1080}
   # publish depth: True
+  # depth shaders:
+  #   path: /home/adnan/ambf/ambf_shaders/depth
+  #   vertex: "shader.vs"
+  #   fragment: "shader.fs"
+  # publish depth resolution: {width: 640, height: 480}
   # multipass: True
 
 cameraR:
