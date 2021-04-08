@@ -58,8 +58,6 @@ class PSM:
         self.sensor = self.client.get_obj_handle(name + '/Sensor0')
         self.actuators = []
         self.actuators.append(self.client.get_obj_handle(name + '/Actuator0'))
-        self.actuators.append(self.client.get_obj_handle(name + '/Actuator1'))
-        self.actuators.append(self.client.get_obj_handle(name + '/Actuator2'))
         time.sleep(0.5)
         self.grasped = [False, False, False]
 
@@ -110,7 +108,7 @@ class PSM:
                 if self.sensor is not None:
                     if self.sensor.is_triggered(i):
                         sensed_obj = self.sensor.get_sensed_object(i)
-                        if sensed_obj == 'Needle' or 'T' in sensed_obj:
+                        if sensed_obj == 'Needle' or 'Cylinder' in sensed_obj:
                             if not self.grasped[i]:
                                 qualified_nane = '/ambf/env/BODY ' + sensed_obj
                                 self.actuators[i].actuate(qualified_nane)
