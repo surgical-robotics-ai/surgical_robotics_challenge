@@ -58,7 +58,7 @@ vec4 shade(vec3 p, vec3 v, vec3 n)
          float att = attenuation(p, i);
          float intensity = 0.3*spotlight(p, i);
 
-         vec3 texColor = texture(diffuseMap, vTexCoord).xyz;
+         vec3 texColor = texture2D(diffuseMap, vTexCoord.xy).xyz;
 
          vec3 Iambient = gl_FrontLightProduct[i].ambient.rgb;
 
