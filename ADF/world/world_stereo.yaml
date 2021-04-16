@@ -52,7 +52,7 @@ cameraL:
   # publish image: True
   # publish image resolution: {width: 1920, height: 1080}
   # publish depth: True
-  # depth shaders:
+  # depth compute shaders:
   #   path: /home/adnan/ambf/ambf_shaders/depth
   #   vertex: "shader.vs"
   #   fragment: "shader.fs"
