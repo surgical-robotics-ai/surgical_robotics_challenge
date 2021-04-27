@@ -1,0 +1,133 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root version="2.3.8">
+ <tabbed_widget name="Main Window" parent="main_window">
+  <plotmatrix rows="4" tab_name="plot" columns="2">
+   <plot style="Lines" row="0" col="0">
+    <range left="175.648103" top="0.638829" right="207.645070" bottom="0.438829"/>
+    <limitY/>
+    <curve name="/ambf/env/psm1/baselink/Command/joint_cmds.0" B="180" custom_transform="noTransform" G="119" R="31"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="1" col="0">
+    <range left="175.648103" top="-0.128980" right="207.645070" bottom="-0.328980"/>
+    <limitY/>
+    <curve name="/ambf/env/psm1/baselink/Command/joint_cmds.1" B="40" custom_transform="noTransform" G="39" R="214"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="2" col="0">
+    <range left="175.648103" top="1.555029" right="207.645070" bottom="1.355029"/>
+    <limitY/>
+    <curve name="/ambf/env/psm1/baselink/Command/joint_cmds.2" B="56" custom_transform="noTransform" G="201" R="26"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="3" col="0">
+    <range left="175.648103" top="0.773910" right="207.645070" bottom="0.573910"/>
+    <limitY/>
+    <curve name="/ambf/env/psm1/baselink/Command/joint_cmds.3" B="14" custom_transform="noTransform" G="127" R="255"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="0" col="1">
+    <range left="175.651157" top="0.553195" right="207.650637" bottom="0.552956"/>
+    <limitY/>
+    <curve name="/ambf/env/psm1/baselink/State/joint_positions.0" B="193" custom_transform="noTransform" G="76" R="241"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="1" col="1">
+    <range left="175.651157" top="-0.236622" right="207.650637" bottom="-0.236790"/>
+    <limitY/>
+    <curve name="/ambf/env/psm1/baselink/State/joint_positions.1" B="189" custom_transform="noTransform" G="103" R="148"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="2" col="1">
+    <range left="175.651157" top="1.455089" right="207.650637" bottom="1.455056"/>
+    <limitY/>
+    <curve name="/ambf/env/psm1/baselink/State/joint_positions.2" B="207" custom_transform="noTransform" G="190" R="23"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="3" col="1">
+    <range left="175.651157" top="0.675033" right="207.650637" bottom="0.674935"/>
+    <limitY/>
+    <curve name="/ambf/env/psm1/baselink/State/joint_positions.3" B="34" custom_transform="noTransform" G="189" R="188"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix rows="4" tab_name="plot" columns="2">
+   <plot style="Lines" row="0" col="0">
+    <range left="130.471109" top="-0.318866" right="162.465276" bottom="-0.346763"/>
+    <limitY/>
+    <curve name="/ambf/env/psm2/baselink/Command/joint_cmds.0" B="180" custom_transform="noTransform" G="119" R="31"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="1" col="0">
+    <range left="130.471109" top="-0.244766" right="162.465276" bottom="-0.262980"/>
+    <limitY/>
+    <curve name="/ambf/env/psm2/baselink/Command/joint_cmds.1" B="40" custom_transform="noTransform" G="39" R="214"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="2" col="0">
+    <range left="130.471109" top="1.529839" right="162.465276" bottom="1.508037"/>
+    <limitY/>
+    <curve name="/ambf/env/psm2/baselink/Command/joint_cmds.2" B="56" custom_transform="noTransform" G="201" R="26"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="3" col="0">
+    <range left="130.471109" top="-0.327923" right="162.465276" bottom="-0.925818"/>
+    <limitY/>
+    <curve name="/ambf/env/psm2/baselink/Command/joint_cmds.3" B="14" custom_transform="noTransform" G="127" R="255"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="0" col="1">
+    <range left="130.467318" top="-0.330491" right="162.466357" bottom="-0.355024"/>
+    <limitY/>
+    <curve name="/ambf/env/psm2/baselink/State/joint_positions.0" B="193" custom_transform="noTransform" G="76" R="241"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="1" col="1">
+    <range left="130.467318" top="-0.253411" right="162.466357" bottom="-0.271093"/>
+    <limitY/>
+    <curve name="/ambf/env/psm2/baselink/State/joint_positions.1" B="189" custom_transform="noTransform" G="103" R="148"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="2" col="1">
+    <range left="130.467318" top="1.528731" right="162.466357" bottom="1.509792"/>
+    <limitY/>
+    <curve name="/ambf/env/psm2/baselink/State/joint_positions.2" B="207" custom_transform="noTransform" G="190" R="23"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="3" col="1">
+    <range left="130.467318" top="-0.329999" right="162.466357" bottom="-0.843288"/>
+    <limitY/>
+    <curve name="/ambf/env/psm2/baselink/State/joint_positions.3" B="34" custom_transform="noTransform" G="189" R="188"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <currentPlotMatrix index="0"/>
+ </tabbed_widget>
+ <use_relative_time_offset enabled="1"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <!-- - - - - - - - - - - - - - - -->
+ <Plugins>
+  <plugin ID="DataLoad ROS bags">
+   <use_header_stamp value="false"/>
+   <use_renaming_rules value="true"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+  </plugin>
+  <plugin ID="ROS Topic Subscriber">
+   <use_header_stamp value="false"/>
+   <use_renaming_rules value="true"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+  </plugin>
+  <plugin status="idle" ID="ROS /rosout Visualization"/>
+  <plugin status="idle" ID="ROS Topic Re-Publisher"/>
+ </Plugins>
+ <!-- - - - - - - - - - - - - - - -->
+ <previouslyLoaded_Datafiles/>
+ <previouslyLoaded_Streamer name="ROS Topic Subscriber"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <customMathEquations/>
+ <snippets/>
+ <!-- - - - - - - - - - - - - - - -->
+</root>
+
