@@ -68,10 +68,10 @@ class GeomagicDevice:
         self._button_sub = rospy.Subscriber(button_topic_name, DeviceButtonEvent, self.buttons_cb, queue_size=1)
         self._force_pub = rospy.Publisher(force_topic_name, DeviceFeedback, queue_size=1)
 
-        self.switch_slave = False
+        self.switch_psm = False
 
         self._button_msg_time = rospy.Time.now()
-        self._switch_slave_duration = rospy.Duration(0.5)
+        self._switch_psm_duration = rospy.Duration(0.5)
 
         print('Creating Geomagic Device Named: ', name, ' From ROS Topics')
         self._msg_counter = 0
@@ -116,9 +116,9 @@ class GeomagicDevice:
 
         if self.clutch_button_pressed:
             time_diff = rospy.Time.now() - self._button_msg_time
-            if time_diff.to_sec() < self._switch_slave_duration.to_sec():
-                print('Allow Slave Switch')
-                self.switch_slave = True
+            if time_diff.to_sec() < self._switch_psm_duration.to_sec():
+                print('Allow PSM Switch')
+                self.switch_psm = True
             self._button_msg_time = rospy.Time.now()
 
     def command_force(self, force):

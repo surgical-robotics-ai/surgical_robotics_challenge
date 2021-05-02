@@ -98,10 +98,10 @@ class MTM:
         self._wrench_pub = rospy.Publisher(wrench_pub_topic_name, Wrench, queue_size=1)
         self._effort_pub = rospy.Publisher(effort_pub_topic_name, JointState, queue_size=1)
 
-        self.switch_slave = False
+        self.switch_psm = False
 
         self._button_msg_time = rospy.Time.now()
-        self._switch_slave_duration = rospy.Duration(0.5)
+        self._switch_psm_duration = rospy.Duration(0.5)
 
         self._jp = []
         self._jv = []
@@ -209,9 +209,9 @@ class MTM:
         self.pre_coag_pose_msg = self.cur_pos_msg
         if self.clutch_button_pressed:
             time_diff = rospy.Time.now() - self._button_msg_time
-            if time_diff.to_sec() < self._switch_slave_duration.to_sec():
-                print('Allow Slave Switch')
-                self.switch_slave = True
+            if time_diff.to_sec() < self._switch_psm_duration.to_sec():
+                print('Allow PSM Switch')
+                self.switch_psm = True
             self._button_msg_time = rospy.Time.now()
 
     def coag_buttons_cb(self, msg):

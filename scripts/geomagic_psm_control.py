@@ -53,10 +53,10 @@ from geomagic_device import GeomagicDevice
 
 
 class ControllerInterface:
-    def __init__(self, master, slave):
+    def __init__(self, leader, psm):
         self.counter = 0
-        self.master = master
-        self.slave = slave
+        self.leader = leader
+        self.psm = psm
 
         self.init_xyz = Vector(0.0, 0.0, -1.0)
         self.init_rpy = Rotation.RPY(3.14, 0.0, 1.57079)
@@ -67,25 +67,25 @@ class ControllerInterface:
         self.T_IK = None
 
     def update_arm_pose(self):
-        twist = self.master.measured_cv()
-        if not self.master.gripper_button_pressed:
+        twist = self.leader.measured_cv()
+        if not self.leader.gripper_button_pressed:
             self.cmd_xyz = self.cmd_xyz + twist.vel * 0.00005
 
         rot_offset_correction = Rotation.RPY(0.0, 0.0, 0.0)
-        self.cmd_rpy = self.master.measured_cp().M * self.init_rpy
+        self.cmd_rpy = self.leader.measured_cp().M * self.init_rpy
 
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
 
-        self.slave.move_cp(self.T_IK)
-        self.slave.set_jaw_angle(self.master.get_jaw_angle())
-        self.slave.run_grasp_logic(self.master.get_jaw_angle())
+        self.psm.move_cp(self.T_IK)
+        self.psm.set_jaw_angle(self.leader.get_jaw_angle())
+        self.psm.run_grasp_logic(self.leader.get_jaw_angle())
 
     def update_visual_markers(self):
         # Move the Target Position Based on the GUI
-        if self.slave.target_IK is not None:
-            T_t_w = self.slave.get_T_b_w() * self.T_IK
-            self.slave.target_IK.set_pos(T_t_w.p[0], T_t_w.p[1], T_t_w.p[2])
-            self.slave.target_IK.set_rpy(T_t_w.M.GetRPY()[0], T_t_w.M.GetRPY()[1], T_t_w.M.GetRPY()[2])
+        if self.psm.target_IK is not None:
+            T_t_w = self.psm.get_T_b_w() * self.T_IK
+            self.psm.target_IK.set_pos(T_t_w.p[0], T_t_w.p[1], T_t_w.p[2])
+            self.psm.target_IK.set_rpy(T_t_w.M.GetRPY()[0], T_t_w.M.GetRPY()[1], T_t_w.M.GetRPY()[2])
         # if self.arm.target_FK is not None:
         #     ik_solution = self.arm.get_ik_solution()
         #     ik_solution = np.append(ik_solution, 0)
@@ -135,12 +135,12 @@ if __name__ == "__main__":
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm3'
         print('LOADING CONTROLLER FOR ', arm_name)
-        master = GeomagicDevice('/Geomagic/')
+        leader = GeomagicDevice('/Geomagic/')
         theta = -0.7
-        master.set_base_frame(Frame(Rotation.RPY(theta, 0, 0), Vector(0, 0, 0)))
-        master.set_tip_frame(Frame(Rotation.RPY(theta+0.7, 0, 0), Vector()))
+        leader.set_base_frame(Frame(Rotation.RPY(theta, 0, 0), Vector(0, 0, 0)))
+        leader.set_tip_frame(Frame(Rotation.RPY(theta+0.7, 0, 0), Vector()))
         psm = PSM(c, arm_name)
-        controller = ControllerInterface(master, psm)
+        controller = ControllerInterface(leader, psm)
         controllers.append(controller)
 
     if len(controllers) == 0:

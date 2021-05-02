@@ -108,7 +108,7 @@ class PSM:
                 if self.sensor is not None:
                     if self.sensor.is_triggered(i):
                         sensed_obj = self.sensor.get_sensed_object(i)
-                        if sensed_obj == 'Needle' or 'Cylinder' in sensed_obj:
+                        if sensed_obj == 'Needle' or 'Thread' in sensed_obj:
                             if not self.grasped[i]:
                                 qualified_nane = '/ambf/env/BODY ' + sensed_obj
                                 self.actuators[i].actuate(qualified_nane)
