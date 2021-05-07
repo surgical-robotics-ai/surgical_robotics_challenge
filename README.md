@@ -39,3 +39,22 @@ Move around the PSMs and try to pick the needle.
 the simulation is running. Once the needle is within the grasping area you can control that specific jaw angle (using the GUI launched above) until it grasps the needle.
 
 6. You can press `CTRL+R` to reset the simulation. Press `P` key to toggle between mouse pan using the LEFT click or mouse picking.
+
+
+### Pairing Input Devices to Control Simulated PSMs
+The code in the scripts folder allows the dVRK MTMs or Geomagic Touch / Phantom Omni to control the simulated PSMs.
+First run the AMBF simulation as described in step 3.
+
+Next run the `dvrk-ros` application for the `dVRK MTMs` or the ROS application for the `Geomagic Touch/Phantom Omni`. Here is where you can find the relevant code for them:
+
+**a. https://github.com/jhu-dvrk/dvrk-ros** (dvrk-ros)
+
+**b. https://github.com/WPI-AIM/ros_geomagic** (geomagic_touch/phantom_omni)
+
+Then run one of the corresponding python scripts:
+
+**a. scripts/mtm_multi_psm_control.py** (For MTMs)
+
+**b. scripts/geomagic_multi_psm_control.py** (For Geomagic Touch/Phantom Omni)
+
+Refer to the README in the scripts folder for further information
