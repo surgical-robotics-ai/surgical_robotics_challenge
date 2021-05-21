@@ -42,6 +42,11 @@
 #     \version   1.0
 # */
 # //==============================================================================
+import sys
+import os
+dynamic_path = os.path.abspath(__file__+"/../../")
+print(dynamic_path)
+sys.path.append(dynamic_path)
 from psmIK import *
 from ambf_client import Client
 from psm_arm import PSM
@@ -49,9 +54,11 @@ import time
 import rospy
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
-from geomagic_device import GeomagicDevice
+from razer_device import razer_Device
 from itertools import cycle
-from psm_arm import jpRecorder
+from joint_pos_recorder import JointPosRecorder
+jpRecorder = JointPosRecorder()
+
 
 class ControllerInterface:
     def __init__(self, leader, psm_arms, T_c_w):
@@ -83,7 +90,7 @@ class ControllerInterface:
         twist = self.leader.measured_cv()
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         if not self.leader.clutch_button_pressed:
-            delta_t = self._T_c_b.M * twist.vel * 0.00002
+            delta_t = self._T_c_b.M * twist.vel * 0.002
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_psm.T_t_b_home.p = self.cmd_xyz
 
@@ -195,7 +202,7 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        leader = GeomagicDevice('/Geomagic/')
+        leader = razer_Device()
         theta_base = -0.9
         theta_tip = -theta_base
         leader.set_base_frame(Frame(Rotation.RPY(theta_base, 0, 0), Vector(0, 0, 0)))
@@ -203,10 +210,10 @@ if __name__ == "__main__":
         controller = ControllerInterface(leader, psm_arms, T_c_w)
         controllers.append(controller)
         while not rospy.is_shutdown():
-            try:
-                for cont in controllers:
+            for cont in controllers:
+                try:
                     cont.run()
-            except KeyboardInterrupt:
+                except KeyboardInterrupt:
                     jpRecorder.flush()
             rate.sleep()
 

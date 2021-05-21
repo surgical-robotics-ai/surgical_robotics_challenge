@@ -45,7 +45,10 @@
 from psmIK import *
 from PyKDL import Frame, Rotation, Vector
 import time
+from joint_pos_recorder import JointPosRecorder
 
+# get recorder
+jpRecorder = JointPosRecorder()
 
 class PSM:
     def __init__(self, client, name):
@@ -71,6 +74,8 @@ class PSM:
         self._num_joints = 6
         self._ik_solution = np.zeros([self._num_joints])
         self._last_jp = np.zeros([self._num_joints])
+
+
 
     def set_home_pose(self, pose):
         self.T_t_b_home = pose
@@ -129,6 +134,8 @@ class PSM:
         ik_solution = compute_IK(T_t_b)
         self._ik_solution = enforce_limits(ik_solution)
         self.move_jp(self._ik_solution)
+        # save jp
+        # jpRecorder.record(self._ik_solution)
 
     def optimize_jp(self, jp):
         # Optimizing the tool shaft roll angle
