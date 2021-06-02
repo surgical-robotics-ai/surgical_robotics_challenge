@@ -52,10 +52,12 @@ from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
 from mtm_device_crtk import MTM
 from itertools import cycle
+from camera import Camera
+from obj_control_gui import ObjectGUI
 
 
 class ControllerInterface:
-    def __init__(self, leader, psm_arms, T_c_w):
+    def __init__(self, leader, psm_arms, camera):
         self.counter = 0
         self.leader = leader
         self.psm_arms = cycle(psm_arms)
@@ -64,20 +66,27 @@ class ControllerInterface:
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         self.cmd_rpy = None
         self.T_IK = None
-        self.T_c_w = T_c_w
+        self._camera = camera
+        self.gui = ObjectGUI('camera vel control')
 
         self._T_c_b = None
-        self._T_c_b_updated = False
+        self._update_T_c_b = True
 
     def switch_psm(self):
-        self._T_c_b_updated = False
+        self._update_T_c_b = True
         self.active_psm = self.psm_arms.next()
         print('Switching Control of Next PSM Arm: ', self.active_psm.name)
 
     def update_T_b_c(self):
-        if not self._T_c_b_updated:
-            self._T_c_b = self.active_psm.get_T_w_b() * self.T_c_w
-            self._T_c_b_updated = True
+        if self._update_T_c_b or self._camera.has_pose_changed:
+            self._T_c_b = self.active_psm.get_T_w_b() * self._camera.get_T_c_w()
+            self._update_T_c_b = False
+
+    def update_camera_pose(self):
+        self.gui.App.update()
+        twist = np.array([self.gui.x, self.gui.y, self.gui.z, self.gui.ro, self.gui.pi, self.gui.ya])
+        if np.linalg.norm(twist) > 0.0001:
+            self._camera.move_cv(twist, 0.005)
 
     def update_arm_pose(self):
         self.update_T_b_c()
@@ -118,6 +127,7 @@ class ControllerInterface:
         if self.leader.switch_psm:
             self.switch_psm()
             self.leader.switch_psm = False
+        self.update_camera_pose()
         self.update_arm_pose()
         # self.update_visual_markers()
 
@@ -159,13 +169,8 @@ if __name__ == "__main__":
     c = Client(parsed_args.client_name)
     c.connect()
 
-    cam_frame = c.get_obj_handle('CameraFrame')
+    cam = Camera(c, 'CameraFrame')
     time.sleep(0.5)
-    P_c_w = cam_frame.get_pos()
-    R_c_w = cam_frame.get_rpy()
-
-    T_c_w = Frame(Rotation.RPY(R_c_w[0], R_c_w[1], R_c_w[2]), Vector(P_c_w.x, P_c_w.y, P_c_w.z))
-    print(T_c_w)
 
     controllers = []
     psm_arms = []
@@ -178,7 +183,7 @@ if __name__ == "__main__":
         psm = PSM(c, arm_name)
         if psm.is_present():
             T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
-            T_psmtip_b = psm.get_T_w_b() * T_c_w * T_psmtip_c
+            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
             psm.set_home_pose(T_psmtip_b)
             psm_arms.append(psm)
 
@@ -191,7 +196,7 @@ if __name__ == "__main__":
         psm = PSM(c, arm_name)
         if psm.is_present():
             T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
-            T_psmtip_b = psm.get_T_w_b() * T_c_w * T_psmtip_c
+            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
             psm.set_home_pose(T_psmtip_b)
             psm_arms.append(psm)
 
@@ -211,7 +216,7 @@ if __name__ == "__main__":
     else:
         leader = MTM(parsed_args.mtm_name)
         leader.set_base_frame(Frame(Rotation.RPY((np.pi - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
-        controller1 = ControllerInterface(leader, psm_arms, T_c_w)
+        controller1 = ControllerInterface(leader, psm_arms, cam)
         controllers.append(controller1)
 
         rate = rospy.Rate(200)

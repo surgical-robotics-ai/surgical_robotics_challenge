@@ -46,32 +46,13 @@ from Tkinter import *
 
 
 class ObjectGUI:
-    def __init__(self, obj_name, initial_xyz, initial_rpy, range_xyz, range_rpy, resolution):
+    def __init__(self, obj_name, initial_xyz=[0, 0, 0], initial_rpy=[0, 0, 0], range_xyz=1.0, range_rpy=3.14, resolution=0.0001):
         self.App = Tk()
-        if initial_xyz:
-            self.initial_xyz = initial_xyz
-        else:
-            self.initial_xyz = [0.0, 0.0, 0.0]
-
-        if initial_rpy:
-            self.initial_rpy = initial_rpy
-        else:
-            self.initial_rpy = [0, 0, 0]
-
-        if range_xyz:
-            self.range_xyz = range_xyz
-        else:
-            self.range_xyz = 1.0
-
-        if range_rpy:
-            self.range_rpy = range_rpy
-        else:
-            self.range_rpy = 3.14
-
-        if resolution:
-            self.resolution = resolution
-        else:
-            self.resolution = 0.0001
+        self.initial_xyz = initial_xyz
+        self.initial_rpy = initial_rpy
+        self.range_xyz = range_xyz
+        self.range_rpy = range_rpy
+        self.resolution = resolution
 
         self.x = self.initial_xyz[0]
         self.y = self.initial_xyz[1]
