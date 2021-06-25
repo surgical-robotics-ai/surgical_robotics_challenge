@@ -1,0 +1,15 @@
+###### Author: Haoying(Jack) Zhou########
+
+How to use the recorder:
+
+The code of the recorder is in the joint_pos_recorder.py, Feel free to modify it according to your preference (e.g. file name definition). It also includes the method to read the data and there is a read-data sample called read_save_data.py
+
+*** You may need to modified the record_size depends on the length of your recording time. The longer the time is, the larger record_size you should use
+
+The initial recorder is inserted in psm_arm.py to record the joint space data.
+
+This tool can be further developed for various usages if you are familiar with python.
+
+
+
+
