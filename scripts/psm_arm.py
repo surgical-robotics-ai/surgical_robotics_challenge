@@ -135,7 +135,7 @@ class PSM:
         self._ik_solution = enforce_limits(ik_solution)
         self.move_jp(self._ik_solution)
         # save jp
-        # jpRecorder.record(self._ik_solution)
+        # jpRecorder.record(self._ik_solution) ######record joint angles
 
     def optimize_jp(self, jp):
         # Optimizing the tool shaft roll angle
