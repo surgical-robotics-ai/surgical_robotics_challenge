@@ -49,14 +49,24 @@ import time
 import rospy
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
-import obj_control_gui
+from obj_control_gui import ObjectGUI
+from camera import Camera
 
 
 class GUIController:
-    def __init__(self, arm, gui_handle):
+    def __init__(self, gui_handle, arm, camera):
         self.counter = 0
         self.GUI = gui_handle
         self.arm = arm
+        self._camera = camera
+        self._cam_gui = ObjectGUI('camera vel control')
+
+    def update_camera_pose(self):
+        self._cam_gui.App.update()
+        twist = np.array([self._cam_gui.x, self._cam_gui.y, self._cam_gui.z,
+                          self._cam_gui.ro, self._cam_gui.pi, self._cam_gui.ya])
+        if np.linalg.norm(twist) > 0.0001:
+            self._camera.move_cv(twist, 0.005)
 
     def update_arm_pose(self):
         gui = self.GUI
@@ -82,6 +92,7 @@ class GUIController:
             self.arm.target_FK.set_rpy(T_t_w.M.GetRPY()[0], T_t_w.M.GetRPY()[1], T_t_w.M.GetRPY()[2])
 
     def run(self):
+            self.update_camera_pose()
             self.update_arm_pose()
             self.update_visual_markers()
 
@@ -115,6 +126,9 @@ if __name__ == "__main__":
     c = Client(parsed_args.client_name)
     c.connect()
 
+    cam = Camera(c, 'CameraFrame')
+    time.sleep(0.5)
+
     controllers = []
     
     if parsed_args.run_psm_one is True:
@@ -126,8 +140,8 @@ if __name__ == "__main__":
             # init_xyz = [0.1, -0.85, -0.15]
             init_xyz = [0, 0, -1.0]
             init_rpy = [3.14, 0, 1.57079]
-            gui = obj_control_gui.ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 10.0, 0.000001)
-            controller = GUIController(psm, gui)
+            gui = ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 10.0, 0.000001)
+            controller = GUIController(gui, psm, cam)
             controllers.append(controller)
 
     if parsed_args.run_psm_two is True:
@@ -138,8 +152,8 @@ if __name__ == "__main__":
             # Initial Target Offset for PSM2
             init_xyz = [0, 0.0, -1.0]
             init_rpy = [3.14, 0, 1.57079]
-            gui = obj_control_gui.ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 12, 0.000001)
-            controller = GUIController(psm, gui)
+            gui = ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 12, 0.000001)
+            controller = GUIController(gui, psm, cam)
             controllers.append(controller)
 
     if parsed_args.run_psm_three is True:
@@ -150,8 +164,8 @@ if __name__ == "__main__":
             # Initial Target Offset for PSM2
             init_xyz = [0, 0.0, -1.0]
             init_rpy = [3.14, 0, 1.57079]
-            gui = obj_control_gui.ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 3.14, 0.000001)
-            controller = GUIController(psm, gui)
+            gui = ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 3.14, 0.000001)
+            controller = GUIController(gui, psm, cam)
             controllers.append(controller)
 
     if len(controllers) == 0:
