@@ -97,7 +97,7 @@ vec4 shade(vec3 p, vec3 v, vec3 n)
 void main(void)
 {
     vec3 normal;
-    if (vEnableNormalMapping == 1){
+    if (vEnableNormalMapping > 0){
       // obtain normal from normal map in range [0,1]
       normal = texture2D(normalMap, gl_TexCoord[0].xy).rgb;
       // normal = TBN * normal;

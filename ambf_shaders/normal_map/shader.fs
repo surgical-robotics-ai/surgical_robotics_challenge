@@ -3,8 +3,8 @@ varying vec3 vNormal;
 varying vec3 vTexCoord;
 varying mat3 TBN;
 
-uniform sampler2DShadow shadowMap;
 uniform sampler2D diffuseMap;
+uniform sampler2DShadow shadowMap;
 uniform sampler2D normalMap;
 uniform int vEnableNormalMapping;
 
