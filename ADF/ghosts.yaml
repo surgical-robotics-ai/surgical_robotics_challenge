@@ -20,7 +20,7 @@ ignore inter-collision: true
 namespace: /ambf/env/psm/
 BODY ghostEntry1:
   name: ghostEntry1
-  parent: Entry1
+  parent: BODY Entry1
   mesh: ghost.STL
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
@@ -55,7 +55,7 @@ BODY ghostEntry1:
     transparency: 0.4357
 BODY ghostExit1:
   name: ghostExit1
-  parent: Exit1
+  parent: BODY Exit1
   mesh: ghost.STL
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
@@ -90,7 +90,7 @@ BODY ghostExit1:
     transparency: 0.4357
 BODY ghostEntry2:
   name: ghostEntry2
-  parent: Entry2
+  parent: BODY Entry2
   mesh: ghost.STL
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
@@ -125,7 +125,7 @@ BODY ghostEntry2:
     transparency: 0.4357
 BODY ghostExit2:
   name: ghostExit2
-  parent: Exit2
+  parent: BODY Exit2
   mesh: ghost.STL
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
@@ -160,7 +160,7 @@ BODY ghostExit2:
     transparency: 0.4357
 BODY ghostEntry3:
   name: ghostEntry3
-  parent: Entry3
+  parent: BODY Entry3
   mesh: ghost.STL
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
@@ -195,7 +195,7 @@ BODY ghostEntry3:
     transparency: 0.4357
 BODY ghostExit3:
   name: ghostExit3
-  parent: Exit3
+  parent: BODY Exit3
   mesh: ghost.STL
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
@@ -230,7 +230,7 @@ BODY ghostExit3:
     transparency: 0.4357
 BODY ghostEntry4:
   name: ghostEntry4
-  parent: Entry4
+  parent: BODY Entry4
   mesh: ghost.STL
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
@@ -265,7 +265,7 @@ BODY ghostEntry4:
     transparency: 0.4357
 BODY ghostExit4:
   name: ghostExit4
-  parent: Exit4
+  parent: BODY Exit4
   mesh: ghost.STL
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
