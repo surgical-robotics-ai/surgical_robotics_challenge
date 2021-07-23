@@ -117,7 +117,6 @@ class DH:
 
 # T_7_0 = compute_FK([-0.5, 0, 0.2, 0, 0, 0])
 #
-# print T_7_0
-# print "\n AFTER ROUNDING \n"
+# print(T_7_0)
+# print("\n AFTER ROUNDING \n")
 # print(round_mat(T_7_0, 4, 4, 3))
-

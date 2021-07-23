@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
-    print parsed_args
+    print(parsed_args)
 
     if parsed_args.run_psm_one in ['True', 'true', '1']:
         parsed_args.run_psm_one = True
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     time.sleep(0.5)
 
     controllers = []
-    
+
     if parsed_args.run_psm_one is True:
         arm_name = 'psm1'
         psm = PSM(c, arm_name)
@@ -177,4 +177,3 @@ if __name__ == "__main__":
             for cont in controllers:
                 cont.run()
             time.sleep(0.005)
-

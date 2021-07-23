@@ -105,7 +105,7 @@ def compute_IK(T_7_0):
     # if angle > np.pi/2:
     #     N_PalmJoint_PinchJoint = N_PalmJoint_PinchJoint
     #
-    # print angle
+    # print(angle)
 
     # Add another frame to account for Palm link length
     # print("N_PalmJoint_PinchJoint: ", round_vec(N_PalmJoint_PinchJoint))
@@ -125,7 +125,7 @@ def compute_IK(T_7_0):
     # Now having the end point of the shaft or the PalmJoint, we can calculate some
     # angles as follows
     xz_diagonal = math.sqrt(T_PalmJoint_0.p[0] ** 2 + T_PalmJoint_0.p[2] ** 2)
-    # # print ('XZ Diagonal: ', xz_diagonal)
+    # # print('XZ Diagonal: ', xz_diagonal)
 
     # yz_diagonal = math.sqrt(T_PalmJoint_0.p[1] ** 2 + T_PalmJoint_0.p[2] ** 2)
     # # print('YZ Diagonal: ', yz_diagonal)

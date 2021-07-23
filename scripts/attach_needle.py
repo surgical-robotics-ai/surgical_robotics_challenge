@@ -8,7 +8,7 @@ import Tkinter
 def attach_needle(needle, link):
     error = 1000
     if link is None:
-        print ('Not a valid link, returning')
+        print('Not a valid link, returning')
         return
     while error > 0.1 and not rospy.is_shutdown():
         P_tINw = Vector(link.get_pos().x,
@@ -47,7 +47,7 @@ def attach_needle(needle, link):
                         needle.get_pos().y,
                         needle.get_pos().z)
         error = (P_tINw - P_nINw).Norm()
-        print error
+        print(error)
 
     # Wait for the needle to get there
     time.sleep(3)
@@ -94,4 +94,3 @@ link2_button.pack()
 link3_button.pack()
 
 tk.mainloop()
-

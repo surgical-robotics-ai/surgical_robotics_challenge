@@ -14,7 +14,7 @@ class DepthSub:
         print(type(gen))
         print(len(list(gen)))
         # for p in pc2.read_points(depth_msg, field_names=("x", "y", "z"), skip_nans=True):
-        #     print " x : %f  y: %f  z: %f" % (p[0], p[1], p[2])
+        #     print(" x : %f  y: %f  z: %f" % (p[0], p[1], p[2]))
 
 
 rospy.init_node('depth_sub')
