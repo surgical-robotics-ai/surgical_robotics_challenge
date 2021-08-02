@@ -55,10 +55,6 @@ def rot_mat_to_quat(cp):
                  cp[1, 0], cp[1, 1], cp[1, 2],
                  cp[2, 0], cp[2, 1], cp[2, 2])
 
-    # R = Rotation(cp[0, 0], cp[1, 0], cp[2, 0],
-    #              cp[0, 1], cp[1, 1], cp[2, 1],
-    #              cp[0, 2], cp[1, 2], cp[2, 2])
-
     return R.GetQuaternion()
 
 
@@ -141,22 +137,19 @@ class CRTK:
         self.client = Client("ambf_surgical_sim_crtk_node")
         self.client.connect()
         time.sleep(0.2)
-        self.psm1 = None
-        self.psm2 = None
-        self.psm3 = None
         self._psms = []
         if options.run_psm1 is True:
             print("Launching CRTK-ROS Interface for PSM1 ")
-            self.psm1 = ArmCRTKWrapper(self.client, 'psm1', options.namespace)
-            self._psms.append(self.psm1)
+            psm1 = ArmCRTKWrapper(self.client, 'psm1', options.namespace)
+            self._psms.append(psm1)
         if options.run_psm2 is True:
             print("Launching CRTK-ROS Interface for PSM2 ")
-            self.psm2 = ArmCRTKWrapper(self.client, 'psm2', options.namespace)
-            self._psms.append(self.psm2)
+            psm2 = ArmCRTKWrapper(self.client, 'psm2', options.namespace)
+            self._psms.append(psm2)
         if options.run_psm3 is True:
             print("Launching CRTK-ROS Interface for PSM3 ")
-            self.psm3 = ArmCRTKWrapper(self.client, 'psm3', options.namespace)
-            self._psms.append(self.psm3)
+            psm3 = ArmCRTKWrapper(self.client, 'psm3', options.namespace)
+            self._psms.append(psm3)
 
         self._rate = rospy.Rate(options.rate)
 
