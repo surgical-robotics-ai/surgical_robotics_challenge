@@ -140,7 +140,7 @@ class ArmCRTKWrapper:
 
 class CRTK:
     def __init__(self, options):
-        if options.run_psm1 and options.run_psm2 and options.run_psm3 is False:
+        if options.run_psm1 is False and options.run_psm2 is False and options.run_psm3 is False:
             raise "Atleast one PSM arm has to be specified"
 
         self.client = Client("ambf_surgical_sim_crtk_node")
