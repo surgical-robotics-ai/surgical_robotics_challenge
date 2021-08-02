@@ -106,6 +106,8 @@ class ArmCRTKWrapper:
                                       queue_size=1)
         self.servo_jp_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'servo_jp', JointState,
                                              self.servo_jp_cb, queue_size=1)
+        self.servo_jaw_jp_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'servo_jaw_jp', JointState,
+                                             self.servo_jaw_jp_cb, queue_size=1)
         self.servo_cp_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'servo_cp', TransformStamped,
                                              self.servo_cp_cb, queue_size=1)
         self._measured_jp_msg = JointState()
@@ -113,6 +115,7 @@ class ArmCRTKWrapper:
 
         self._measured_cp_msg = TransformStamped()
         self._measured_cp_msg.header.frame_id = 'baselink'
+        self._jaw_angle = 0.5
 
     def servo_cp_cb(self, cp):
         frame = transform_to_frame(cp.transform)
@@ -121,12 +124,18 @@ class ArmCRTKWrapper:
     def servo_jp_cb(self, jp):
         self.arm.servo_jp(jp.position)
 
+    def servo_jaw_jp_cb(self, jp):
+        self._jaw_angle = jp.position[0]
+
     def run(self):
         self._measured_jp_msg.position = self.arm.measured_jp()
         self.measured_jp_pub.publish(self._measured_jp_msg)
 
         self._measured_cp_msg.transform = np_mat_to_transform(self.arm.measured_cp())
         self.measured_cp_pub.publish(self._measured_cp_msg)
+
+        self.arm.set_jaw_angle(self._jaw_angle)
+        self.arm.run_grasp_logic(self._jaw_angle)
 
 
 class CRTK:
