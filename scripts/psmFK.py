@@ -17,10 +17,12 @@ from utilities import *
 # You need to provide a list of joint positions. If the list is less that the number of joint
 # i.e. the robot has 6 joints, but only provide 3 joints. The FK till the 3+1 link will be provided
 
-class KinematicData:
+class PSMKinematicData:
     def __init__(self):
         self.num_links = 7
 
+        self.L_rcc = 4.389 # From dVRK documentation x 10
+        self.L_tool = 4.16  # From dVRK documentation x 10
         self.L_pitch2yaw = 0.09  # Fixed length from the palm joint to the pinch joint
         self.L_yaw2ctrlpnt = 0.106  # Fixed length from the pinch joint to the pinch tip
         self.L_tool2rcm_offset = 0.229  # Delta between tool tip and the Remote Center of Motion
@@ -29,11 +31,11 @@ class KinematicData:
         # alpha | a | theta | d | offset | type
         self.kinematics = [[PI_2, 0, 0, 0, PI_2, 'R'],
                            [-PI_2, 0, 0, 0, -PI_2, 'R'],
-                           [PI_2, 0, 0, 0, 4.389, 'P'],
-                           [0, 0, 0, 4.16, 0, 'R'],
+                           [PI_2, 0, 0, 0, -self.L_rcc, 'P'],
+                           [0, 0, 0, self.L_tool, 0, 'R'],
                            [-PI_2, 0, 0, 0, -PI_2, 'R'],
-                           [-PI_2, 0.09, 0, 0, -PI_2, 'R'],
-                           [-PI_2, 0, 0, 0.106, PI_2, 'R']]
+                           [-PI_2, self.L_pitch2yaw, 0, 0, -PI_2, 'R'],
+                           [-PI_2, 0, 0, self.L_yaw2ctrlpnt, PI_2, 'R']]
 
     def get_link_params(self, link_num):
         if link_num < 0 or link_num > self.num_links:
@@ -44,27 +46,13 @@ class KinematicData:
             return self.kinematics[link_num]
 
 
-kinematics_data = KinematicData()
+kinematics_data = PSMKinematicData()
 
 
 def compute_FK(joint_pos):
     j = [0, 0, 0, 0, 0, 0, 0]
     for i in range(len(joint_pos)):
         j[i] = joint_pos[i]
-
-    # The last frame is fixed
-
-    # PSM DH Params
-    # alpha | a | theta | d | offset | type
-    # all_dh_params = [[ PI_2,    0,  j[0],     0,  PI_2, 'R'],
-    #                  [-PI_2,    0,  j[1],     0, -PI_2, 'R'],
-    #                  [ PI_2,    0,  j[2],     0, 4.389, 'P'],
-    #                  [    0,    0,  j[3],  4.16,     0, 'R'],
-    #                  [-PI_2,    0,  j[4],     0, -PI_2, 'R'],
-    #                  [-PI_2, 0.09,  j[5],     0, -PI_2, 'R'],
-    #                  [-PI_2,    0,     0, 0.106,  PI_2, 'R']]
-
-    # print("RETURNING FK FOR LINK ", len(joint_pos))
 
     T_N_0 = np.identity(4)
 

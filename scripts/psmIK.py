@@ -48,7 +48,7 @@ import rospy
 #
 # is the direction between the difference of A and B expressed in C.
 
-kinematics_data = KinematicData()
+kinematics_data = PSMKinematicData()
 
 
 def enforce_limits(j_raw):
@@ -72,12 +72,10 @@ def enforce_limits(j_raw):
 
 
 def compute_IK(T_7_0):
-    L_pitch2yaw = 0.09 # Fixed length from the palm joint to the pinch joint
-    L_yaw2ctrlpnt = 0.106 # Fixed length from the pinch joint to the pinch tip
-    L_tool2rcm_offset = 0.229 # Delta between tool tip and the Remote Center of Motion
+    pkd = PSMKinematicData()
 
     # Pinch Joint
-    T_PinchJoint_7 = Frame(Rotation.RPY(0, 0, 0), L_yaw2ctrlpnt * Vector(0.0, 0.0, -1.0))
+    T_PinchJoint_7 = Frame(Rotation.RPY(0, 0, 0), pkd.L_yaw2ctrlpnt * Vector(0.0, 0.0, -1.0))
     # Pinch Joint in Origin
     T_PinchJoint_0 = T_7_0 * T_PinchJoint_7
 
@@ -109,7 +107,7 @@ def compute_IK(T_7_0):
 
     # Add another frame to account for Palm link length
     # print("N_PalmJoint_PinchJoint: ", round_vec(N_PalmJoint_PinchJoint))
-    T_PalmJoint_PinchJoint = Frame(Rotation.RPY(0, 0, 0), N_PalmJoint_PinchJoint * L_pitch2yaw)
+    T_PalmJoint_PinchJoint = Frame(Rotation.RPY(0, 0, 0), N_PalmJoint_PinchJoint * pkd.L_pitch2yaw)
     # print("P_PalmJoint_PinchJoint: ", round_vec(T_PalmJoint_PinchJoint.p))
     # Get the shaft tip or the Palm's Joint position
     T_PalmJoint_0 = T_7_0 * T_PinchJoint_7 * T_PalmJoint_PinchJoint
@@ -135,7 +133,7 @@ def compute_IK(T_7_0):
     # j2 = np.sign(T_PalmJoint_0.p[0]) * math.acos(-T_PalmJoint_0.p[2] / yz_diagonal)
     j2 = -math.atan2(T_PalmJoint_0.p[1], xz_diagonal)
 
-    j3 = insertion_depth + L_tool2rcm_offset
+    j3 = insertion_depth + pkd.L_tool2rcm_offset
 
     # Calculate j4
     # This is an important case and has to be dealt carefully. Based on some inspection, we can find that
@@ -165,7 +163,7 @@ def compute_IK(T_7_0):
 
     j6 = get_angle(T_7_0.M.UnitZ(), T_5_0.M.UnitX(), up_vector=-T_5_0.M.UnitY())
 
-    str = '\n**********************************'*3
+    # str = '\n**********************************'*3
     # print(str)
     # print("Joint 1: ", round(j1, 3))
     # print("Joint 2: ", round(j2, 3))

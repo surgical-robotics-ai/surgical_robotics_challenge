@@ -47,6 +47,26 @@ from PyKDL import Frame, Rotation, Vector
 import time
 
 
+class PSMJointMapping:
+    def __init__(self):
+        self.idx_to_name = {0: 'baselink-yawlink',
+                            1: 'yawlink-pitchbacklink',
+                            2: 'pitchendlink-maininsertionlink',
+                            3: 'maininsertionlink-toolrolllink',
+                            4: 'toolrolllink-toolpitchlink',
+                            5: 'toolpitchlink-toolyawlink'}
+
+        self.name_to_idx = {'baselink-yawlink': 0,
+                            'yawlink-pitchbacklink': 1,
+                            'pitchendlink-maininsertionlink': 2,
+                            'maininsertionlink-toolrolllink': 3,
+                            'toolrolllink-toolpitchlink': 4,
+                            'toolpitchlink-toolyawlink': 5}
+
+
+pjm = PSMJointMapping()
+
+
 class PSM:
     def __init__(self, client, name):
         self.client = client
@@ -135,22 +155,30 @@ class PSM:
         pass
 
     def servo_jp(self, jp):
-        self.base.set_joint_pos('baselink-yawlink', jp[0])
-        self.base.set_joint_pos('yawlink-pitchbacklink', jp[1])
-        self.base.set_joint_pos('pitchendlink-maininsertionlink', jp[2])
-        self.base.set_joint_pos('maininsertionlink-toolrolllink', jp[3])
-        self.base.set_joint_pos('toolrolllink-toolpitchlink', jp[4])
-        self.base.set_joint_pos('toolpitchlink-toolyawlink', jp[5])
+        self.base.set_joint_pos(0, jp[0])
+        self.base.set_joint_pos(1, jp[1])
+        self.base.set_joint_pos(2, jp[2])
+        self.base.set_joint_pos(3, jp[3])
+        self.base.set_joint_pos(4, jp[4])
+        self.base.set_joint_pos(5, jp[5])
 
     def set_jaw_angle(self, jaw_angle):
         self.base.set_joint_pos('toolyawlink-toolgripper1link', jaw_angle)
         self.base.set_joint_pos('toolyawlink-toolgripper2link', jaw_angle)
 
     def measured_cp(self):
-        jp = self.base.get_all_joint_pos()
-        return compute_FK(jp[0:7])
+        jp = self.measured_jp()
+        return compute_FK(jp)
 
     def measured_jp(self):
-        jp = self.base.get_all_joint_pos()
-        return jp
+        j0 = self.base.get_joint_pos(0)
+        j1 = self.base.get_joint_pos(1)
+        j2 = self.base.get_joint_pos(2)
+        j3 = self.base.get_joint_pos(3)
+        j4 = self.base.get_joint_pos(4)
+        j5 = self.base.get_joint_pos(5)
+        return [j0, j1, j2, j3, j4, j5]
+
+    def get_joint_names(self):
+        return self.base.get_joint_names()
 
