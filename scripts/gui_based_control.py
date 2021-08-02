@@ -72,7 +72,7 @@ class GUIController:
         gui = self.GUI
         gui.App.update()
         T_t_b = Frame(Rotation.RPY(gui.ro, gui.pi, gui.ya), Vector(gui.x, gui.y, gui.z))
-        self.arm.move_cp(T_t_b)
+        self.arm.servo_cp(T_t_b)
         self.arm.set_jaw_angle(gui.gr)
         self.arm.run_grasp_logic(gui.gr)
 

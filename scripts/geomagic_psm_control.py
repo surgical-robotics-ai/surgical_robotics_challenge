@@ -76,7 +76,7 @@ class ControllerInterface:
 
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
 
-        self.psm.move_cp(self.T_IK)
+        self.psm.servo_cp(self.T_IK)
         self.psm.set_jaw_angle(self.leader.get_jaw_angle())
         self.psm.run_grasp_logic(self.leader.get_jaw_angle())
 

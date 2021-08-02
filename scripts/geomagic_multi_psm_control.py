@@ -98,7 +98,7 @@ class ControllerInterface:
 
         self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M * Rotation.RPY(np.pi, 0, np.pi / 2)
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
-        self.active_psm.move_cp(self.T_IK)
+        self.active_psm.servo_cp(self.T_IK)
         self.active_psm.set_jaw_angle(self.leader.get_jaw_angle())
         self.active_psm.run_grasp_logic(self.leader.get_jaw_angle())
 

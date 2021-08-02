@@ -110,8 +110,8 @@ class PSM:
                         sensed_obj = self.sensor.get_sensed_object(i)
                         if sensed_obj == 'Needle' or 'Thread' in sensed_obj:
                             if not self.grasped[i]:
-                                qualified_nane = '/ambf/env/BODY ' + sensed_obj
-                                self.actuators[i].actuate(qualified_nane)
+                                qualified_name = '/ambf/env/BODY ' + sensed_obj
+                                self.actuators[i].actuate(qualified_name)
                                 self.grasped[i] = True
                                 print('Grasping Sensed Object Names', sensed_obj)
             else:
@@ -122,19 +122,19 @@ class PSM:
                     self.grasped[i] = False
                     # print('Releasing Actuator ', i)
 
-    def move_cp(self, T_t_b):
+    def servo_cp(self, T_t_b):
         if type(T_t_b) in [np.matrix, np.array]:
             T_t_b = convert_mat_to_frame(T_t_b)
 
         ik_solution = compute_IK(T_t_b)
         self._ik_solution = enforce_limits(ik_solution)
-        self.move_jp(self._ik_solution)
+        self.servo_jp(self._ik_solution)
 
     def optimize_jp(self, jp):
         # Optimizing the tool shaft roll angle
         pass
 
-    def move_jp(self, jp):
+    def servo_jp(self, jp):
         self.base.set_joint_pos('baselink-yawlink', jp[0])
         self.base.set_joint_pos('yawlink-pitchbacklink', jp[1])
         self.base.set_joint_pos('pitchendlink-maininsertionlink', jp[2])
@@ -147,5 +147,10 @@ class PSM:
         self.base.set_joint_pos('toolyawlink-toolgripper2link', jaw_angle)
 
     def measured_cp(self):
-        pass
+        jp = self.base.get_all_joint_pos()
+        return compute_FK(jp[0:7])
+
+    def measured_jp(self):
+        jp = self.base.get_all_joint_pos()
+        return jp
 

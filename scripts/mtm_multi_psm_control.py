@@ -94,7 +94,7 @@ class ControllerInterface:
             self.leader.optimize_wrist_platform()
         else:
             if self.leader.is_active():
-                self.leader.move_cp(self.leader.pre_coag_pose_msg)
+                self.leader.servo_cp(self.leader.pre_coag_pose_msg)
         twist = self.leader.measured_cv() * 0.035
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         if not self.leader.clutch_button_pressed:
@@ -103,7 +103,7 @@ class ControllerInterface:
             self.active_psm.T_t_b_home.p = self.cmd_xyz
         self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
-        self.active_psm.move_cp(self.T_IK)
+        self.active_psm.servo_cp(self.T_IK)
         self.active_psm.set_jaw_angle(self.leader.get_jaw_angle())
         self.active_psm.run_grasp_logic(self.leader.get_jaw_angle())
 
