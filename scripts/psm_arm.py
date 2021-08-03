@@ -168,6 +168,7 @@ class PSM:
 
     def measured_cp(self):
         jp = self.measured_jp()
+        jp.append(0.0)
         return compute_FK(jp)
 
     def measured_jp(self):
