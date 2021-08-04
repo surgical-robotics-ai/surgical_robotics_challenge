@@ -150,6 +150,9 @@ class PSM:
         self._ik_solution = enforce_limits(ik_solution)
         self.servo_jp(self._ik_solution)
 
+    def servo_cv(self, twist):
+        pass
+
     def optimize_jp(self, jp):
         # Optimizing the tool shaft roll angle
         pass
@@ -161,6 +164,15 @@ class PSM:
         self.base.set_joint_pos(3, jp[3])
         self.base.set_joint_pos(4, jp[4])
         self.base.set_joint_pos(5, jp[5])
+
+    def servo_jv(self, jv):
+        print("Setting Joint Vel", jv)
+        self.base.set_joint_vel(0, jv[0])
+        self.base.set_joint_vel(1, jv[1])
+        self.base.set_joint_vel(2, jv[2])
+        self.base.set_joint_vel(3, jv[3])
+        self.base.set_joint_vel(4, jv[4])
+        self.base.set_joint_vel(5, jv[5])
 
     def set_jaw_angle(self, jaw_angle):
         self.base.set_joint_pos('toolyawlink-toolgripper1link', jaw_angle)
@@ -178,6 +190,15 @@ class PSM:
         j3 = self.base.get_joint_pos(3)
         j4 = self.base.get_joint_pos(4)
         j5 = self.base.get_joint_pos(5)
+        return [j0, j1, j2, j3, j4, j5]
+
+    def measured_jv(self):
+        j0 = self.base.get_joint_vel(0)
+        j1 = self.base.get_joint_vel(1)
+        j2 = self.base.get_joint_vel(2)
+        j3 = self.base.get_joint_vel(3)
+        j4 = self.base.get_joint_vel(4)
+        j5 = self.base.get_joint_vel(5)
         return [j0, j1, j2, j3, j4, j5]
 
     def get_joint_names(self):

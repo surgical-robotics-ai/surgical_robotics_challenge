@@ -45,14 +45,14 @@
 from psmIK import *
 from ambf_client import Client
 from psm_arm import PSM
-from camera import Camera
+from ecm_arm import ECM
 import time
 import rospy
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
 from geomagic_device import GeomagicDevice
 from itertools import cycle
-from obj_control_gui import ObjectGUI
+from jnt_control_gui import JointGUI
 
 
 class ControllerInterface:
@@ -60,8 +60,8 @@ class ControllerInterface:
         self.counter = 0
         self.leader = leader
         self.psm_arms = cycle(psm_arms)
-        self.active_psm = self.psm_arms.next()
-        self.gui = ObjectGUI('camera vel control')
+        self.active_psm = next(self.psm_arms)
+        self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         self.cmd_rpy = None
@@ -83,9 +83,7 @@ class ControllerInterface:
 
     def update_camera_pose(self):
         self.gui.App.update()
-        twist = np.array([self.gui.x, self.gui.y, self.gui.z, self.gui.ro, self.gui.pi, self.gui.ya])
-        if np.linalg.norm(twist) > 0.0001:
-            self._camera.move_cv(twist, 0.005)
+        self._camera.servo_jp(self.gui.jnt_cmds)
 
     def update_arm_pose(self):
         self.update_T_c_b()
@@ -154,7 +152,7 @@ if __name__ == "__main__":
     c = Client()
     c.connect()
 
-    cam = Camera(c, 'CameraFrame')
+    cam = ECM(c, 'CameraFrame')
     time.sleep(0.5)
 
     controllers = []

@@ -47,13 +47,12 @@ from ambf_client import Client
 from psm_arm import PSM
 import time
 import rospy
-import PyKDL
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
 from mtm_device_crtk import MTM
 from itertools import cycle
-from camera import Camera
-from obj_control_gui import ObjectGUI
+from ecm_arm import ECM
+from jnt_control_gui import JointGUI
 
 
 class ControllerInterface:
@@ -62,12 +61,12 @@ class ControllerInterface:
         self.leader = leader
         self.psm_arms = cycle(psm_arms)
         self.active_psm = self.psm_arms.next()
+        self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         self.cmd_rpy = None
         self.T_IK = None
         self._camera = camera
-        self.gui = ObjectGUI('camera vel control')
 
         self._T_c_b = None
         self._update_T_c_b = True
@@ -84,9 +83,7 @@ class ControllerInterface:
 
     def update_camera_pose(self):
         self.gui.App.update()
-        twist = np.array([self.gui.x, self.gui.y, self.gui.z, self.gui.ro, self.gui.pi, self.gui.ya])
-        if np.linalg.norm(twist) > 0.0001:
-            self._camera.move_cv(twist, 0.005)
+        self._camera.servo_jp(self.gui.jnt_cmds)
 
     def update_arm_pose(self):
         self.update_T_b_c()
@@ -169,7 +166,7 @@ if __name__ == "__main__":
     c = Client(parsed_args.client_name)
     c.connect()
 
-    cam = Camera(c, 'CameraFrame')
+    cam = ECM(c, 'CameraFrame')
     time.sleep(0.5)
 
     controllers = []
