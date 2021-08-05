@@ -96,7 +96,7 @@ class MTM:
         joint_state_sub_topic_name = name + 'measured_js'
         gripper_topic_name = name + 'gripper/measured_js'
         clutch_topic_name = '/footpedals/clutch'
-        coag_topic_name = '/footpedals/coag'
+        coag_topic_name = '/console/operator_present'
 
         pose_pub_topic_name = name + 'servo_cp'
         wrench_pub_topic_name = name + 'servo_cf'
@@ -188,7 +188,7 @@ class MTM:
         js_cmd = [0.0]*7
         js_cmd[3] = tau_4
         js_cmd[5] = tau_6
-        self.move_jf(js_cmd)
+        self.servo_jf(js_cmd)
 
     def set_tip_frame(self, frame):
         self._T_tipoffset = frame
@@ -255,7 +255,7 @@ class MTM:
     def command_force(self, force):
         pass
 
-    def move_cp(self, pose):
+    def servo_cp(self, pose):
         if type(pose) == PyKDL.Frame:
             transform_msg = kdl_frame_to_transform_msg(pose)
         elif type(pose) == PoseStamped:
@@ -267,12 +267,12 @@ class MTM:
 
         self._pos_pub.publish(transform_msg)
 
-    def move_cf(self, wrench):
+    def servo_cf(self, wrench):
         wrench = self._T_baseoffset_inverse * wrench
         wrench_msg = kdl_wrench_to_wrench_msg(wrench)
         self._wrench_pub.publish(wrench_msg.wrench)
 
-    def move_jf(self, torques):
+    def servo_jf(self, torques):
         effort_msg = vector_to_effort_msg(torques)
         self._effort_pub.publish(effort_msg)
 
@@ -306,7 +306,7 @@ def test():
             d.optimize_wrist_platform()
         else:
             if d.is_active():
-                d.move_cp(d.pre_coag_pose_msg)
+                d.servo_cp(d.pre_coag_pose_msg)
 
         # [r, p, y] = d.measured_cp().M.GetRPY()
         # f = 180.0 / 3.1404
