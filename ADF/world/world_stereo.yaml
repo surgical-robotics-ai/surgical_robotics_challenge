@@ -1,14 +1,14 @@
 enclosure size: {length: 10.0, width: 10.0, height: 3.0}
-lights: [light1, light2, light3]
+lights: [light2]
 cameras: [cameraL, cameraR]
 environment: "./checkered_floor.yaml"
 namespace: /ambf/env/
 max iterations: 50
 gravity: {x: 0.0, y: 0.0, z: -5.0}
-shaders:
-  path: ../../ambf_shaders/
-  vertex: "shader.vs"
-  fragment: "shader.fs"
+# shaders:
+#   path: ../../ambf_shaders/
+#   vertex: "shader.vs"
+#   fragment: "shader.fs"
 
 light1:
   namespace: lights/
@@ -26,7 +26,7 @@ light2:
   direction: {x: 0, y: 0.0, z: -1.0}
   spot exponent: 0.3
   shadow quality: 5
-  cutoff angle: 0.7
+  cutoff angle: 0.8
   parent: BODY CameraFrame
 
 light3:

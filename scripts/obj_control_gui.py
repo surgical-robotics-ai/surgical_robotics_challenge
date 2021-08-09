@@ -78,7 +78,7 @@ class ObjectGUI:
         self.x = self.initial_xyz[0]
         self.y = self.initial_xyz[1]
         self.z = self.initial_xyz[2]
-        print self.initial_xyz
+        print(self.initial_xyz)
         self.App.quit()
         self.App.destroy()
         self.App = Tk()

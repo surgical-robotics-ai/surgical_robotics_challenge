@@ -32,72 +32,57 @@ float attenuation(vec3 p, int i)
 
 float spotlight(vec3 p, int i)
 {
-    if (gl_LightSource[i].spotCosCutoff < 0.0) return 1.0;
-    vec4 p_l = getLightPos(i);
-    if (p_l.w == 0.0) return 1.0;
-    vec3 v = normalize(p - p_l.xyz);
-    vec3 s = normalize(getSpotDir(i));
-    float cosine = max(dot(v, s), 0.0);
-    float cutOffOuter = gl_LightSource[i].spotCosCutoff;
-    float epsilon = gl_LightSource[i].spotCosCutoff - cutOffOuter;
-    float intensity = clamp((cosine - cutOffOuter) / epsilon, 0.0, 1.0);
-
-    if (cosine >= gl_LightSource[i].spotCosCutoff){
-      return pow(cosine, gl_LightSource[i].spotExponent);
-    }
-    else{
-      return 0.0;
-    }
-    return intensity;
+  if (gl_LightSource[i].spotCosCutoff < 0.0) return 1.0;
+  vec4 p_l = gl_LightSource[i].position;
+  if (p_l.w == 0.0) return 1.0;
+  vec3 v = normalize(p - p_l.xyz);
+  vec3 s = normalize(gl_LightSource[i].spotDirection);
+  float cosine = max(dot(v, s), 0.0);
+  float cutOffOuter = gl_LightSource[i].spotCosCutoff;
+  float epsilon = 0.001;
+  float intensity = clamp((cosine - cutOffOuter) / epsilon, 0.0, 1.0);
+  return intensity;
 }
 
 vec4 shade(vec3 p, vec3 v, vec3 n)
 {
-     vec3 Ie = gl_FrontMaterial.emission.rgb;
-     vec3 Ia = gl_FrontLightModelProduct.sceneColor.rgb;
-     vec3 Il = vec3(0.0);
+  vec3 Ie = gl_FrontMaterial.emission.rgb;
+  vec3 Ia = gl_FrontLightModelProduct.sceneColor.rgb;
+  vec3 Il = vec3(0.0);
 
-     for (int i = 0; i < gl_MaxLights; ++i)
-     {
-         vec4 p_l = getLightPos(i);
-         vec3 l = normalize(p_l.xyz - p * p_l.w);
-         vec3 h = normalize(l + v);
-         vec3 r = reflect(-l, n);
+  for (int i = 0; i < gl_MaxLights; ++i)
+  {
+      vec4 p_l = gl_LightSource[i].position;
+      vec3 l = normalize(p_l.xyz - p * p_l.w);
+      vec3 h = normalize(l + v);
+      vec3 r = reflect(-l, n);
 
-         float s_m = gl_FrontMaterial.shininess;
-         float cosNL = max(dot(n, l), 0.0);
-         float cosNH = max(dot(v, r), 0.0);
+      float s_m = gl_FrontMaterial.shininess;
+      float cosNL = max(dot(n, l), 0.0);
+      float cosNH = max(dot(v, r), 0.0);
 
-         float att = attenuation(p, i);
-         float intensity = 0.3*spotlight(p, i);
+      float att = attenuation(p, i);
+      float intensity = clamp(spotlight(p, i), 0.0, 1.0);
+      vec3 texColor = texture2D(diffuseMap, vTexCoord.xy).xyz;
 
-         vec3 texColor = texture2D(diffuseMap, vTexCoord.xy).xyz;
+      vec3 Iambient = gl_FrontLightProduct[i].ambient.rgb * texColor;
+      vec3 Idiffuse = gl_FrontLightProduct[i].diffuse.rgb * cosNL * texColor;
+      vec3 Ispecular = gl_FrontLightProduct[i].specular.rgb * pow(cosNH, s_m);
 
-         vec3 Iambient = gl_FrontLightProduct[i].ambient.rgb;
+      Iambient *=  att * intensity;
+      Idiffuse *=  att * intensity;
+      Ispecular *= att * intensity;
 
-         vec3 Idiffuse = cosNL * gl_FrontLightProduct[i].diffuse.rgb;
-
-         vec3 Ispecular = pow(cosNH, s_m) * gl_FrontLightProduct[i].specular.rgb;
-
-         Iambient *= texColor * att * intensity;
-
-         Idiffuse *= texColor * att * intensity;
-
-         Ispecular *= texColor * att;
-
-         vec3 phong = Iambient + Idiffuse + Ispecular;
-
-         Il += phong;
-         Il = clamp(Il, 0.0, 1.0);
-     }
-     float alpha = gl_FrontMaterial.diffuse.a;
-     return vec4(Ie + Ia + Il, alpha);
+      Il += (Iambient + Idiffuse + Ispecular);
+  }
+  float alpha = gl_FrontMaterial.diffuse.a;
+  return vec4(Ie + Ia + Il, alpha);
 }
 
 void main(void)
 {
     vec3 normal;
-    if (vEnableNormalMapping == 1){
+    if (vEnableNormalMapping > 0){
       // obtain normal from normal map in range [0,1]
       normal = texture2D(normalMap, gl_TexCoord[0].xy).rgb;
       // normal = TBN * normal;

@@ -15,25 +15,40 @@ Lets call the location of this folder as
 
 3. Now run AMBF with the launch file and ADFs from this repo as:
 
+
+
+```bash
+./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,14,15
+```
+This is an example of what the scene should look like (minus the motions of the PSM, Needle etc.):
+
+
+<p align="center">
+<img src=Media/sample_scene_with_thread.gif width="480"/>
+</p>
+
+To launch a different scene with just the needle (without any thread), you can run:
+
 ```
 cd <ambf_bin>
 ./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,13,14
 ```
 
-This is an example of what the scene should look like (minus the motions of the PSM, Needle etc.):
-
+And this is what the scene should now look like:
 
 <p align="center">
 <img src=Media/sample_scene.gif width="480"/>
 </p>
+
+
+
 
 4. To control the PSMs, you can run the following script in a new terminal:
 ```
 cd <surgical_robotics_challenge>/scripts/
 python gui_based_control.py
 ```
-You should see GUI's with sliders to control the Pose of each PSM.
-Move around the PSMs and try to pick the needle.
+You should see GUI's with sliders to control the Pose of each PSM and you can the PSMs around and try to pick the needle.
 
 5. To automatically make the needle move towards a PSMs grasp, you can run the script called `attach_needle.py` while
 the simulation is running. Once the needle is within the grasping area you can control that specific jaw angle (using the GUI launched above) until it grasps the needle.
