@@ -24,7 +24,7 @@ This is an example of what the scene should look like (minus the motions of the 
 
 
 <p align="center">
-<img src=Media/sample_scene_with_thread.gif width="480"/>
+<img src=Media/figure_eight.gif width="480"/>
 </p>
 
 To launch a different scene with just the needle (without any thread), you can run:
