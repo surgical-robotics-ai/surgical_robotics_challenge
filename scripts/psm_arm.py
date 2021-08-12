@@ -155,6 +155,9 @@ class PSM:
         self._ik_solution = enforce_limits(ik_solution)
         self.servo_jp(self._ik_solution)
 
+        ### record
+        # jpRecorder.record(self._ik_solution) ## record joint angles
+
     def servo_cv(self, twist):
         pass
 

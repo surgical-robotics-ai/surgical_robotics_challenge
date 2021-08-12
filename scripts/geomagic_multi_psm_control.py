@@ -53,6 +53,7 @@ from argparse import ArgumentParser
 from geomagic_device import GeomagicDevice
 from itertools import cycle
 from jnt_control_gui import JointGUI
+from psm_arm import jpRecorder
 
 class ControllerInterface:
     def __init__(self, leader, psm_arms, camera):

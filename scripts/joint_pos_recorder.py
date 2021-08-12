@@ -10,6 +10,9 @@ import warnings
 import gc
 from glob import glob
 from pprint import pprint
+# import PyKDL
+# from PyKDL import Frame
+# import numpy as np
 import time
 
 def compare_name(name_str):
@@ -18,7 +21,7 @@ def compare_name(name_str):
     return datetime_ins
 
 class JointPosRecorder():
-    def __init__(self, save_path = '.', record_size = 500):
+    def __init__(self, save_path = './joint_data', record_size = 500):
         if not os.path.exists(save_path):
             print('[*]creating a new path at ' + save_path)
             os.makedirs(save_path)
