@@ -78,7 +78,6 @@ class ControllerInterface:
 
         self.psm.servo_cp(self.T_IK)
         self.psm.set_jaw_angle(self.leader.get_jaw_angle())
-        self.psm.run_grasp_logic(self.leader.get_jaw_angle())
 
     def update_visual_markers(self):
         # Move the Target Position Based on the GUI
