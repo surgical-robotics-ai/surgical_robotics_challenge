@@ -21,7 +21,9 @@ def compare_name(name_str):
     return datetime_ins
 
 class JointPosRecorder():
-    def __init__(self, save_path = './joint_data', record_size = 500):
+    ##### This recorder only work for list
+    def __init__(self, save_path = '.', record_size = 500):
+        #### can self-define the save_path
         if not os.path.exists(save_path):
             print('[*]creating a new path at ' + save_path)
             os.makedirs(save_path)

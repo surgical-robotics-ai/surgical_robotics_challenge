@@ -42,23 +42,18 @@
 #     \version   1.0
 # */
 # //==============================================================================
-import sys
-import os
-dynamic_path = os.path.abspath(__file__+"/../../")
-print(dynamic_path)
-sys.path.append(dynamic_path)
 from psmIK import *
 from ambf_client import Client
 from psm_arm import PSM
+from ecm_arm import ECM
 import time
 import rospy
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
-from razer_device import razer_Device
 from itertools import cycle
-# from joint_pos_recorder import JointPosRecorder
-# jpRecorder = JointPosRecorder()
-from joint_pos_recorder import JointPosLoader
+from jnt_control_gui import JointGUI
+from psm_arm import jpRecorder
+from geomagic_device import GeomagicDevice
 import json
 import pickle
 
@@ -70,56 +65,58 @@ import pickle
 #     for j in range(len(m[0])):
 #         jp_values.append(m[i][j]['pos'])
 #
-with open('result_try') as f:
-    jp_values = json.load(f)
+# with open('result_try') as f:
+#     jp_values = json.load(f)
 
-# with open('multi_test_1','rb') as fp:
-#     jp_values = pickle.load(fp)
-
-
+with open('./joint_data/goal_2/goal2.pickle','rb') as fp:
+    jp_values = pickle.load(fp)
 
 class ControllerInterface:
-    def __init__(self, leader, psm_arms, T_c_w):
+    def __init__(self, leader, psm_arms, camera):
         self.counter = 0
         self.leader = leader
         self.psm_arms = cycle(psm_arms)
-        self.active_psm = self.psm_arms.next()
+        self.active_psm = next(self.psm_arms)
+        self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
         self.jp_values = jp_values
 
-        # self.cmd_xyz = self.active_psm.T_t_b_home.p
-        # self.cmd_rpy = None
+        self.cmd_xyz = self.active_psm.T_t_b_home.p
+        self.cmd_rpy = None
         self.T_IK = None
-        # self.T_c_w = T_c_w
-        #
-        # self._T_c_b = None
-        # self._T_c_b_updated = False
-        self.active_psm.target_IK = None
+        self._camera = camera
+
+        self._T_c_b = None
+        self._update_T_c_b = True
 
     def switch_psm(self):
-        self._T_c_b_updated = False
+        self._update_T_c_b = True
         self.active_psm = self.psm_arms.next()
         print('Switching Control of Next PSM Arm: ', self.active_psm.name)
 
-    # def update_T_b_c(self):
-    #     if not self._T_c_b_updated:
-    #         self._T_c_b = self.active_psm.get_T_w_b() * self.T_c_w
-    #         self._T_c_b_updated = True
+    def update_T_c_b(self):
+        if self._update_T_c_b or self._camera.has_pose_changed():
+            self._T_c_b = self.active_psm.get_T_w_b() * self._camera.get_T_c_w()
+            self._update_T_c_b = False
+
+    def update_camera_pose(self):
+        self.gui.App.update()
+        self._camera.servo_jp(self.gui.jnt_cmds)
 
     def update_arm_pose(self):
-        # self.update_T_b_c()
+        # self.update_T_c_b()
         # twist = self.leader.measured_cv()
         # self.cmd_xyz = self.active_psm.T_t_b_home.p
         # if not self.leader.clutch_button_pressed:
-        #     delta_t = self._T_c_b.M * twist.vel * 0.002
+        #     delta_t = self._T_c_b.M * twist.vel * 0.00002
         #     self.cmd_xyz = self.cmd_xyz + delta_t
         #     self.active_psm.T_t_b_home.p = self.cmd_xyz
         #
         # self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M * Rotation.RPY(np.pi, 0, np.pi / 2)
         # self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
-        # self.active_psm.move_cp(self.T_IK)
-        self.active_psm.move_jp(self.jp_values[self.counter])
-        self.active_psm.set_jaw_angle(self.leader.get_jaw_angle())
-        self.active_psm.run_grasp_logic(self.leader.get_jaw_angle())
+        # self.active_psm.servo_cp(self.T_IK)
+        self.active_psm.servo_jp(self.jp_values[self.counter])
+        self.active_psm.set_jaw_angle(0.0)
+        self.active_psm.run_grasp_logic(0.0)
         self.counter = self.counter + 1
 
     def update_visual_markers(self):
@@ -142,6 +139,7 @@ class ControllerInterface:
         if self.leader.switch_psm:
             self.switch_psm()
             self.leader.switch_psm = False
+        self.update_camera_pose()
         self.update_arm_pose()
         self.update_visual_markers()
 
@@ -154,7 +152,7 @@ if __name__ == "__main__":
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
-    print parsed_args
+    print(parsed_args)
 
     if parsed_args.run_psm_one in ['True', 'true', '1']:
         parsed_args.run_psm_one = True
@@ -173,13 +171,8 @@ if __name__ == "__main__":
     c = Client()
     c.connect()
 
-    cam_frame = c.get_obj_handle('CameraFrame')
+    cam = ECM(c, 'CameraFrame')
     time.sleep(0.5)
-    P_c_w = cam_frame.get_pos()
-    R_c_w = cam_frame.get_rpy()
-
-    T_c_w = Frame(Rotation.RPY(R_c_w[0], R_c_w[1], R_c_w[2]), Vector(P_c_w.x, P_c_w.y, P_c_w.z))
-    print(T_c_w)
 
     controllers = []
     psm_arms = []
@@ -192,7 +185,7 @@ if __name__ == "__main__":
         psm = PSM(c, arm_name)
         if psm.is_present():
             T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
-            T_psmtip_b = psm.get_T_w_b() * T_c_w * T_psmtip_c
+            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
             psm.set_home_pose(T_psmtip_b)
             psm_arms.append(psm)
 
@@ -204,7 +197,7 @@ if __name__ == "__main__":
         psm = PSM(c, arm_name)
         if psm.is_present():
             T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
-            T_psmtip_b = psm.get_T_w_b() * T_c_w * T_psmtip_c
+            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
             psm.set_home_pose(T_psmtip_b)
             psm_arms.append(psm)
 
@@ -224,18 +217,19 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        leader = razer_Device()
+        leader = GeomagicDevice('/Geomagic/')
         theta_base = -0.9
         theta_tip = -theta_base
         leader.set_base_frame(Frame(Rotation.RPY(theta_base, 0, 0), Vector(0, 0, 0)))
         leader.set_tip_frame(Frame(Rotation.RPY(theta_base + theta_tip, 0, 0), Vector(0, 0, 0)))
-        controller = ControllerInterface(leader, psm_arms, T_c_w)
+        controller = ControllerInterface(leader, psm_arms, cam)
         controllers.append(controller)
         while not rospy.is_shutdown():
-            for cont in controllers:
-                # try:
-                cont.run()
-                # except KeyboardInterrupt:
-                #     jpRecorder.flush()
+            try:
+                for cont in controllers:
+                    cont.run()
+            except KeyboardInterrupt:
+                    jpRecorder.flush()
             rate.sleep()
+
 
