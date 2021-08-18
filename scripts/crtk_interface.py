@@ -190,6 +190,9 @@ class ECMCRTKWrapper:
         self._measured_cp_msg = TransformStamped()
         self._measured_cp_msg.header.frame_id = 'base_link'
 
+        self._measured_cv_msg = TwistStamped()
+        self._measured_cv_msg.header.frame_id = 'world'
+
     def servo_cp_cb(self, cp):
         frame = transform_to_frame(cp.transform)
         self.arm.servo_cp(frame)
