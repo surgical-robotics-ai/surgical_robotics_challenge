@@ -65,8 +65,6 @@ class GeomagicDevice:
 
         self._pose_sub = rospy.Subscriber(pose_topic_name, PoseStamped, self.pose_cb, queue_size=1)
         self._twist_sub = rospy.Subscriber(twist_topic_name, Twist, self.twist_cb, queue_size=1)
-
-        ###### Commented
         self._button_sub = rospy.Subscriber(button_topic_name, DeviceButtonEvent, self.buttons_cb, queue_size=1)
         self._force_pub = rospy.Publisher(force_topic_name, DeviceFeedback, queue_size=1)
 
