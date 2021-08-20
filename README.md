@@ -1,15 +1,25 @@
 ### How to Run
 
-1. Clone, build and source AMBF's `restructure` branch.
+1. Clone, build and source AMBF's `ambf-2.0` branch.
 
-https://github.com/WPI-AIM/ambf/tree/restructure
+https://github.com/WPI-AIM/ambf/tree/ambf-2.0
 
+First time cloning:
 ```bash
-git checkout -b restructure origin/restructure
+git clone https://github.com/WPI-AIM/ambf.git
+git checkout -b ambf-2.0 origin/ambf-2.0
+```
+Updating to the latest commit
+```bash
 git pull
 ```
 
 2. Clone this repo outside AMBF source tree e.g. your home folder.
+
+```bash
+git clone https://github.com/adnanmunawar/surgical_robotics_challenge
+```
+
 Lets call the location of this folder as
 `<surgical_robotics_challenge>`
 
