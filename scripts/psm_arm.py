@@ -47,8 +47,27 @@ from PyKDL import Frame, Rotation, Vector
 import time
 from joint_pos_recorder import JointPosRecorder
 
-# get recorder
 jpRecorder = JointPosRecorder()
+
+class PSMJointMapping:
+    def __init__(self):
+        self.idx_to_name = {0: 'baselink-yawlink',
+                            1: 'yawlink-pitchbacklink',
+                            2: 'pitchendlink-maininsertionlink',
+                            3: 'maininsertionlink-toolrolllink',
+                            4: 'toolrolllink-toolpitchlink',
+                            5: 'toolpitchlink-toolyawlink'}
+
+        self.name_to_idx = {'baselink-yawlink': 0,
+                            'yawlink-pitchbacklink': 1,
+                            'pitchendlink-maininsertionlink': 2,
+                            'maininsertionlink-toolrolllink': 3,
+                            'toolrolllink-toolpitchlink': 4,
+                            'toolpitchlink-toolyawlink': 5}
+
+
+pjm = PSMJointMapping()
+
 
 class PSM:
     def __init__(self, client, name, save_jp):
@@ -75,8 +94,6 @@ class PSM:
         self._num_joints = 6
         self._ik_solution = np.zeros([self._num_joints])
         self._last_jp = np.zeros([self._num_joints])
-
-
 
     def set_home_pose(self, pose):
         self.T_t_b_home = pose
@@ -116,8 +133,8 @@ class PSM:
                         sensed_obj = self.sensor.get_sensed_object(i)
                         if sensed_obj == 'Needle' or 'Thread' in sensed_obj:
                             if not self.grasped[i]:
-                                qualified_nane = '/ambf/env/BODY ' + sensed_obj
-                                self.actuators[i].actuate(qualified_nane)
+                                qualified_name = '/ambf/env/BODY ' + sensed_obj
+                                self.actuators[i].actuate(qualified_name)
                                 self.grasped[i] = True
                                 print('Grasping Sensed Object Names', sensed_obj)
             else:
@@ -134,13 +151,14 @@ class PSM:
 
         ik_solution = compute_IK(T_t_b)
         self._ik_solution = enforce_limits(ik_solution)
-        self.move_jp(self._ik_solution)
-        # save jp
+        self.servo_jp(self._ik_solution)
+
+        ###  save jp
 
         if self.save_jp:
-            jpRecorder.record(self._ik_solution) ######record joint angles
+            jpRecorder.record(self._ik_solution)  ### record joint angles
 
-    def servo_cv(self, jp):
+    def servo_cv(self, twist):
         pass
 
     def optimize_jp(self, jp):
@@ -155,13 +173,14 @@ class PSM:
         self.base.set_joint_pos(4, jp[4])
         self.base.set_joint_pos(5, jp[5])
 
-    def servo_jv(self, jp):
-        self.base.set_joint_vel(0, jp[0])
-        self.base.set_joint_vel(1, jp[1])
-        self.base.set_joint_vel(2, jp[2])
-        self.base.set_joint_vel(3, jp[3])
-        self.base.set_joint_vel(4, jp[4])
-        self.base.set_joint_vel(5, jp[5])
+    def servo_jv(self, jv):
+        print("Setting Joint Vel", jv)
+        self.base.set_joint_vel(0, jv[0])
+        self.base.set_joint_vel(1, jv[1])
+        self.base.set_joint_vel(2, jv[2])
+        self.base.set_joint_vel(3, jv[3])
+        self.base.set_joint_vel(4, jv[4])
+        self.base.set_joint_vel(5, jv[5])
 
     def set_jaw_angle(self, jaw_angle):
         self.base.set_joint_pos('toolyawlink-toolgripper1link', jaw_angle)
@@ -169,9 +188,9 @@ class PSM:
         self.run_grasp_logic(jaw_angle)
 
     def measured_cp(self):
-        jp = self.measured_cp()
+        jp = self.measured_jp()
         jp.append(0.0)
-        return compute_IK(jp)
+        return compute_FK(jp)
 
     def measured_jp(self):
         j0 = self.base.get_joint_pos(0)
@@ -180,7 +199,7 @@ class PSM:
         j3 = self.base.get_joint_pos(3)
         j4 = self.base.get_joint_pos(4)
         j5 = self.base.get_joint_pos(5)
-        return [j0,j1,j2,j3,j4,j5]
+        return [j0, j1, j2, j3, j4, j5]
 
     def measured_jv(self):
         j0 = self.base.get_joint_vel(0)
@@ -189,8 +208,8 @@ class PSM:
         j3 = self.base.get_joint_vel(3)
         j4 = self.base.get_joint_vel(4)
         j5 = self.base.get_joint_vel(5)
-        return [j0,j1,j2,j3,j4,j5]
+        return [j0, j1, j2, j3, j4, j5]
 
     def get_joint_names(self):
-        return self.base.get_joint_names
+        return self.base.get_joint_names()
 

@@ -45,7 +45,7 @@
 from psmIK import *
 from ambf_client import Client
 from psm_arm import PSM
-from camera import Camera
+from ecm_arm import ECM
 import time
 import rospy
 from PyKDL import Frame, Rotation, Vector
@@ -60,7 +60,7 @@ class ControllerInterface:
         self.counter = 0
         self.leader = leader
         self.psm_arms = cycle(psm_arms)
-        self.active_psm = self.psm_arms.next()
+        self.active_psm = next(self.psm_arms)
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
         self.cmd_xyz = self.active_psm.T_t_b_home.p
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     c = Client()
     c.connect()
 
-    cam = Camera(c, 'CameraFrame')
+    cam = ECM(c, 'CameraFrame')
     time.sleep(0.5)
 
     controllers = []
