@@ -42,6 +42,11 @@
 #     \version   1.0
 # */
 # //==============================================================================
+import sys
+import os
+dynamic_path = os.path.abspath(__file__+"/../../")
+print(dynamic_path)
+sys.path.append(dynamic_path)
 from psmIK import *
 from ambf_client import Client
 from psm_arm import PSM
@@ -50,10 +55,12 @@ import time
 import rospy
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
-from geomagic_device import GeomagicDevice
+from razer_device import razer_Device
 from itertools import cycle
-from psm_arm import jpRecorder
 from jnt_control_gui import JointGUI
+from joint_pos_recorder import JointPosRecorder
+jpRecorder = JointPosRecorder()
+
 
 class ControllerInterface:
     def __init__(self, leader, psm_arms, camera):
@@ -90,7 +97,7 @@ class ControllerInterface:
         twist = self.leader.measured_cv()
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         if not self.leader.clutch_button_pressed:
-            delta_t = self._T_c_b.M * twist.vel * 0.00002
+            delta_t = self._T_c_b.M * twist.vel * 0.00002 ### The coefficient can be modified [0.002 or some other values]
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_psm.T_t_b_home.p = self.cmd_xyz
 
@@ -98,6 +105,7 @@ class ControllerInterface:
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
         self.active_psm.servo_cp(self.T_IK)
         self.active_psm.set_jaw_angle(self.leader.get_jaw_angle())
+        self.active_psm.run_grasp_logic(self.leader.get_jaw_angle())
 
     def update_visual_markers(self):
         # Move the Target Position Based on the GUI
@@ -123,17 +131,16 @@ class ControllerInterface:
         self.update_arm_pose()
         self.update_visual_markers()
 
-
+s
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=True)
-    parser.add_argument('--save', action='store', dest='jp_record', help='save using jp_recorder', default=False)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
-    print(parsed_args)
+    print parsed_args
 
     if parsed_args.run_psm_one in ['True', 'true', '1']:
         parsed_args.run_psm_one = True
@@ -144,19 +151,14 @@ if __name__ == "__main__":
         parsed_args.run_psm_two = True
     elif parsed_args.run_psm_two in ['False', 'false', '0']:
         parsed_args.run_psm_two = False
-
     if parsed_args.run_psm_three in ['True', 'true', '1']:
         parsed_args.run_psm_three = True
     elif parsed_args.run_psm_three in ['False', 'false', '0']:
         parsed_args.run_psm_three = False
 
-    if parsed_args.jp_record in ['True', 'true', '1']:
-        parsed_args.jp_record = True
-    elif parsed_args.jp_record in ['False', 'false', '0']:
-        parsed_args.jp_record = False
-
     c = Client()
     c.connect()
+
 
     cam = ECM(c, 'CameraFrame')
     time.sleep(0.5)
@@ -169,7 +171,7 @@ if __name__ == "__main__":
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm1'
         print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(c, arm_name,parsed_args.jp_record)
+        psm = PSM(c, arm_name)
         if psm.is_present():
             T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
             T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
@@ -181,7 +183,7 @@ if __name__ == "__main__":
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm2'
         print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(c, arm_name,parsed_args.jp_record)
+        psm = PSM(c, arm_name)
         if psm.is_present():
             T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
             T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
@@ -193,7 +195,7 @@ if __name__ == "__main__":
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm3'
         print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(c, arm_name,parsed_args.jp_record)
+        psm = PSM(c, arm_name)
         if psm.is_present():
             psm_arms.append(psm)
 
@@ -204,12 +206,12 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        leader = GeomagicDevice('/Geomagic/')
+        leader = razer_Device()
         theta_base = -0.9
         theta_tip = -theta_base
         leader.set_base_frame(Frame(Rotation.RPY(theta_base, 0, 0), Vector(0, 0, 0)))
         leader.set_tip_frame(Frame(Rotation.RPY(theta_base + theta_tip, 0, 0), Vector(0, 0, 0)))
-        controller = ControllerInterface(leader, psm_arms, cam)
+        controller = ControllerInterface(leader, psm_arms, cam\)
         controllers.append(controller)
         while not rospy.is_shutdown():
             try:

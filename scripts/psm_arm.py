@@ -45,7 +45,9 @@
 from psmIK import *
 from PyKDL import Frame, Rotation, Vector
 import time
+from joint_pos_recorder import JointPosRecorder
 
+jpRecorder = JointPosRecorder()
 
 class PSMJointMapping:
     def __init__(self):
@@ -68,7 +70,8 @@ pjm = PSMJointMapping()
 
 
 class PSM:
-    def __init__(self, client, name):
+    def __init__(self, client, name, save_jp):
+        self.save_jp = save_jp
         self.client = client
         self.name = name
         self.base = self.client.get_obj_handle(name + '/baselink')
@@ -149,6 +152,11 @@ class PSM:
         ik_solution = compute_IK(T_t_b)
         self._ik_solution = enforce_limits(ik_solution)
         self.servo_jp(self._ik_solution)
+
+        ###  save jp
+
+        if self.save_jp:
+            jpRecorder.record(self._ik_solution)  ### record joint angles
 
     def servo_cv(self, twist):
         pass
