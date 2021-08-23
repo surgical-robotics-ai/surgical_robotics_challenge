@@ -53,7 +53,7 @@ from argparse import ArgumentParser
 from geomagic_device import GeomagicDevice
 from itertools import cycle
 from psm_arm import jpRecorder
-from obj_control_gui import ObjectGUI
+from jnt_control_gui import JointGUI
 
 class ControllerInterface:
     def __init__(self, leader, psm_arms, camera):
@@ -61,7 +61,7 @@ class ControllerInterface:
         self.leader = leader
         self.psm_arms = cycle(psm_arms)
         self.active_psm = self.psm_arms.next()
-        self.gui = ObjectGUI('camera vel control')
+        self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         self.cmd_rpy = None
@@ -83,9 +83,7 @@ class ControllerInterface:
 
     def update_camera_pose(self):
         self.gui.App.update()
-        twist = np.array([self.gui.x, self.gui.y, self.gui.z, self.gui.ro, self.gui.pi, self.gui.ya])
-        if np.linalg.norm(twist) > 0.0001:
-            self._camera.move_cv(twist, 0.005)
+        self._camera.servo_jp(self.gui.jnt_cmds)
 
     def update_arm_pose(self):
         self.update_T_c_b()
@@ -98,9 +96,8 @@ class ControllerInterface:
 
         self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M * Rotation.RPY(np.pi, 0, np.pi / 2)
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
-        self.active_psm.move_cp(self.T_IK)
+        self.active_psm.servo_cp(self.T_IK)
         self.active_psm.set_jaw_angle(self.leader.get_jaw_angle())
-        # self.active_psm.run_grasp_logic(self.leader.get_jaw_angle())
 
     def update_visual_markers(self):
         # Move the Target Position Based on the GUI

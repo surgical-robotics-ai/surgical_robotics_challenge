@@ -128,7 +128,7 @@ class PSM:
                     self.grasped[i] = False
                     # print('Releasing Actuator ', i)
 
-    def move_cp(self, T_t_b):
+    def servo_cp(self, T_t_b):
         if type(T_t_b) in [np.matrix, np.array]:
             T_t_b = convert_mat_to_frame(T_t_b)
 
@@ -140,17 +140,28 @@ class PSM:
         if self.save_jp:
             jpRecorder.record(self._ik_solution) ######record joint angles
 
+    def servo_cv(self, jp):
+        pass
+
     def optimize_jp(self, jp):
         # Optimizing the tool shaft roll angle
         pass
 
-    def move_jp(self, jp):
-        self.base.set_joint_pos('baselink-yawlink', jp[0])
-        self.base.set_joint_pos('yawlink-pitchbacklink', jp[1])
-        self.base.set_joint_pos('pitchendlink-maininsertionlink', jp[2])
-        self.base.set_joint_pos('maininsertionlink-toolrolllink', jp[3])
-        self.base.set_joint_pos('toolrolllink-toolpitchlink', jp[4])
-        self.base.set_joint_pos('toolpitchlink-toolyawlink', jp[5])
+    def servo_jp(self, jp):
+        self.base.set_joint_pos(0, jp[0])
+        self.base.set_joint_pos(1, jp[1])
+        self.base.set_joint_pos(2, jp[2])
+        self.base.set_joint_pos(3, jp[3])
+        self.base.set_joint_pos(4, jp[4])
+        self.base.set_joint_pos(5, jp[5])
+
+    def servo_jv(self, jp):
+        self.base.set_joint_vel(0, jp[0])
+        self.base.set_joint_vel(1, jp[1])
+        self.base.set_joint_vel(2, jp[2])
+        self.base.set_joint_vel(3, jp[3])
+        self.base.set_joint_vel(4, jp[4])
+        self.base.set_joint_vel(5, jp[5])
 
     def set_jaw_angle(self, jaw_angle):
         self.base.set_joint_pos('toolyawlink-toolgripper1link', jaw_angle)
@@ -158,5 +169,28 @@ class PSM:
         self.run_grasp_logic(jaw_angle)
 
     def measured_cp(self):
-        pass
+        jp = self.measured_cp()
+        jp.append(0.0)
+        return compute_IK(jp)
+
+    def measured_jp(self):
+        j0 = self.base.get_joint_pos(0)
+        j1 = self.base.get_joint_pos(1)
+        j2 = self.base.get_joint_pos(2)
+        j3 = self.base.get_joint_pos(3)
+        j4 = self.base.get_joint_pos(4)
+        j5 = self.base.get_joint_pos(5)
+        return [j0,j1,j2,j3,j4,j5]
+
+    def measured_jv(self):
+        j0 = self.base.get_joint_vel(0)
+        j1 = self.base.get_joint_vel(1)
+        j2 = self.base.get_joint_vel(2)
+        j3 = self.base.get_joint_vel(3)
+        j4 = self.base.get_joint_vel(4)
+        j5 = self.base.get_joint_vel(5)
+        return [j0,j1,j2,j3,j4,j5]
+
+    def get_joint_names(self):
+        return self.base.get_joint_names
 
