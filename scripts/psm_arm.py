@@ -70,7 +70,7 @@ pjm = PSMJointMapping()
 
 
 class PSM:
-    def __init__(self, client, name, save_jp):
+    def __init__(self, client, name, save_jp=False):
         self.save_jp = save_jp
         self.client = client
         self.name = name
@@ -212,4 +212,3 @@ class PSM:
 
     def get_joint_names(self):
         return self.base.get_joint_names()
-
