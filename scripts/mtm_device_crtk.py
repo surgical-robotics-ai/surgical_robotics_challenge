@@ -2,6 +2,7 @@ import PyKDL
 from PyKDL import Frame, Rotation, Vector
 from geometry_msgs.msg import Pose, PoseStamped, TransformStamped, TwistStamped, WrenchStamped, Wrench
 from sensor_msgs.msg import Joy, JointState
+from std_msgs.msg import Bool
 import rospy
 import time
 import numpy as np
@@ -99,8 +100,9 @@ class MTM:
         coag_topic_name = '/console/operator_present'
 
         pose_pub_topic_name = name + 'servo_cp'
-        wrench_pub_topic_name = name + 'servo_cf'
+        wrench_pub_topic_name = name + 'body/servo_cf'
         effort_pub_topic_name = name + 'servo_jf'
+        grav_comp_topic_name = name + 'use_gravity_compensation'
 
         self.cur_pos_msg = None
         self.pre_coag_pose_msg = None
@@ -135,8 +137,9 @@ class MTM:
         self._coag_button_sub = rospy.Subscriber(coag_topic_name, Joy, self.coag_buttons_cb, queue_size=1)
 
         self._pos_pub = rospy.Publisher(pose_pub_topic_name, TransformStamped, queue_size=1)
-        self._wrench_pub = rospy.Publisher(wrench_pub_topic_name, Wrench, queue_size=1)
+        self._wrench_pub = rospy.Publisher(wrench_pub_topic_name, WrenchStamped, queue_size=1)
         self._effort_pub = rospy.Publisher(effort_pub_topic_name, JointState, queue_size=1)
+        self._gravity_comp_pub = rospy.Publisher(grav_comp_topic_name, Bool, queue_size=1)
 
         print('Creating MTM Device Named: ', name, ' From ROS Topics')
         self._msg_counter = 0
@@ -270,7 +273,7 @@ class MTM:
     def servo_cf(self, wrench):
         wrench = self._T_baseoffset_inverse * wrench
         wrench_msg = kdl_wrench_to_wrench_msg(wrench)
-        self._wrench_pub.publish(wrench_msg.wrench)
+        self._wrench_pub.publish(wrench_msg)
 
     def servo_jf(self, torques):
         effort_msg = vector_to_effort_msg(torques)
@@ -290,6 +293,12 @@ class MTM:
 
     def get_jaw_angle(self):
         return self.gripper_angle
+
+    def enable_gravity_comp(self):
+        self._gravity_comp_pub.publish(True)
+
+    def disable_gravity_comp(self):
+        self._gravity_comp_pub.publish(False)
 
 
 def test():

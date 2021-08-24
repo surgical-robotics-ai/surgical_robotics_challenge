@@ -47,7 +47,7 @@ from ambf_client import Client
 from psm_arm import PSM
 import time
 import rospy
-from PyKDL import Frame, Rotation, Vector
+from PyKDL import Frame, Rotation, Vector, Wrench
 from argparse import ArgumentParser
 from mtm_device_crtk import MTM
 from itertools import cycle
@@ -71,6 +71,8 @@ class ControllerInterface:
         self._T_c_b = None
         self._update_T_c_b = True
 
+        self.leader.enable_gravity_comp()
+
     def switch_psm(self):
         self._update_T_c_b = True
         self.active_psm = self.psm_arms.next()
@@ -88,7 +90,9 @@ class ControllerInterface:
     def update_arm_pose(self):
         self.update_T_b_c()
         if self.leader.coag_button_pressed or self.leader.clutch_button_pressed:
-            self.leader.optimize_wrist_platform()
+            # self.leader.optimize_wrist_platform()
+            f = Wrench()
+            self.leader.servo_cf(f)
         else:
             if self.leader.is_active():
                 self.leader.servo_cp(self.leader.pre_coag_pose_msg)
@@ -98,9 +102,10 @@ class ControllerInterface:
             delta_t = self._T_c_b.M * twist.vel
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_psm.T_t_b_home.p = self.cmd_xyz
-        self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
-        self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
-        self.active_psm.servo_cp(self.T_IK)
+        if self.leader.coag_button_pressed:
+            self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
+            self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
+            self.active_psm.servo_cp(self.T_IK)
         self.active_psm.set_jaw_angle(self.leader.get_jaw_angle())
 
     def update_visual_markers(self):
@@ -221,4 +226,3 @@ if __name__ == "__main__":
             for cont in controllers:
                 cont.run()
             rate.sleep()
-
