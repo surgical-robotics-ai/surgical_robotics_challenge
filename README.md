@@ -65,8 +65,16 @@ the simulation is running. Once the needle is within the grasping area you can c
 
 6. You can press `CTRL+R` to reset the simulation. Press `P` key to toggle between mouse pan using the LEFT click or mouse picking.
 
+### Interacting with Simulated Robots:
+Please take a look at the scripts in the `scripts` folder:
 
-### Pairing Input Devices to Control Simulated PSMs
+#### CRTK Interface
+The script `scripts/crtk_interface.py` creates `CRTK-ROS` interface for the simulated PSMs and ECM.
+
+The script `script/test_crtk.py` demonstrates the use of the CRTK-ROS topics to read the state of a PSM and command it in both joint and Cartesian space.
+
+
+#### Controlling via Input Devices
 The code in the scripts folder allows the dVRK MTMs or Geomagic Touch / Phantom Omni to control the simulated PSMs.
 First run the AMBF simulation as described in step 3.
 
