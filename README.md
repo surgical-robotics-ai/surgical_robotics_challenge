@@ -7,6 +7,7 @@ https://github.com/WPI-AIM/ambf/tree/ambf-2.0
 First time cloning:
 ```bash
 git clone https://github.com/WPI-AIM/ambf.git
+cd ambf
 git checkout -b ambf-2.0 origin/ambf-2.0
 ```
 Updating to the latest commit
@@ -17,69 +18,110 @@ git pull
 2. Clone this repo outside AMBF source tree e.g. your home folder.
 
 ```bash
-git clone https://github.com/adnanmunawar/surgical_robotics_challenge
+git clone https://github.com/JackHaoyingZhou/surgical_robotics_challenge.git
+cd surgical_robotics_challenge
+git checkout Task_1
+```
+Updating to the latest commit
+```bash
+git pull
 ```
 
 Lets call the location of this folder as
 `<surgical_robotics_challenge>`
 
-3. Now run AMBF with the launch file and ADFs from this repo as:
+3. Make sure you have build and source AMBF correctly.
 
+4. Now run AMBF with the launch file and ADFs from this repo as:
 
 
 ```bash
-./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,14,15
+./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 14,15
 ```
-This is an example of what the scene should look like (minus the motions of the PSM, Needle etc.):
+This is an example of what the scene should look like (for visual perception task):
 
 
 <p align="center">
-<img src=Media/figure_eight.gif width="480"/>
+<img src=Media/ambf_task1.png width="480"/>
 </p>
 
-To launch a different scene with just the needle (without any thread), you can run:
+5. Go to the folder `<surgical_robotics_challenge>/scripts`, run the converter between ROS image topic and opencv:
 
-```
-cd <ambf_bin>
-./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,13,14
+```bash
+python3 camera_test.py
 ```
 
 And this is what the scene should now look like:
 
 <p align="center">
-<img src=Media/sample_scene.gif width="480"/>
+<img src=Media/ambf_cv_task1.png width="480"/>
 </p>
 
+6. Go to the folder `<surgical_robotics_challenge>/scripts`, we can obtain the point cloud data with depth:
 
-
-
-4. To control the PSMs, you can run the following script in a new terminal:
+```bash
+python3 depth_sub.py
 ```
-cd <surgical_robotics_challenge>/scripts/
-python gui_based_control.py
+
+7. You can move the camera using your mouse; you can also zoom in/out using your mouse wheel. You can obtain the pose of camera as:
+
+```bash
+rostopic echo /ambf/env/cameras/cameraL/State
 ```
-You should see GUI's with sliders to control the Pose of each PSM and you can the PSMs around and try to pick the needle.
-
-5. To automatically make the needle move towards a PSMs grasp, you can run the script called `attach_needle.py` while
-the simulation is running. Once the needle is within the grasping area you can control that specific jaw angle (using the GUI launched above) until it grasps the needle.
-
-6. You can press `CTRL+R` to reset the simulation. Press `P` key to toggle between mouse pan using the LEFT click or mouse picking.
 
 
-### Pairing Input Devices to Control Simulated PSMs
-The code in the scripts folder allows the dVRK MTMs or Geomagic Touch / Phantom Omni to control the simulated PSMs.
-First run the AMBF simulation as described in step 3.
+### How to setup ROS image topics with Python3
 
-Next run the `dvrk-ros` application for the `dVRK MTMs` or the ROS application for the `Geomagic Touch/Phantom Omni`. Here is where you can find the relevant code for them:
+1. For AMBF, please make sure you have installed the following two rospackages. If not, please install it and rebuild the AMBF.
 
-**a. https://github.com/jhu-dvrk/dvrk-ros** (dvrk-ros)
+```bash
+cv-bridge # Can be installed via apt install ros-<version>-cv-bridge
+image-transport # Can be installed via apt install ros-<version>-image-transport
+```
 
-**b. https://github.com/WPI-AIM/ros_geomagic** (geomagic_touch/phantom_omni)
+2. Fix ROS basic set up issue.
 
-Then run one of the corresponding python scripts:
+Please install the following packages:
 
-**a. scripts/mtm_multi_psm_control.py** (For MTMs)
+```bash
+sudo apt install python3-pip python3-yaml
+sudo pip3 install rospkg catkin_pkg
+```
 
-**b. scripts/geomagic_multi_psm_control.py** (For Geomagic Touch/Phantom Omni)
+3. Fix cv_bridge issue fix
 
-Refer to the README in the scripts folder for further information
+Firstly, install the following packages:
+
+
+```bash
+sudo apt install python-catkin-tools python3-dev python3-numpy
+```
+
+Then, build a workspace:
+
+```bash
+mkdir ~/catkin_build_ws && cd ~/catkin_build_ws
+catkin config -DPYTHON_EXECUTABLE=/usr/bin/python3 -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m -DPYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.6m.so
+catkin config --install
+```
+
+Clone official vision_opencv repo:
+
+```bash
+mkdir src
+cd src
+git clone -b melodic https://github.com/ros-perception/vision_opencv.git
+```
+
+Finally build and source the package:
+
+```bash
+cd ~/catkin_build_ws
+catkin build cv_bridge
+source ./install/setup.bash --extend
+```
+
+Now, you should be able to use cv_bridge from Python3.
+
+
+<!-- ### How to setup ROS image topics with Python3 -->
