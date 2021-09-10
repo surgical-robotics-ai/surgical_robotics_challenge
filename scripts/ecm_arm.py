@@ -62,7 +62,8 @@ class ECM:
         self._num_joints = 5
         self._update_camera_pose()
         self._T_c_w_init = self._T_c_w
-        self._measured_jp = [.0, .0, .0, .0]
+        self._measured_jp = np.array([.0, .0, .0, .0])
+        self._max_vel = 0.002
 
     def is_present(self):
         if self.camera_handle is None:
@@ -123,8 +124,15 @@ class ECM:
         j1 = jp[1]
         j2 = jp[2]
         j3 = jp[3]
-        self._measured_jp = [j0, j1, j2, j3]
-        cmd = [j0, j1, j2, j3, 0.0] # Add 0 to compute the added fifth frame
+        target_jp = np.array([j0, j1, j2, j3])
+        cmd = [0.0, 0.0, 0.0, 0.0, 0.0] # Add 0 to compute the added fifth frame
+        dp = target_jp - self._measured_jp
+        for i in range(len(dp)):
+            if abs(dp[i]) <= self._max_vel:
+                cmd[i] = self._measured_jp[i] + dp[i]
+            else:
+                cmd[i] = self._measured_jp[i] + (float(np.sign(dp[i])) * self._max_vel)
+        self._measured_jp = cmd[0:4]
         T_t_c = convert_mat_to_frame(compute_FK(cmd)) # Tip if camera frame
         self.servo_cp(self._T_c_w_init * T_t_c)
 
