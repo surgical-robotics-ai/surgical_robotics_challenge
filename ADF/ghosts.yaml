@@ -18,11 +18,24 @@ high resolution path: ./Phantom/high_res/
 low resolution path: ./Phantom/low_res/
 ignore inter-collision: true
 namespace: /ambf/env/psm/
+
+collision geometry: &box_geometry
+    x: 0.05
+    y: 0.05
+    z: 0.0045
+
+shape geometry: &shape_geometry
+    x: 0.05
+    y: 0.05
+    z: 0.0045
+
 BODY ghostEntry1:
   name: ghostEntry1
   parent: BODY Entry1
-  mesh: ghost.STL
-  collision mesh type: CONVEX_HULL
+  # mesh: ghost.STL
+  shape: BOX
+  geometry: *shape_geometry
+  # collision mesh type: CONVEX_HULL
   collision margin: 0.001
   scale: 1.0
   location:
@@ -37,10 +50,7 @@ BODY ghostEntry1:
   passive: false
   collision groups: []
   collision shape: BOX
-  collision geometry:
-    x: 0.0388
-    y: 0.0236
-    z: 0.0045
+  collision geometry: *box_geometry
   color components:
     ambient:
       level: 1.0
@@ -56,7 +66,9 @@ BODY ghostEntry1:
 BODY ghostExit1:
   name: ghostExit1
   parent: BODY Exit1
-  mesh: ghost.STL
+  # mesh: ghost.STL
+  shape: BOX
+  geometry: *shape_geometry
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
   scale: 1.0
@@ -72,10 +84,7 @@ BODY ghostExit1:
   passive: false
   collision groups: []
   collision shape: BOX
-  collision geometry:
-    x: 0.0388
-    y: 0.0236
-    z: 0.0045
+  collision geometry: *box_geometry
   color components:
     ambient:
       level: 1.0
@@ -91,7 +100,9 @@ BODY ghostExit1:
 BODY ghostEntry2:
   name: ghostEntry2
   parent: BODY Entry2
-  mesh: ghost.STL
+  # mesh: ghost.STL
+  shape: BOX
+  geometry: *shape_geometry
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
   scale: 1.0
@@ -107,10 +118,7 @@ BODY ghostEntry2:
   passive: false
   collision groups: []
   collision shape: BOX
-  collision geometry:
-    x: 0.0388
-    y: 0.0236
-    z: 0.0045
+  collision geometry: *box_geometry
   color components:
     ambient:
       level: 1.0
@@ -126,7 +134,9 @@ BODY ghostEntry2:
 BODY ghostExit2:
   name: ghostExit2
   parent: BODY Exit2
-  mesh: ghost.STL
+  # mesh: ghost.STL
+  shape: BOX
+  geometry: *shape_geometry
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
   scale: 1.0
@@ -142,10 +152,7 @@ BODY ghostExit2:
   passive: false
   collision groups: []
   collision shape: BOX
-  collision geometry:
-    x: 0.0388
-    y: 0.0236
-    z: 0.0045
+  collision geometry: *box_geometry
   color components:
     ambient:
       level: 1.0
@@ -161,7 +168,9 @@ BODY ghostExit2:
 BODY ghostEntry3:
   name: ghostEntry3
   parent: BODY Entry3
-  mesh: ghost.STL
+  # mesh: ghost.STL
+  shape: BOX
+  geometry: *shape_geometry
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
   scale: 1.0
@@ -177,10 +186,7 @@ BODY ghostEntry3:
   passive: false
   collision groups: []
   collision shape: BOX
-  collision geometry:
-    x: 0.0388
-    y: 0.0236
-    z: 0.0045
+  collision geometry: *box_geometry
   color components:
     ambient:
       level: 1.0
@@ -196,7 +202,9 @@ BODY ghostEntry3:
 BODY ghostExit3:
   name: ghostExit3
   parent: BODY Exit3
-  mesh: ghost.STL
+  # mesh: ghost.STL
+  shape: BOX
+  geometry: *shape_geometry
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
   scale: 1.0
@@ -212,10 +220,7 @@ BODY ghostExit3:
   passive: false
   collision groups: []
   collision shape: BOX
-  collision geometry:
-    x: 0.0388
-    y: 0.0236
-    z: 0.0045
+  collision geometry: *box_geometry
   color components:
     ambient:
       level: 1.0
@@ -231,7 +236,9 @@ BODY ghostExit3:
 BODY ghostEntry4:
   name: ghostEntry4
   parent: BODY Entry4
-  mesh: ghost.STL
+  # mesh: ghost.STL
+  shape: BOX
+  geometry: *shape_geometry
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
   scale: 1.0
@@ -247,10 +254,7 @@ BODY ghostEntry4:
   passive: false
   collision groups: []
   collision shape: BOX
-  collision geometry:
-    x: 0.0388
-    y: 0.0236
-    z: 0.0045
+  collision geometry: *box_geometry
   color components:
     ambient:
       level: 1.0
@@ -266,7 +270,9 @@ BODY ghostEntry4:
 BODY ghostExit4:
   name: ghostExit4
   parent: BODY Exit4
-  mesh: ghost.STL
+  # mesh: ghost.STL
+  shape: BOX
+  geometry: *shape_geometry
   collision mesh type: CONVEX_HULL
   collision margin: 0.001
   scale: 1.0
@@ -282,10 +288,7 @@ BODY ghostExit4:
   passive: false
   collision groups: []
   collision shape: BOX
-  collision geometry:
-    x: 0.0388
-    y: 0.0236
-    z: 0.0045
+  collision geometry: *box_geometry
   color components:
     ambient:
       level: 1.0
