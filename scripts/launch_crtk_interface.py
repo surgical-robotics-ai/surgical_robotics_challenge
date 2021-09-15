@@ -179,6 +179,7 @@ class ECMCRTKWrapper:
         self.arm_name = name
         self.namespace = namespace
         self.arm = ecm_arm.ECM(client, 'CameraFrame')
+        self._servo_jp_cmd = [0.0, 0.0, 0.0, 0.0]
         time.sleep(0.1)
 
         self.measured_js_pub = rospy.Publisher(namespace + '/' + name + '/' + 'measured_js', JointState,
@@ -190,11 +191,11 @@ class ECMCRTKWrapper:
         self.servo_jp_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'servo_jp', JointState,
                                              self.servo_jp_cb, queue_size=1)
 
-        self.servo_jv_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'servo_jv', JointState,
-                                             self.servo_jv_cb, queue_size=1)
+        # self.servo_jv_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'servo_jv', JointState,
+        #                                      self.servo_jv_cb, queue_size=1)
 
-        self.servo_cp_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'servo_cp', TransformStamped,
-                                             self.servo_cp_cb, queue_size=1)
+        # self.servo_cp_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'servo_cp', TransformStamped,
+        #                                      self.servo_cp_cb, queue_size=1)
 
         self._measured_js_msg = JointState()
         self._measured_js_msg.name = ["j0", "j1", "j2", "j3"]
@@ -205,15 +206,15 @@ class ECMCRTKWrapper:
         self._measured_cv_msg = TwistStamped()
         self._measured_cv_msg.header.frame_id = 'world'
 
-    def servo_cp_cb(self, cp):
-        frame = transform_to_frame(cp.transform)
-        self.arm.servo_cp(frame)
+    # def servo_cp_cb(self, cp):
+    #     frame = transform_to_frame(cp.transform)
+    #     self.arm.servo_cp(frame)
 
     def servo_jp_cb(self, js):
-        self.arm.servo_jp(js.position)
+        self._servo_jp_cmd = js.position
 
-    def servo_jv_cb(self, js):
-        self.arm.servo_jv(js.velocity)
+    # def servo_jv_cb(self, js):
+    #     self.arm.servo_jv(js.velocity)
 
     def publish_js(self):
         self._measured_js_msg.position = self.arm.measured_jp()
@@ -226,6 +227,7 @@ class ECMCRTKWrapper:
     def run(self):
         self.publish_js()
         self.publish_cs()
+        self.arm.servo_jp(self._servo_jp_cmd)
 
 
 class SceneCRTKWrapper:
