@@ -54,6 +54,7 @@ from geomagic_device import GeomagicDevice
 from itertools import cycle
 from psm_arm import jpRecorder
 from jnt_control_gui import JointGUI
+import sys
 
 class ControllerInterface:
     def __init__(self, leader, psm_arms, camera):
@@ -73,7 +74,10 @@ class ControllerInterface:
 
     def switch_psm(self):
         self._update_T_c_b = True
-        self.active_psm = self.psm_arms.next()
+        if sys.version_info[0] >= 3:
+            self.active_psm = next(self.psm_arms)
+        else:
+            self.active_psm = self.active_psm.next()
         print('Switching Control of Next PSM Arm: ', self.active_psm.name)
 
     def update_T_c_b(self):

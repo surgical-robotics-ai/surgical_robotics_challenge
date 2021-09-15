@@ -42,7 +42,11 @@
 #     \version   1.0
 # */
 # //==============================================================================
-from Tkinter import *
+import sys
+if sys.version_info[0] >= 3:
+    from tkinter import *
+else:
+    from Tkinter import *
 
 
 class ObjectGUI:
