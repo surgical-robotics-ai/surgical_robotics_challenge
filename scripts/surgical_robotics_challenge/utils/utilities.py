@@ -73,3 +73,13 @@ def convert_mat_to_frame(mat):
         frame.p[i] = mat[i, 3]
 
     return frame
+
+
+def get_boolean_from_opt(opt):
+    if opt in ['True', 'true', '1', True]:
+        return True
+    elif opt in ['False', 'false', '0', False]:
+        return False
+    else:
+        print("Error: Option is invalid: ", opt)
+        raise ValueError

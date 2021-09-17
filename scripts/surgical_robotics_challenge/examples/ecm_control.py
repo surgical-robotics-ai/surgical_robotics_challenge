@@ -1,8 +1,8 @@
-from ecm_arm import ECM
+from surgical_robotics_challenge.ecm_arm import ECM
 import time
 import sys
 from ambf_client import Client
-from jnt_control_gui import JointGUI
+from surgical_robotics_challenge.utils.jnt_control_gui import JointGUI
 
 
 def signal_handler(sig, frame):

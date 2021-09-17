@@ -42,19 +42,19 @@
 #     \version   1.0
 # */
 # //==============================================================================
-from psmIK import *
 from ambf_client import Client
-from psm_arm import PSM
-from ecm_arm import ECM
+from surgical_robotics_challenge.psm_arm import PSM, jpRecorder
+from surgical_robotics_challenge.ecm_arm import ECM
 import time
 import rospy
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
-from geomagic_device import GeomagicDevice
+from input_devices.geomagic_device import GeomagicDevice
 from itertools import cycle
-from psm_arm import jpRecorder
-from jnt_control_gui import JointGUI
+from surgical_robotics_challenge.utils.jnt_control_gui import JointGUI
+from surgical_robotics_challenge.utils.utilities import get_boolean_from_opt
 import sys
+
 
 class ControllerInterface:
     def __init__(self, leader, psm_arms, camera):
@@ -98,7 +98,7 @@ class ControllerInterface:
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_psm.T_t_b_home.p = self.cmd_xyz
 
-        self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M * Rotation.RPY(np.pi, 0, np.pi / 2)
+        self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M * Rotation.RPY(3.14, 0, 3.14 / 2)
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
         self.active_psm.servo_cp(self.T_IK)
         self.active_psm.set_jaw_angle(self.leader.get_jaw_angle())
@@ -139,25 +139,9 @@ if __name__ == "__main__":
     print('Specified Arguments')
     print(parsed_args)
 
-    if parsed_args.run_psm_one in ['True', 'true', '1']:
-        parsed_args.run_psm_one = True
-    elif parsed_args.run_psm_one in ['False', 'false', '0']:
-        parsed_args.run_psm_one = False
-
-    if parsed_args.run_psm_two in ['True', 'true', '1']:
-        parsed_args.run_psm_two = True
-    elif parsed_args.run_psm_two in ['False', 'false', '0']:
-        parsed_args.run_psm_two = False
-
-    if parsed_args.run_psm_three in ['True', 'true', '1']:
-        parsed_args.run_psm_three = True
-    elif parsed_args.run_psm_three in ['False', 'false', '0']:
-        parsed_args.run_psm_three = False
-
-    if parsed_args.jp_record in ['True', 'true', '1']:
-        parsed_args.jp_record = True
-    elif parsed_args.jp_record in ['False', 'false', '0']:
-        parsed_args.jp_record = False
+    parsed_args.run_psm_one = get_boolean_from_opt(parsed_args.run_psm_one)
+    parsed_args.run_psm_two = get_boolean_from_opt(parsed_args.run_psm_two)
+    parsed_args.run_psm_three = get_boolean_from_opt(parsed_args.run_psm_three)
 
     c = Client()
     c.connect()

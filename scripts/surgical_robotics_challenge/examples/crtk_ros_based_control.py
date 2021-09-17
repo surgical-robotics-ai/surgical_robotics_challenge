@@ -51,18 +51,47 @@ servo_cp_msg.transform.rotation.x = R_7_0.GetQuaternion()[0]
 servo_cp_msg.transform.rotation.y = R_7_0.GetQuaternion()[1]
 servo_cp_msg.transform.rotation.z = R_7_0.GetQuaternion()[2]
 servo_cp_msg.transform.rotation.w = R_7_0.GetQuaternion()[3]
+
+valid_key = False
+key = None
+while not valid_key:
+    print("NOTE!!! For this example to work, please RUN the launch_crtk_interface.py script before hand.")
+    key = input("Press: \n"
+                "1 - (For reading joint and Cartesian state), \n"
+                "2 - (For joint control demo), \n"
+                "3 - (For Cartesian control demo)) \n")
+    try:
+        key = int(key)
+    except ValueError:
+        key = None
+        pass
+
+    if key in [1, 2, 3]:
+        valid_key = True
+    else:
+        print("Invalid Entry")
+
 while not rospy.is_shutdown():
-    # print("measured_js: ", robData.measured_js)
-    # print("------------------------------------")
-    # print("measured_cp: ", robData.measured_cp.transform)
+    # ######
+    # The following 3 lines display the joint positions and Cartesian pose state
+    if key == 1:
+        print("measured_js: ", robData.measured_js)
+        print("------------------------------------")
+        print("measured_cp: ", robData.measured_cp.transform)
 
-    # servo_jp_msg.position[0] = 0.2 * math.sin(rospy.Time.now().to_sec())
-    # servo_jp_msg.position[1] = 0.2 * math.cos(rospy.Time.now().to_sec())
-    # servo_jp_pub.publish(servo_jp_msg)
+    # ######
+    # The following 3 lines move the first two joints in a sinusoidal pattern
+    elif key == 2:
+        servo_jp_msg.position[0] = 0.2 * math.sin(rospy.Time.now().to_sec())
+        servo_jp_msg.position[1] = 0.2 * math.cos(rospy.Time.now().to_sec())
+        servo_jp_pub.publish(servo_jp_msg)
 
-    servo_cp_msg.transform.translation.x = 0.2 * math.sin(rospy.Time.now().to_sec())
-    servo_cp_msg.transform.translation.y = 0.2 * math.cos(rospy.Time.now().to_sec())
-    servo_cp_pub.publish(servo_cp_msg)
+    # ######
+    # The following 3 lines move the robot in cartesian space in sinusoidal fashion
+    elif key == 3:
+        servo_cp_msg.transform.translation.x = 0.2 * math.sin(rospy.Time.now().to_sec())
+        servo_cp_msg.transform.translation.y = 0.2 * math.cos(rospy.Time.now().to_sec())
+        servo_cp_pub.publish(servo_cp_msg)
 
     rate.sleep()
 

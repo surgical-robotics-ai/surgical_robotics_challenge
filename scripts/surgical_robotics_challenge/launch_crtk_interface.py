@@ -51,6 +51,7 @@ from sensor_msgs.msg import JointState
 from geometry_msgs.msg import TransformStamped, Transform, TwistStamped
 from PyKDL import Rotation, Vector, Frame
 from argparse import ArgumentParser
+from surgical_robotics_challenge.utils.utilities import get_boolean_from_opt
 
 
 def rot_mat_to_quat(cp):
@@ -86,16 +87,6 @@ def transform_to_frame(cp):
                                   cp.rotation.z,
                                   cp.rotation.w)
     return frame
-
-
-def get_boolean_from_opt(opt):
-    if opt in ['True', 'true', '1', True]:
-        return True
-    elif opt in ['False', 'false', '0', False]:
-        return False
-    else:
-        print("Error: Option is invalid: ", opt)
-        raise ValueError
 
 
 class Options:

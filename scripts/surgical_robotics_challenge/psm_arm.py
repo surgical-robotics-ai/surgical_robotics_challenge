@@ -42,12 +42,13 @@
 #     \version   1.0
 # */
 # //==============================================================================
-from psmIK import *
+from surgical_robotics_challenge.kinematics.psmIK import *
 from PyKDL import Frame, Rotation, Vector
 import time
-from joint_pos_recorder import JointPosRecorder
+from surgical_robotics_challenge.utils.joint_pos_recorder import JointPosRecorder
 
 jpRecorder = JointPosRecorder()
+
 
 class PSMJointMapping:
     def __init__(self):

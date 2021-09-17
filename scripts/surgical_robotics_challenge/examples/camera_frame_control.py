@@ -1,7 +1,7 @@
-from camera import *
+from surgical_robotics_challenge.camera import *
 from ambf_client import Client
 from PyKDL import Frame, Rotation, Vector, Twist
-from obj_control_gui import ObjectGUI
+from surgical_robotics_challenge.utils.obj_control_gui import ObjectGUI
 import sys
 
 

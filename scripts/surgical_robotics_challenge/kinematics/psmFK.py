@@ -1,6 +1,6 @@
 import numpy as np
-from utilities import *
-from kinematics import *
+from surgical_robotics_challenge.utils.utilities import *
+from surgical_robotics_challenge.kinematics.DH import *
 
 
 # THIS IS THE FK FOR THE PSM MOUNTED WITH THE LARGE NEEDLE DRIVER TOOL. THIS IS THE

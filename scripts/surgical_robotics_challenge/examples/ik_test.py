@@ -1,5 +1,5 @@
-from psmIK import compute_FK, compute_IK, convert_mat_to_frame, round_mat, round_vec
-from joint_space_trajectory_generator import JointSpaceTrajectory
+from surgical_robotics_challenge.kinematics.psmIK import compute_FK, compute_IK, convert_mat_to_frame, round_mat, round_vec
+from surgical_robotics_challenge.utils.joint_space_trajectory_generator import JointSpaceTrajectory
 import numpy as np
 
 

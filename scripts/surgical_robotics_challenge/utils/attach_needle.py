@@ -2,7 +2,11 @@ from ambf_client import Client
 from PyKDL import Vector, Rotation
 import time
 import rospy
-import Tkinter
+import sys
+if sys.version_info[0] >= 3:
+    from tkinter import *
+else:
+    from Tkinter import *
 
 
 def attach_needle(needle, link):
@@ -25,15 +29,15 @@ def attach_needle(needle, link):
                               link.get_rpy()[2])
 
         # we need to move the needle based on the Pose of the toolyawlink.
-        # The yawlink's negative Y direction faces the graspp
+        # The yawlink's n direction faces the grasp
         # position. Therefore, lets add a small offset to the P of yawlink.
-        y_offset = Vector(0, -0.09, 0)
+        y_offset = Vector(-0.08, -0.1, 0)
         P_nINw = P_tINw + R_tINw * y_offset
 
         # If you want to rotate the needle to a certain relative orientation
         # add another Rotation and multiply on the R.H.S of R_tINw in the
         # Equation below.
-        R_nINw = R_tINw * Rotation.RPY(0, 0, 3.14)
+        R_nINw = R_tINw * Rotation.RPY(-1.57079, 0, 3.14)
 
         needle.set_pos(P_nINw[0],
                        P_nINw[1],
@@ -82,12 +86,12 @@ link1 = c.get_obj_handle('psm1' + '/toolyawlink')
 link2 = c.get_obj_handle('psm2' + '/toolyawlink')
 link3 = c.get_obj_handle('psm3' + '/toolyawlink')
 
-tk = Tkinter.Tk()
+tk = Tk()
 tk.title("Attache Needle")
 tk.geometry("250x250")
-link1_button = Tkinter.Button(tk, text="PSM 1", command=psm1_btn_cb, height=3, width=50, bg="red")
-link2_button = Tkinter.Button(tk, text="PSM 2", command=psm2_btn_cb, height=3, width=50, bg="green")
-link3_button = Tkinter.Button(tk, text="PSM 3", command=psm3_btn_cb, height=3, width=50, bg="blue")
+link1_button = Button(tk, text="PSM 1", command=psm1_btn_cb, height=3, width=50, bg="red")
+link2_button = Button(tk, text="PSM 2", command=psm2_btn_cb, height=3, width=50, bg="green")
+link3_button = Button(tk, text="PSM 3", command=psm3_btn_cb, height=3, width=50, bg="blue")
 
 link1_button.pack()
 link2_button.pack()

@@ -42,17 +42,17 @@
 #     \version   1.0
 # */
 # //==============================================================================
-from psmIK import *
+import sys
 from ambf_client import Client
-from psm_arm import PSM
+from surgical_robotics_challenge.psm_arm import PSM
 import time
 import rospy
 from PyKDL import Frame, Rotation, Vector, Wrench
 from argparse import ArgumentParser
-from mtm_device_crtk import MTM
+from input_devices.mtm_device_crtk import MTM
 from itertools import cycle
-from ecm_arm import ECM
-from jnt_control_gui import JointGUI
+from surgical_robotics_challenge.ecm_arm import ECM
+from surgical_robotics_challenge.jnt_control_gui import JointGUI
 
 
 class ControllerInterface:
@@ -60,7 +60,10 @@ class ControllerInterface:
         self.counter = 0
         self.leader = leader
         self.psm_arms = cycle(psm_arms)
-        self.active_psm = self.psm_arms.next()
+        if sys.version_info[0] >= 3:
+            self.active_psm = next(self.psm_arms)
+        else:
+            self.active_psm = self.psm_arms.next()
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
         self.cmd_xyz = self.active_psm.T_t_b_home.p
@@ -216,7 +219,7 @@ if __name__ == "__main__":
 
     else:
         leader = MTM(parsed_args.mtm_name)
-        leader.set_base_frame(Frame(Rotation.RPY((np.pi - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
+        leader.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
         controller1 = ControllerInterface(leader, psm_arms, cam)
         controllers.append(controller1)
 
