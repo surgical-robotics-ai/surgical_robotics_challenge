@@ -27,9 +27,9 @@ Here is the description of some of the scripts.
 
 ### 1. Wrappers for simulation components
 1. `psm_arm.py`: Wraps the simulated PSMs (in AMBF simulation) using their ROS topics.
-2. `ecm_arm.py`: Wraps the simulated ECM (in AMBF simulation) using their ROS topics.
+2. `ecm_arm.py`: Wraps the simulated ECM (in AMBF simulation) using its ROS topics.
 3. `scene.py`: Wraps the simulated needle, entry, and exit holes (in AMBF simulation) using their ROS topics.
-4. `launch_crtk_interface.py`: Spawns CRTK based ROS topics for each simulated PSM, ECM, and scene objects (Needle, entry, and exits). By using this script, the PSMs and ECM can be controlled via using CRTK compatible ROS topics.
+4. `launch_crtk_interface.py`: Spawns CRTK based ROS topics for each simulated PSM, ECM, and scene objects (needle, entry, and exits). By using this script, the PSMs and ECM can be controlled via CRTK compatible ROS topics.
 
 ### 2.Kinematics
 1. `psmIK.py`: Analytical Inverse Kinematics for the PSM arm
@@ -47,7 +47,7 @@ Here is the description of some of the scripts.
 
 ### 4. Teleoperation
 1. `mtm_device.py`: Wraps the MTM device using its ROS topics **(OLD, sawIntuitiveResearchKit < 2.0 branch)**
-2. `mtm_device_crtk.py`: Wraps the MTM device using its CRTK based ROS topics **(Current, sawIntuitiveResearchKit 2.0)**
+2. `mtm_device_crtk.py`: Wraps the MTM device using its CRTK based ROS topics **(Current, sawIntuitiveResearchKit 2.0+)**
 3. `mtm_multi_psm_control.py`: Uses the `mtm_device.py` and multiple `psm_arm.py` to bind a single MTM to multiple PSMs. Only one PSM is controllable at a time and the next PSM can be selected by quickly double-tapping the clutch foot pedal. Run the script with `-h` to see allowed command-line options.
 4. `geomagic_device.py`: Wraps the Geomagic device using its ROS topics
 5. `geomagic_multi_psm_control.py`: Uses the `geomagic_device.py` and multiple `psm_arm.py` to bind a single Geomagic to multiple PSMs. Only one PSM is controllable at a time and the next PSM can be selected by quickly double-tapping the grey button on the device. Run the script with `-h` to see allowed command-line options.
