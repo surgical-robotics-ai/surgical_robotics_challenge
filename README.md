@@ -30,7 +30,7 @@ Don't forget to build the repo using the instructions on AMBF's Readme
   Clone this repo outside the AMBF source tree e.g. your home folder.
 
   ```bash
-  git clone https://github.com/adnanmunawar/surgical_robotics_challenge
+  git clone https://github.com/collaborative-robotics/surgical_robotics_challenge
   ```
 
   Let's call the location of this folder as
