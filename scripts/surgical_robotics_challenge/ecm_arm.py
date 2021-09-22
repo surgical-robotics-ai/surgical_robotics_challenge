@@ -110,7 +110,7 @@ class ECM:
         else:
             p_cmd = pe * len_pe
 
-        # Checl for Rotation
+        # Check for Rotation
         R_diff = self._measured_cp.M.Inverse() * T_c_w.M
         re = Vector(R_diff.GetRPY()[0], R_diff.GetRPY()[1], R_diff.GetRPY()[2])
         len_re = re.Norm()
@@ -150,7 +150,7 @@ class ECM:
         j2 = jp[2]
         j3 = jp[3]
         cmd = [j0, j1, j2, j3, 0.0]
-        T_t_c = convert_mat_to_frame(compute_FK(cmd)) # Tip if camera frame
+        T_t_c = convert_mat_to_frame(compute_FK(cmd, 5)) # Tip if camera frame
         self.servo_cp(self._T_c_w_init * T_t_c)
 
     def measured_cp(self):

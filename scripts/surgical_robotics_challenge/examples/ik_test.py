@@ -28,7 +28,7 @@ num_points = js_traj.get_num_traj_points()
 num_joints = 6
 for i in range(num_points):
     test_q = js_traj.get_traj_at_point(i)
-    T_7_0 = compute_FK(test_q)
+    T_7_0 = compute_FK(test_q, 7)
 
     computed_q = compute_IK(convert_mat_to_frame(T_7_0))
 

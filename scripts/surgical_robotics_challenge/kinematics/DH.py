@@ -1,42 +1,50 @@
 import numpy as np
+from enum import Enum
+
+
+class JointType(Enum):
+    REVOLUTE = 0
+    PRISMATIC = 1
+
+
+class Convention(Enum):
+    STANDARD = 0
+    MODIFIED = 1
 
 
 class DH:
-    def __init__(self, alpha, a, theta, d, offset, joint_type, convention='STANDARD'):
+    def __init__(self, alpha, a, theta, d, offset, joint_type, convention):
         self.alpha = alpha
         self.a = a
         self.theta = theta
         self.d = d
         self.offset = offset
         self.joint_type = joint_type
-        if convention in ['STANDARD', 'MODIFIED']:
-            self.convention = convention
-        else:
-            raise ('ERROR, DH CONVENTION NOT UNDERSTOOD')
+        self.convention = convention
 
-    def mat_from_dh(self, alpha, a, theta, d, offset):
+    def mat_from_dh(self, alpha, a, theta, d, offset, joint_type, convention):
         ca = np.cos(alpha)
         sa = np.sin(alpha)
         th = 0.0
-        if self.joint_type == 'R':
+        if joint_type == JointType.REVOLUTE:
             th = theta + offset
-        elif self.joint_type == 'P':
+        elif joint_type == JointType.PRISMATIC:
             d = d + offset + theta
         else:
-            assert self.joint_type == 'P' and self.joint_type == 'R'
+            assert joint_type == JointType.REVOLUTE and joint_type == JointType.PRISMATIC
             return
 
         ct = np.cos(th)
         st = np.sin(th)
 
-        if self.convention == 'STANDARD':
+        if convention == Convention.STANDARD:
             mat = np.mat([
                 [ct, -st * ca,  st * sa,  a * ct],
                 [st,  ct * ca, -ct * sa,  a * st],
                 [0,        sa,       ca,       d],
                 [0,         0,        0,       1]
             ])
-        elif self.convention == 'MODIFIED':
+        elif convention == Convention.MODIFIED:
             mat = np.mat([
                 [ct, -st, 0, a],
                 [st * ca, ct * ca, -sa, -d * sa],
@@ -44,12 +52,12 @@ class DH:
                 [0, 0, 0, 1]
             ])
         else:
-            raise ('ERROR, DH CONVENTION NOT UNDERSTOOD')
+            raise 'ERROR, DH CONVENTION NOT UNDERSTOOD'
 
         return mat
 
     def get_trans(self):
-        return self.mat_from_dh(self.alpha, self.a, self.theta, self.d, self.offset)
+        return self.mat_from_dh(self.alpha, self.a, self.theta, self.d, self.offset, self.joint_type, self.convention)
 
 
 def enforce_limits(j_raw, joint_lims):

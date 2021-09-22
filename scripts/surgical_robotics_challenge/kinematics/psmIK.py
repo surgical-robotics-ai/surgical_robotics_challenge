@@ -142,15 +142,14 @@ def compute_IK(T_7_0):
     cross_palmlink_x7_0 = T_7_0.M.UnitX() * (T_PinchJoint_0.p - T_PalmJoint_0.p)
 
     # To get j4, compare the above vector with Y axes of T_3_0
-    T_3_0 = convert_mat_to_frame(compute_FK([j1, j2, j3]))
+    T_3_0 = convert_mat_to_frame(compute_FK([j1, j2, j3], 3))
     j4 = get_angle(cross_palmlink_x7_0, T_3_0.M.UnitY(), up_vector=-T_3_0.M.UnitZ())
 
     # Calculate j5
     # This should be simple, just compute the angle between Rz_4_0 and D_PinchJoint_PalmJoint_0
     link4_dh = kinematics_data.get_link_params(3)
-    dh4 = DH(alpha=link4_dh[0], a=link4_dh[1], theta=j4, d=link4_dh[3], offset=link4_dh[4], joint_type=link4_dh[5],
-             convention=link4_dh[6])
-    T_4_3 = convert_mat_to_frame(dh4.get_trans())
+    link4_dh.theta = j4
+    T_4_3 = convert_mat_to_frame(link4_dh.get_trans())
     T_4_0 = T_3_0 * T_4_3
 
     j5 = get_angle(T_PinchJoint_0.p - T_PalmJoint_0.p, T_4_0.M.UnitZ(), up_vector=-T_4_0.M.UnitY())
@@ -158,9 +157,8 @@ def compute_IK(T_7_0):
     # Calculate j6
     # This too should be simple, compute the angle between the Rz_7_0 and Rx_5_0.
     link5_dh = kinematics_data.get_link_params(4)
-    dh5 = DH(alpha=link5_dh[0], a=link5_dh[1], theta=j5, d=link5_dh[3], offset=link5_dh[4], joint_type=link5_dh[5],
-             convention=link5_dh[6])
-    T_5_4 = convert_mat_to_frame(dh5.get_trans())
+    link5_dh.theta = j5
+    T_5_4 = convert_mat_to_frame(link5_dh.get_trans())
     T_5_0 = T_4_0 * T_5_4
 
     j6 = get_angle(T_7_0.M.UnitZ(), T_5_0.M.UnitX(), up_vector=-T_5_0.M.UnitY())

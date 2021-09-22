@@ -30,13 +30,13 @@ class PSMKinematicData:
 
         # PSM DH Params
         # alpha | a | theta | d | offset | type
-        self.kinematics = [[PI_2, 0, 0, 0, PI_2, 'R', 'MODIFIED'],
-                           [-PI_2, 0, 0, 0, -PI_2, 'R', 'MODIFIED'],
-                           [PI_2, 0, 0, 0, -self.L_rcc, 'P', 'MODIFIED'],
-                           [0, 0, 0, self.L_tool, 0, 'R', 'MODIFIED'],
-                           [-PI_2, 0, 0, 0, -PI_2, 'R', 'MODIFIED'],
-                           [-PI_2, self.L_pitch2yaw, 0, 0, -PI_2, 'R', 'MODIFIED'],
-                           [-PI_2, 0, 0, self.L_yaw2ctrlpnt, PI_2, 'R', 'MODIFIED']]
+        self.kinematics = [DH(PI_2, 0, 0, 0, PI_2, JointType.REVOLUTE, Convention.MODIFIED),
+                           DH(-PI_2, 0, 0, 0, -PI_2, JointType.REVOLUTE, Convention.MODIFIED),
+                           DH(PI_2, 0, 0, 0, -self.L_rcc, JointType.PRISMATIC, Convention.MODIFIED),
+                           DH(0, 0, 0, self.L_tool, 0, JointType.REVOLUTE, Convention.MODIFIED),
+                           DH(-PI_2, 0, 0, 0, -PI_2, JointType.REVOLUTE, Convention.MODIFIED),
+                           DH(-PI_2, self.L_pitch2yaw, 0, 0, -PI_2, JointType.REVOLUTE, Convention.MODIFIED),
+                           DH(-PI_2, 0, 0, self.L_yaw2ctrlpnt, PI_2, JointType.REVOLUTE, Convention.MODIFIED)]
 
     def get_link_params(self, link_num):
         if link_num < 0 or link_num > self.num_links:
@@ -50,23 +50,19 @@ class PSMKinematicData:
 kinematics_data = PSMKinematicData()
 
 
-def compute_FK(joint_pos):
+def compute_FK(joint_pos, up_to_link):
+    if up_to_link > kinematics_data.num_links:
+        raise "ERROR! COMPUTE FK UP_TO_LINK GREATER THAN DOF"
     j = [0, 0, 0, 0, 0, 0, 0]
     for i in range(len(joint_pos)):
         j[i] = joint_pos[i]
 
     T_N_0 = np.identity(4)
 
-    for i in range(len(joint_pos)):
+    for i in range(up_to_link):
         link_dh = kinematics_data.get_link_params(i)
-        link_N = DH(alpha=link_dh[0],
-                    a=link_dh[1],
-                    theta=joint_pos[i],
-                    d=link_dh[3],
-                    offset=link_dh[4],
-                    joint_type=link_dh[5],
-                    convention=link_dh[6])
-        T_N_0 = T_N_0 * link_N.get_trans()
+        link_dh.theta = j[i]
+        T_N_0 = T_N_0 * link_dh.get_trans()
 
     return T_N_0
 
