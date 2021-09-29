@@ -7,7 +7,25 @@ https://github.com/WPI-AIM/ambf/tree/ambf-2.0
 First time cloning:
 ```bash
 git clone https://github.com/WPI-AIM/ambf.git
+cd ambf
 git checkout -b ambf-2.0 origin/ambf-2.0
+```
+To build the ambf framework (Linux and Mac-OS)
+```bash
+mkdir build
+git submodule update --init --recursive
+cd build
+cmake ..
+make
+```
+
+On Linux systems, please source the correct folder to achieve system wide availability of AMBF ROS modules. While in the build folder, you can run:
+```bash
+source ./devel/setup.bash
+```
+You can also permanently add the install location in your .bashrc with the following command:
+```bash
+echo "source ~/ambf/build/devel/setup.bash" >> ~/.bashrc
 ```
 Updating to the latest commit
 ```bash
@@ -23,11 +41,12 @@ git clone https://github.com/adnanmunawar/surgical_robotics_challenge
 Lets call the location of this folder as
 `<surgical_robotics_challenge>`
 
-3. Now run AMBF with the launch file and ADFs from this repo as:
+3. Now run AMBF with the launch file and ADFs from ambf repo as:
 
 
 
 ```bash
+cd <ambf_bin>
 ./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,14,15
 ```
 This is an example of what the scene should look like (minus the motions of the PSM, Needle etc.):
