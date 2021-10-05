@@ -14,6 +14,7 @@ https://github.com/WPI-AIM/ambf/tree/ambf-2.0
 First time cloning:
 ```bash
 git clone https://github.com/WPI-AIM/ambf.git
+cd ambf
 git checkout -b ambf-2.0 origin/ambf-2.0
 ```
 
@@ -53,9 +54,9 @@ Don't forget to build the repo using the instructions on AMBF's Readme
 # 3. Running the simulation
 
   The simulation is spawned in AMBF with the launch file and AMBF Description Format (ADF) files from this repo:
-  The `ambf_simulator` binary resides in `ambf/bin/lin-x86_64`. You should be in that directory before running the commands below. Alternatively, you can create a soft-link to this binary.
+  The `ambf_simulator` binary resides in `ambf/bin/lin-x86_64`. You should be in that directory before running the commands below. Alternatively, you can create a symlink to this binary.
   ```bash
-  ./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,14,15
+  ./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,14,15 -p 200 -t 1
   ```
   This is an example of what the scene should look like (minus the motions of the PSM, Needle etc.):
 
@@ -66,7 +67,7 @@ Don't forget to build the repo using the instructions on AMBF's Readme
   To launch a different scene with just the needle (without any thread), you can run:
 
   ```bash
-  ./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,13,14
+  ./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,13,14 -p 200 -t 1
   ```
 
   And this is what the scene should now look like:
@@ -89,6 +90,11 @@ Don't forget to build the repo using the instructions on AMBF's Readme
 
 ### 3c. Resetting the Simulation
   You can press `CTRL+R` to reset the rigid bodies in simulation, and `CTRL+V` to reset the camera pose if you changed it with the mouse.
+
+### 3d. Launch Arguments:
+  The launch arguments provided above e.g. (`-l 0,1,3,4,14,15 -p 200 -t 1`) define the launch file, the list of ADF files to load, simulation frequency and time-stepping technique. For a full list of arguments, please refer to this link:
+
+  https://github.com/WPI-AIM/ambf/wiki/Command-Line-Arguments
 
 
 # 4. Interacting with Simulated Robots using Python Scripts:
