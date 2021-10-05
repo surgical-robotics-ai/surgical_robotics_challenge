@@ -36,7 +36,7 @@
 #     ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #     POSSIBILITY OF SUCH DAMAGE.
 #
-#     \author    <amunawar@wpi.edu>
+#     \author    <amunawar@jhu.edu>
 #     \author    Adnan Munawar
 #     \version   1.0
 # */

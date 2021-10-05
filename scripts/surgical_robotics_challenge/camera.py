@@ -2,8 +2,8 @@
 # //==============================================================================
 # /*
 #     Software License Agreement (BSD License)
-#     Copyright (c) 2019
-#     (aimlab.wpi.edu)
+#     Copyright (c) 2020-2021
+
 
 #     All rights reserved.
 
@@ -36,8 +36,8 @@
 #     ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #     POSSIBILITY OF SUCH DAMAGE.
 
-#     \author    <aimlab.wpi.edu>
-#     \author    <amunawar@wpi.edu>
+
+#     \author    <amunawar@jhu.edu>
 #     \author    Adnan Munawar
 #     \version   1.0
 # */
@@ -119,4 +119,3 @@ class Camera:
 
     def measured_cp(self):
         return self.get_T_c_w()
-
