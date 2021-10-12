@@ -83,7 +83,7 @@ Don't forget to build the repo using the instructions on AMBF's Readme
   https://github.com/WPI-AIM/ambf/wiki/Selecting-Robots
 
 ### 3b. Simulated Cameras
-  The simulated camera(s) is defined in the World file (`world_stereo.yaml`) which is set in the `launch.yaml` file.
+  The simulated camera(s) is defined in the World file ([`world_stereo.yaml`](./ADF/world/world_stereo.yaml)) which is set in the [`launch.yaml`](./launch.yaml) file.
   To enable the camera(s) to publish the scene image or depth data, follow the instructions on this page:
 
   https://github.com/WPI-AIM/ambf/wiki/Camera-feed-and-depth-camera
@@ -98,7 +98,7 @@ Don't forget to build the repo using the instructions on AMBF's Readme
 
 
 # 4. Interacting with Simulated Robots using Python Scripts:
-Please take a look at the scripts in the `scripts` folder:
+Please take a look at the scripts in the [`scripts`](./scripts) folder:
 
 
 # 5. Controlling via Input Devices

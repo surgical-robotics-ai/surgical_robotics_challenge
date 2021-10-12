@@ -23,6 +23,18 @@ pip3 install -e .
 ### Description:
 The module names should be self-evident but a brief description is provided below:
 
+### Controlling Simulated Robots:
+After launching the `ambf_simulator` as described in the main [README](../README.md), there are two ways to control the simulated PSMs and ECM, and read the pose (state) of the needle and entry exit points
+
+1. Using the scripts with CRTK Method API:
+    With this option, the following scripts `psm_arm.py`, `ecm_arm.py` and `scene.py` can be imported inside an application. Each script provides a CRTK compatible method API for controlling the robot or reading relevant data (pose of entry / exits markers).
+2. Using the CRTK-ROS interface:
+    With this option, there is no need to import any scripts. Simply run the `launch_crtk_interface.py` script. This script will consequently use the `psm_arm.py`, `ecm_arm.py` and `scene.py` scripts and create ROS topics to publish and receive commands.
+
+
+  The [examples](./surgical_robotics_challenge/examples) folder contains demonstrations of using both these ways to control the simulation.
+
+
 ### 1. Wrappers for simulation components
 | # | Script Name                | Description                                                                                                                                                                                      |
 |---|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
