@@ -1,3 +1,48 @@
+#!/usr/bin/env python
+# //==============================================================================
+# /*
+#     Software License Agreement (BSD License)
+#     Copyright (c) 2020-2021 Johns Hopkins University (JHU), Worcester Polytechnic Institute (WPI) All Rights Reserved.
+
+
+#     All rights reserved.
+
+#     Redistribution and use in source and binary forms, with or without
+#     modification, are permitted provided that the following conditions
+#     are met:
+
+#     * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+
+#     * Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution.
+
+#     * Neither the name of authors nor the names of its contributors may
+#     be used to endorse or promote products derived from this software
+#     without specific prior written permission.
+
+#     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+#     "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+#     LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+#     FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+#     COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+#     INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+#     BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+#     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+#     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+#     ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#     POSSIBILITY OF SUCH DAMAGE.
+
+
+#     \author    <amunawar@jhu.edu>
+#     \author    Adnan Munawar
+#     \version   1.0
+# */
+# //==============================================================================
+
 import PyKDL
 from PyKDL import Frame, Rotation, Vector
 from geometry_msgs.msg import Pose, PoseStamped, TransformStamped, TwistStamped, WrenchStamped, Wrench
@@ -115,8 +160,8 @@ class MTM:
         self._T_baseoffset = Frame(R_off, Vector(0, 0, 0))
         self._T_baseoffset_inverse = self._T_baseoffset.Inverse()
         self._T_tipoffset = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
-        self.clutch_button_pressed = False # Used as Position Engage Clutch
-        self.coag_button_pressed = False # Used as Position Engage Coag
+        self.clutch_button_pressed = False  # Used as Position Engage Clutch
+        self.coag_button_pressed = False  # Used as Position Engage Coag
         self.gripper_angle = 0
 
         self.switch_psm = False
@@ -129,17 +174,27 @@ class MTM:
         self._jv = []
         self._jf = []
 
-        self._pose_sub = rospy.Subscriber(pose_sub_topic_name, TransformStamped, self.pose_cb, queue_size=1)
-        self._state_sub = rospy.Subscriber(joint_state_sub_topic_name, JointState, self.state_cb, queue_size=1)
-        self._gripper_sub = rospy.Subscriber(gripper_topic_name, JointState, self.gripper_cb, queue_size=1)
-        self._twist_sub = rospy.Subscriber(twist_topic_name, TwistStamped, self.twist_cb, queue_size=1)
-        self._clutch_button_sub = rospy.Subscriber(clutch_topic_name, Joy, self.clutch_buttons_cb, queue_size=1)
-        self._coag_button_sub = rospy.Subscriber(coag_topic_name, Joy, self.coag_buttons_cb, queue_size=1)
+        self._pose_sub = rospy.Subscriber(
+            pose_sub_topic_name, TransformStamped, self.pose_cb, queue_size=1)
+        self._state_sub = rospy.Subscriber(
+            joint_state_sub_topic_name, JointState, self.state_cb, queue_size=1)
+        self._gripper_sub = rospy.Subscriber(
+            gripper_topic_name, JointState, self.gripper_cb, queue_size=1)
+        self._twist_sub = rospy.Subscriber(
+            twist_topic_name, TwistStamped, self.twist_cb, queue_size=1)
+        self._clutch_button_sub = rospy.Subscriber(
+            clutch_topic_name, Joy, self.clutch_buttons_cb, queue_size=1)
+        self._coag_button_sub = rospy.Subscriber(
+            coag_topic_name, Joy, self.coag_buttons_cb, queue_size=1)
 
-        self._pos_pub = rospy.Publisher(pose_pub_topic_name, TransformStamped, queue_size=1)
-        self._wrench_pub = rospy.Publisher(wrench_pub_topic_name, WrenchStamped, queue_size=1)
-        self._effort_pub = rospy.Publisher(effort_pub_topic_name, JointState, queue_size=1)
-        self._gravity_comp_pub = rospy.Publisher(grav_comp_topic_name, Bool, queue_size=1)
+        self._pos_pub = rospy.Publisher(
+            pose_pub_topic_name, TransformStamped, queue_size=1)
+        self._wrench_pub = rospy.Publisher(
+            wrench_pub_topic_name, WrenchStamped, queue_size=1)
+        self._effort_pub = rospy.Publisher(
+            effort_pub_topic_name, JointState, queue_size=1)
+        self._gravity_comp_pub = rospy.Publisher(
+            grav_comp_topic_name, Bool, queue_size=1)
 
         print('Creating MTM Device Named: ', name, ' From ROS Topics')
         self._msg_counter = 0

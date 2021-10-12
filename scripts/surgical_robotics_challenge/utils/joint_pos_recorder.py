@@ -15,14 +15,16 @@ from pprint import pprint
 # import numpy as np
 import time
 
+
 def compare_name(name_str):
-    datestr = os.path.basename(name_str).replace(".jplist","").split("#")[1]
+    datestr = os.path.basename(name_str).replace(".jplist", "").split("#")[1]
     datetime_ins = datetime.strptime(datestr, '%Y-%m-%d %H:%M:%S.%f')
     return datetime_ins
 
+
 class JointPosRecorder():
     ##### This recorder only work for list
-    def __init__(self, save_path = '.', record_size = 500):
+    def __init__(self, save_path='.', record_size=500):
         #### can self-define the save_path
         if not os.path.exists(save_path):
             print('[*]creating a new path at ' + save_path)
@@ -36,7 +38,6 @@ class JointPosRecorder():
         self.__total_save = 0
         self.tm_format = '%Y-%m-%d %H:%M:%S.%f'
 
-
     def record(self, joint_pos):
         # joint_pos is a list
         assert type(joint_pos) == list, "The join_pos should be a list"
@@ -45,13 +46,13 @@ class JointPosRecorder():
         dt = datetime.now()
         # utc_time = dt.replace()
         # utc_timestamp = utc_time.timestamp() # float
-        queue_item = {'time':str(dt), 'pos':joint_pos}
+        queue_item = {'time': str(dt), 'pos': joint_pos}
         self.__record_queue.append(queue_item)
         if self.__is_full():
             # do the flush operation
             self.__flush()
             self.__record_queue = []
-            gc.collect() # clean RAM
+            gc.collect()  # clean RAM
 
     def __generate_file_name(self):
         this_time = datetime.now().strftime(self.tm_format)
@@ -78,13 +79,14 @@ class JointPosRecorder():
 
     def flush(self):
         # deal with all the rest part
-        print('flush remaining ' + str(len(self.__record_queue)) +' records')
+        print('flush remaining ' + str(len(self.__record_queue)) + ' records')
         self.__flush()
 
     def get_success_rate(self):
         return self.__success_save / self.__total_save
     # def add_to_recover_list(self, item):
     #     self.recover_list.append(item)
+
 
 class JointPosLoader():
     @staticmethod
@@ -94,11 +96,12 @@ class JointPosLoader():
         return s
 
     @staticmethod
-    def load_range(folder_path = '.', datetime_str = None,suffix_record = '.*jplist'):
+    def load_range(folder_path='.', datetime_str=None, suffix_record='.*jplist'):
         # datetime_str should be like 2021-05-06
         # if datetime is None: the default is today's date
         if datetime_str is None:
-            datetime_str = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')).split(' ')[0]
+            datetime_str = str(datetime.now().strftime(
+                '%Y-%m-%d %H:%M:%S.%f')).split(' ')[0]
         datetime_str = datetime_str.strip()
         jp_list = glob(os.path.join(folder_path, suffix_record))
         jp_list.sort(key=compare_name)
@@ -107,14 +110,12 @@ class JointPosLoader():
         return jps, jp_times
 
     @staticmethod
-    def load_by_prefix(prefix, folder_path = '.'):
+    def load_by_prefix(prefix, folder_path='.'):
         jp_list = glob(os.path.join(folder_path, prefix + '*'))
         jp_list.sort(key=compare_name)
         jps = [json.load(open(p)) for p in jp_list]
         jp_times = jp_list
         return jps, jp_times
-
-
 
 
 if __name__ == '__main__':
@@ -133,7 +134,7 @@ if __name__ == '__main__':
     #     m,l = JointPosLoader.load_range(datetime_str='2021-05-06')
     #     pprint(m)
     # elif choice == 4:
-    m,l = JointPosLoader.load_by_prefix('JP#2021-05-11 01')
+    m, l = JointPosLoader.load_by_prefix('JP#2021-05-11 01')
     pprint(m)
     # elif choice == 5:
     #     import random
@@ -146,10 +147,3 @@ if __name__ == '__main__':
     #             time.sleep(1)
     #     except KeyboardInterrupt:
     #         recorder.flush()
-
-
-
-
-
-
-
