@@ -28,21 +28,7 @@ Don't forget to build the repo using the instructions on AMBF's Readme
 # 2. Clone this repo to your local machine OR use a Dockerfile
 
 #### Option 1: (Clone repo to your local machine)
-  Clone this repo outside the AMBF source tree e.g. your home folder.
-
-  ```bash
-  git clone https://github.com/collaborative-robotics/surgical_robotics_challenge
-  ```
-
-  Let's call the location of this folder as
-  `<surgical_robotics_challenge>`
-
-  To make the python scripts within this repo available system wide
-  ```bash
-  cd <surgical_robotics_challenge>/scripts/
-  python install -e .
-  ```
-  If you are using Python3, change `python` to `python3` in the above command
+  Please refer to [README](./scripts/README.md) in the [scripts](./scripts) folder for instructions on installing the Python package for system-wide access.
 
 #### Option 2: (Use Dockerfile)
 
