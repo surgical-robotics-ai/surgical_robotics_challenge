@@ -1,6 +1,6 @@
 enclosure size: {length: 10.0, width: 10.0, height: 3.0}
 lights: [light2]
-cameras: [cameraL]
+cameras: [cameraL, cameraR]
 environment: "./checkered_floor.yaml"
 namespace: /ambf/env/
 max iterations: 50
