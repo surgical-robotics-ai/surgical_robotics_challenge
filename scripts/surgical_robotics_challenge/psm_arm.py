@@ -42,12 +42,15 @@
 #     \version   1.0
 # */
 # //==============================================================================
+import os
+import sys
+dynamic_path = os.path.abspath(__file__+"/../../")
+# print dynamic_path
+sys.path.append(dynamic_path)
+
 from surgical_robotics_challenge.kinematics.psmIK import *
 from PyKDL import Frame, Rotation, Vector
 import time
-from surgical_robotics_challenge.utils.joint_pos_recorder import JointPosRecorder
-
-jpRecorder = JointPosRecorder()
 
 
 class PSMJointMapping:
@@ -71,8 +74,7 @@ pjm = PSMJointMapping()
 
 
 class PSM:
-    def __init__(self, client, name, save_jp=False):
-        self.save_jp = save_jp
+    def __init__(self, client, name):
         self.client = client
         self.name = name
         self.base = self.client.get_obj_handle(name + '/baselink')
@@ -154,11 +156,6 @@ class PSM:
         self._ik_solution = enforce_limits(ik_solution)
         self.servo_jp(self._ik_solution)
 
-        ###  save jp
-
-        if self.save_jp:
-            jpRecorder.record(self._ik_solution)  ### record joint angles
-
     def servo_cv(self, twist):
         pass
 
@@ -182,6 +179,15 @@ class PSM:
         self.base.set_joint_vel(3, jv[3])
         self.base.set_joint_vel(4, jv[4])
         self.base.set_joint_vel(5, jv[5])
+
+    def servo_jf(self, jf):
+        # print("Setting Joint Effort", jf)
+        self.base.set_joint_effort(0, jf[0])
+        self.base.set_joint_effort(1, jf[1])
+        self.base.set_joint_effort(2, jf[2])
+        self.base.set_joint_effort(3, jf[3])
+        self.base.set_joint_effort(4, jf[4])
+        self.base.set_joint_effort(5, jf[5])
 
     def set_jaw_angle(self, jaw_angle):
         self.base.set_joint_pos('toolyawlink-toolgripper1link', jaw_angle)

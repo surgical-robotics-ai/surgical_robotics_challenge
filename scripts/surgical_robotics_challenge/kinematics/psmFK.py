@@ -43,6 +43,13 @@
 # */
 # //==============================================================================
 
+### make sure the path is correct
+import os
+import sys
+dynamic_path = os.path.abspath(__file__+"/../../../")
+# print dynamic_path
+sys.path.append(dynamic_path)
+
 import numpy as np
 from surgical_robotics_challenge.utils.utilities import *
 from surgical_robotics_challenge.kinematics.DH import *

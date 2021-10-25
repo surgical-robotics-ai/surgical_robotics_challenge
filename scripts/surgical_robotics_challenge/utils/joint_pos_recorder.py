@@ -1,4 +1,15 @@
-# this script will save the joint position to a file
+#!/usr/bin/env python
+
+# this script is for data collection
+
+# //==============================================================================
+# /*
+#     \author    <hzhou6@wpi.edu>
+#     \author    Haoying Zhou
+#     \version   1.0
+# */
+# //==============================================================================
+
 # from queue import Queue
 from __future__ import division
 from __future__ import print_function
@@ -10,8 +21,6 @@ import warnings
 import gc
 from glob import glob
 from pprint import pprint
-# import PyKDL
-# from PyKDL import Frame
 # import numpy as np
 import time
 
@@ -41,7 +50,7 @@ class JointPosRecorder():
     def record(self, joint_pos):
         # joint_pos is a list
         assert type(joint_pos) == list, "The join_pos should be a list"
-        assert len(joint_pos) == 6, "The length of joint_pos should be 6"
+        assert len(joint_pos) == 3, "The length of joint_pos should be 6"
 
         dt = datetime.now()
         # utc_time = dt.replace()
