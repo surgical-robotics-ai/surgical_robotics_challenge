@@ -105,7 +105,7 @@ class ControllerInterface:
         twist = self.leader.measured_cv()
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         if not self.leader.clutch_button_pressed:
-            delta_t = self._T_c_b.M * twist.vel * 0.00002
+            delta_t = self._T_c_b.M * twist.vel * 0.00002 ### The coefficient can be modified [0.002 or some other values]
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_psm.T_t_b_home.p = self.cmd_xyz
 
