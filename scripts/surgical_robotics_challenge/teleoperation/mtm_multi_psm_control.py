@@ -42,6 +42,12 @@
 #     \version   1.0
 # */
 # //==============================================================================
+import os
+import sys
+dynamic_path = os.path.abspath(__file__+"/../../../")
+# print dynamic_path
+sys.path.append(dynamic_path)
+
 import sys
 from ambf_client import Client
 from surgical_robotics_challenge.psm_arm import PSM

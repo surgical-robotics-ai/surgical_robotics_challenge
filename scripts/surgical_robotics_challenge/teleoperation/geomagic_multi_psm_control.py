@@ -63,7 +63,7 @@ from surgical_robotics_challenge.utils.jnt_control_gui import JointGUI
 from surgical_robotics_challenge.utils.utilities import get_boolean_from_opt
 from surgical_robotics_challenge.utils.joint_pos_recorder import JointPosRecorder
 
-jpRecorder = JointPosRecorder(save_path = '../../../../../../catkin_ws/src/surgical_robotics_challenge/scripts/task3_data/task_data/1', record_size = 500)
+jpRecorder = JointPosRecorder(save_path = './task_data/1', record_size = 500)
 
 class ControllerInterface:
     def __init__(self, leader, psm_arms, camera, save_jp=False):
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=True)
-    parser.add_argument('--save', action='store', dest='jp_record', help='save using jp_recorder', default=True)
+    parser.add_argument('--save', action='store', dest='jp_record', help='save using jp_recorder', default=False)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
