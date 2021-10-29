@@ -58,7 +58,7 @@ from argparse import ArgumentParser
 from input_devices.mtm_device_crtk import MTM
 from itertools import cycle
 from surgical_robotics_challenge.ecm_arm import ECM
-from surgical_robotics_challenge.jnt_control_gui import JointGUI
+from surgical_robotics_challenge.utils.jnt_control_gui import JointGUI
 
 
 class ControllerInterface:
