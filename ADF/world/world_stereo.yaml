@@ -53,8 +53,8 @@ cameraL:
   #   path: ../../ambf_shaders/preprocessing
   #   vertex: shader.vs
   #   fragment: shader.fs
-  # publish image: True
-  # publish image resolution: {width: 1920, height: 1080}
+  publish image: True
+  publish image resolution: {width: 1920, height: 1080}
   # publish depth: True
   # publish depth resolution: {width: 640, height: 480}
   # multipass: True
@@ -73,8 +73,8 @@ cameraR:
   #   path: ../../ambf_shaders/preprocessing
   #   vertex: shader.vs
   #   fragment: shader.fs
-  # publish image: True
-  # publish image resolution: {width: 1920, height: 1080}
+  publish image: True
+  publish image resolution: {width: 1920, height: 1080}
   # publish depth: True
   # publish depth resolution: {width: 640, height: 480}
   # multipass: True
