@@ -80,4 +80,10 @@ After launching the `ambf_simulator` as described in the main [README](../README
 | 3 | `geomagic_device.py` | Wraps the Geomagic device using its ROS topics                                                     |
 
 ### 5. Utils
+
 Consists of various helper scripts that are used in this package.
+
+| # | Script Name          | Description                                                                                        |
+|---|----------------------|----------------------------------------------------------------------------------------------------|
+| 1 | `approx_sync_data.py` | Example of collecting ros messages using approximate time synchronizer|
+
