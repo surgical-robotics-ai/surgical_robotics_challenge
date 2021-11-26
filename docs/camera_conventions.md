@@ -7,6 +7,7 @@
 The following simulation includes a pair of stereo cameras that are fixed with respect to a camera frame. When commanding the virtual camera arm, the relation between the cameras and the frame will remain fixed, i.e. , transformations `T_FL` and `T_FR` do not change when moving the virtual ECM.  Finding a transformation between the needle local coordinate frame and the left image plane can be accomplish via the following block of code:
 
 ```python
+
   	# Get pose for the needle and the camera
     T_WN = pm.toMatrix(scene.needle_measured_cp())    # Needle to world
     T_FL = pm.toMatrix(ambf_cam_l.get_T_c_w())        # CamL to CamFrame
