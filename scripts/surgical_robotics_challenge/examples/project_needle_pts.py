@@ -5,6 +5,8 @@ To use correctly this script make sure that:
    1) the /ambf/env/cameras/cameraL/ImageData topic is available
    2) the cameras can view the needle in the scene
 
+Script tested in python 3.8 and ros Noetic
+
 Juan Antonio Barragan 
 
 """
