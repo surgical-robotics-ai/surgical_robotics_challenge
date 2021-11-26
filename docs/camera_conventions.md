@@ -31,7 +31,7 @@ The following simulation includes a pair of stereo cameras that are fixed with r
 
 ## AMBF camera frames vs Opencv camera frame
 
-To use Opencv 3D calibration functions it is necessary to convert between the AMBF and the Opencv camera conventions. As seen in the figure below the AMBF camera frames has the minus X axis towards the image plane, Y towards the right (horizontal axis) and Z upwards (vertical axis). On the other hand, Opencv has the Z axis towards the image plane, the X axis toward the right and the minus Y axis upward. Conversion, from the AMBF convention to the OPENCV convention can be achieved with
+To use Opencv 3D calibration functions, it is necessary to convert between the AMBF and the Opencv camera conventions. As seen in the figure below, the AMBF camera frames has the minus X axis towards the image plane, Y towards the right (horizontal axis) and Z upwards (vertical axis). On the other hand, Opencv has the Z axis towards the image plane, the X axis toward the right and the minus Y axis upward. Conversion, from the AMBF convention to the OPENCV convention can be achieved with
 
 ````python
     F = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [-1, 0, 0, 0], [0, 0, 0, 1]])
