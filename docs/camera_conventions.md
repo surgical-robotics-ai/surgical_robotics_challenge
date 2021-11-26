@@ -43,5 +43,7 @@ To use Opencv 3D calibration functions it is necessary to convert between the AM
 
 
 
-A full example of how to use this transformation matrices to project points from the needle into the image can be found in [project_needle_points.py](./../scripts/)
+A full example of how to use this transformation matrices to project points from the needle into the image can be found in [project_needle_points.py](./../scripts/surgical_robotics_challenge/examples/project_needle_pts.py)
+
+<img src="/home/juan1995/research_juan/surgical_robotics_challenge/docs/figures/project_img_pts.png" style="zoom: 67%;" />
 
