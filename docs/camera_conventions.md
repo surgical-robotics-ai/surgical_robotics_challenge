@@ -40,11 +40,11 @@ To use Opencv 3D calibration functions it is necessary to convert between the AM
 
 
 
-<img src="./figures/camera_convention.png" style="zoom:67%;" />
+<img src="./figures/camera_convention.png" width="640"  />
 
 
 
 A full example of how to use this transformation matrices to project points from the needle into the image can be found in [project_needle_points.py](./../scripts/surgical_robotics_challenge/examples/project_needle_pts.py)
 
-<img src="./figures/project_img_pts.png" style="zoom: 67%;" />
+<img src="./figures/project_img_pts.png" width="640"  />
 
