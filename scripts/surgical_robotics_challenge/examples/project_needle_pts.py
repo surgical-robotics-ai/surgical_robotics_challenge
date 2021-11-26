@@ -3,7 +3,7 @@ Script for projecting needle salient point in to the image plane
 
 To use correctly this script make sure that:
    1) the /ambf/env/cameras/cameraL/ImageData topic is available
-   2) the cameras can view the needle in the scen
+   2) the cameras can view the needle in the scene
 
 Juan Antonio Barragan 
 
