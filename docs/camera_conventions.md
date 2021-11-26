@@ -25,7 +25,7 @@ The following simulation includes a pair of stereo cameras that are fixed with r
 
 
 
-<img src="./figures/camera_frames.png" style="zoom:35%;" />
+<img src="./figures/camera_frames.png" width="640" />
 
 
 
