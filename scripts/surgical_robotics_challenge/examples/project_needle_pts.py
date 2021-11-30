@@ -23,7 +23,6 @@ import tf_conversions.posemath as pm
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import rospy
-import pandas as pd
 
 np.set_printoptions(precision=3, suppress=True)
 
@@ -121,7 +120,6 @@ if __name__ == "__main__":
     print(T_LN)
 
     # Display image
-    results_df = pd.DataFrame(columns=["id", "x", "y"])
     for i in range(img_pt.shape[0]):
         img = cv2.circle(
             img, (int(img_pt[i, 0, 0]), int(img_pt[i, 0, 1])), 3, (255, 0, 0), -1
