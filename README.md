@@ -74,6 +74,9 @@ Don't forget to build the repo using the instructions on AMBF's Readme
 
   https://github.com/WPI-AIM/ambf/wiki/Camera-feed-and-depth-camera
 
+### 3c. Camera Coordinate frames
+  To better understand the different camera coordinate frames and the difference between the AMBF and the Opencv camera convention, please refer to [camera_convention.md](./docs/camera_conventions.md)
+
 ### 3c. Resetting the Simulation
   You can press `CTRL+R` to reset the rigid bodies in simulation, and `CTRL+V` to reset the camera pose if you changed it with the mouse.
 
