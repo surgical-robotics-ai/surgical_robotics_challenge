@@ -26,14 +26,14 @@ The virtual environment includes a pair of stereo cameras that are fixed with re
 
 ## Intrinsic parameter matrix.
 
-The intrinsic parameters of cameras in AMBF+ are established in OpenGL fashion using the vertical field view angle (`fva`) which describes the perspective frustum. The intrinsic matrix (I) can be calculated through the following equations: 
+The intrinsic parameters of cameras in AMBF are established in OpenGL fashion using the vertical field view angle (`fva`) which describes the perspective frustum. The intrinsic matrix (I) can be calculated through the following equations: 
 
 <img src="./figures/intrinsic_camera_matrix.png" />
 
 Where `fx` and `fy` are the focal length in pixels in the x and y directions. `W` and `H` are the width and height of the image produced in pixels. `cx` and `cy` describe the x and y position of the camera principal point. Extrinsics information is obtained from the relative transformation between the cameras and world frame. 
 
 
-The values for the `fva` and near plane are found in the file [world_stereo.yaml](./../ADF/world/world_stereo.yaml).
+The camera parameters, such as `fva`, `near` and `far` plane, are found in its ADF definition. For this repo, the cameras are defined in the [World](./../ADF/world/world_stereo.yaml) file. The parameters `cx` and `cy` depend upon the image size of the published camera stream. It defaults to `640 x 480` but can be changed by setting an appropriate field as shown [here](https://github.com/collaborative-robotics/surgical_robotics_challenge/blob/master/ADF/world/world_stereo.yaml#L57), .
 
 ## Difference between AMBF and Opencv camera conventions 
 
