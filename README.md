@@ -59,7 +59,7 @@ Don't forget to build the repo using the instructions on AMBF's Readme
   And this is what the scene should now look like:
 
   <p align="center">
-  <img src=Media/sample_scene.gif width="480"/>
+  <img src=Media/neede_without_thread.gif width="480"/>
   </p>
 
 
