@@ -46,9 +46,9 @@ from surgical_robotics_challenge.kinematics.psmIK import *
 from PyKDL import Frame, Rotation, Vector
 import time
 from surgical_robotics_challenge.utils.joint_pos_recorder import JointPosRecorder
+from surgical_robotics_challenge.utils.joint_errors_model import JointErrorsModel
 
 jpRecorder = JointPosRecorder()
-
 
 class PSMJointMapping:
     def __init__(self):
@@ -71,7 +71,7 @@ pjm = PSMJointMapping()
 
 
 class PSM:
-    def __init__(self, client, name, save_jp=False):
+    def __init__(self, client, name, add_joint_errors=True, save_jp=False):
         self.save_jp = save_jp
         self.client = client
         self.name = name
@@ -95,6 +95,12 @@ class PSM:
         self._num_joints = 6
         self._ik_solution = np.zeros([self._num_joints])
         self._last_jp = np.zeros([self._num_joints])
+        if add_joint_errors:
+            self._errors_distribution_deg = [-5., -2. , 2., 5.]
+        else:
+            self._errors_distribution_deg = [0.] # No Error
+        self._joints_error_mask = [1, 1, 0, 0, 0, 0] # Only apply error to joints with 1's
+        self._joint_error_model = JointErrorsModel(self._num_joints, errors_distribution_deg=self._errors_distribution_deg)
 
     def set_home_pose(self, pose):
         self.T_t_b_home = pose
@@ -167,6 +173,7 @@ class PSM:
         pass
 
     def servo_jp(self, jp):
+        jp = self._joint_error_model.add_to_joints(jp, self._joints_error_mask)
         self.base.set_joint_pos(0, jp[0])
         self.base.set_joint_pos(1, jp[1])
         self.base.set_joint_pos(2, jp[2])
@@ -200,7 +207,9 @@ class PSM:
         j3 = self.base.get_joint_pos(3)
         j4 = self.base.get_joint_pos(4)
         j5 = self.base.get_joint_pos(5)
-        return [j0, j1, j2, j3, j4, j5]
+        q = [j0, j1, j2, j3, j4, j5]
+        q = self._joint_error_model.remove_from_joints(q, self._joints_error_mask)
+        return q
 
     def measured_jv(self):
         j0 = self.base.get_joint_vel(0)

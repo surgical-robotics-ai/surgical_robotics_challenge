@@ -157,7 +157,7 @@ if __name__ == "__main__":
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm1'
         print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(c, arm_name,parsed_args.jp_record)
+        psm = PSM(c, arm_name, add_joint_errors=False, save_jp=parsed_args.jp_record)
         if psm.is_present():
             T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
             T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
@@ -169,7 +169,7 @@ if __name__ == "__main__":
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm2'
         print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(c, arm_name,parsed_args.jp_record)
+        psm = PSM(c, arm_name, add_joint_errors=False, save_jp=parsed_args.jp_record)
         if psm.is_present():
             T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
             T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
@@ -181,7 +181,7 @@ if __name__ == "__main__":
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm3'
         print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(c, arm_name,parsed_args.jp_record)
+        psm = PSM(c, arm_name, add_joint_errors=False, save_jp=parsed_args.jp_record)
         if psm.is_present():
             psm_arms.append(psm)
 
