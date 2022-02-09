@@ -1,3 +1,48 @@
+#!/usr/bin/env python
+# //==============================================================================
+# /*
+#     Software License Agreement (BSD License)
+#     Copyright (c) 2020-2021 Johns Hopkins University (JHU), Worcester Polytechnic Institute (WPI) All Rights Reserved.
+
+
+#     All rights reserved.
+
+#     Redistribution and use in source and binary forms, with or without
+#     modification, are permitted provided that the following conditions
+#     are met:
+
+#     * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+
+#     * Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution.
+
+#     * Neither the name of authors nor the names of its contributors may
+#     be used to endorse or promote products derived from this software
+#     without specific prior written permission.
+
+#     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+#     "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+#     LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+#     FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+#     COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+#     INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+#     BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+#     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+#     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+#     ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#     POSSIBILITY OF SUCH DAMAGE.
+
+
+#     \author    <amunawar@jhu.edu>
+#     \author    Adnan Munawar
+#     \version   1.0
+# */
+# //==============================================================================
+
 from PyKDL import Vector, Rotation, Frame, dot
 import numpy as np
 import math
@@ -75,7 +120,8 @@ def compute_IK(T_7_0):
     pkd = PSMKinematicData()
 
     # Pinch Joint
-    T_PinchJoint_7 = Frame(Rotation.RPY(0, 0, 0), pkd.L_yaw2ctrlpnt * Vector(0.0, 0.0, -1.0))
+    T_PinchJoint_7 = Frame(Rotation.RPY(
+        0, 0, 0), pkd.L_yaw2ctrlpnt * Vector(0.0, 0.0, -1.0))
     # Pinch Joint in Origin
     T_PinchJoint_0 = T_7_0 * T_PinchJoint_7
 
@@ -107,7 +153,8 @@ def compute_IK(T_7_0):
 
     # Add another frame to account for Palm link length
     # print("N_PalmJoint_PinchJoint: ", round_vec(N_PalmJoint_PinchJoint))
-    T_PalmJoint_PinchJoint = Frame(Rotation.RPY(0, 0, 0), N_PalmJoint_PinchJoint * pkd.L_pitch2yaw)
+    T_PalmJoint_PinchJoint = Frame(Rotation.RPY(
+        0, 0, 0), N_PalmJoint_PinchJoint * pkd.L_pitch2yaw)
     # print("P_PalmJoint_PinchJoint: ", round_vec(T_PalmJoint_PinchJoint.p))
     # Get the shaft tip or the Palm's Joint position
     T_PalmJoint_0 = T_7_0 * T_PinchJoint_7 * T_PalmJoint_PinchJoint
@@ -143,7 +190,8 @@ def compute_IK(T_7_0):
 
     # To get j4, compare the above vector with Y axes of T_3_0
     T_3_0 = convert_mat_to_frame(compute_FK([j1, j2, j3], 3))
-    j4 = get_angle(cross_palmlink_x7_0, T_3_0.M.UnitY(), up_vector=-T_3_0.M.UnitZ())
+    j4 = get_angle(cross_palmlink_x7_0, T_3_0.M.UnitY(),
+                   up_vector=-T_3_0.M.UnitZ())
 
     # Calculate j5
     # This should be simple, just compute the angle between Rz_4_0 and D_PinchJoint_PalmJoint_0
@@ -152,7 +200,8 @@ def compute_IK(T_7_0):
     T_4_3 = convert_mat_to_frame(link4_dh.get_trans())
     T_4_0 = T_3_0 * T_4_3
 
-    j5 = get_angle(T_PinchJoint_0.p - T_PalmJoint_0.p, T_4_0.M.UnitZ(), up_vector=-T_4_0.M.UnitY())
+    j5 = get_angle(T_PinchJoint_0.p - T_PalmJoint_0.p,
+                   T_4_0.M.UnitZ(), up_vector=-T_4_0.M.UnitY())
 
     # Calculate j6
     # This too should be simple, compute the angle between the Rz_7_0 and Rx_5_0.
@@ -161,7 +210,8 @@ def compute_IK(T_7_0):
     T_5_4 = convert_mat_to_frame(link5_dh.get_trans())
     T_5_0 = T_4_0 * T_5_4
 
-    j6 = get_angle(T_7_0.M.UnitZ(), T_5_0.M.UnitX(), up_vector=-T_5_0.M.UnitY())
+    j6 = get_angle(T_7_0.M.UnitZ(), T_5_0.M.UnitX(),
+                   up_vector=-T_5_0.M.UnitY())
 
     # str = '\n**********************************'*3
     # print(str)

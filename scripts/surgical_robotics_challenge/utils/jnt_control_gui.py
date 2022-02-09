@@ -2,27 +2,27 @@
 # //==============================================================================
 # /*
 #     Software License Agreement (BSD License)
-#     Copyright (c) 2020, AMBF
-#     (https://github.com/WPI-AIM/ambf)
-#
+#     Copyright (c) 2020-2021 Johns Hopkins University (JHU), Worcester Polytechnic Institute (WPI) All Rights Reserved.
+
+
 #     All rights reserved.
-#
+
 #     Redistribution and use in source and binary forms, with or without
 #     modification, are permitted provided that the following conditions
 #     are met:
-#
+
 #     * Redistributions of source code must retain the above copyright
 #     notice, this list of conditions and the following disclaimer.
-#
+
 #     * Redistributions in binary form must reproduce the above
 #     copyright notice, this list of conditions and the following
 #     disclaimer in the documentation and/or other materials provided
 #     with the distribution.
-#
+
 #     * Neither the name of authors nor the names of its contributors may
 #     be used to endorse or promote products derived from this software
 #     without specific prior written permission.
-#
+
 #     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #     "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 #     LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -35,7 +35,8 @@
 #     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 #     ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #     POSSIBILITY OF SUCH DAMAGE.
-#
+
+
 #     \author    <amunawar@jhu.edu>
 #     \author    Adnan Munawar
 #     \version   1.0
@@ -104,7 +105,8 @@ class JointGUI:
         self.jnt_mode = [0]*num_jnts
         self.cmd_scales = [0]*num_jnts
 
-        obj_label = Label(app, text='CONTROLLING OBJECT: ' + self.obj_name, fg="Red")
+        obj_label = Label(app, text='CONTROLLING OBJECT: ' +
+                          self.obj_name, fg="Red")
         obj_label.grid(row=0, columnspan=2, pady=5)
 
         for i in range(2*num_jnts):
@@ -117,21 +119,21 @@ class JointGUI:
                 self.cmd_scales[jidx] = sv
 
                 slider = Scale(app, from_=_min, to=_max, resolution=self.resolution, orient=HORIZONTAL,
-                                 command=functools.partial(self.slider_cb, idx=jidx))
+                               command=functools.partial(self.slider_cb, idx=jidx))
                 slider.grid(row=i, column=1)
                 self._cmd_sliders.append(slider)
 
                 v = IntVar(value=0)
                 eff_cb = Radiobutton(app, text="Effort", variable=v, indicatoron=False, value=0,
-                                  command=functools.partial(self.effort_button_cb, idx=jidx))
+                                     command=functools.partial(self.effort_button_cb, idx=jidx))
                 eff_cb.grid(row=i, column=2)
 
                 pos_cb = Radiobutton(app, text="Position", variable=v, indicatoron=False, value=1,
-                                  command=functools.partial(self.position_button_cb, idx=jidx))
+                                     command=functools.partial(self.position_button_cb, idx=jidx))
                 pos_cb.grid(row=i, column=3)
 
                 vel_cb = Radiobutton(app, text="Velocity", variable=v, indicatoron=False, value=2,
-                                  command=functools.partial(self.velocity_button_cb, idx=jidx))
+                                     command=functools.partial(self.velocity_button_cb, idx=jidx))
                 vel_cb.grid(row=i, column=4)
 
             else:
@@ -141,8 +143,10 @@ class JointGUI:
                 label = Label(app, text=jnt_names[jidx])
                 label.grid(row=i, column=1)
 
-        reset_scale_btn = Button(app, text='Reset Scales', command=self.reset_scale_cb)
+        reset_scale_btn = Button(
+            app, text='Reset Scales', command=self.reset_scale_cb)
         reset_scale_btn.grid(row=num_jnts*2, column=0)
 
-        reset_cmd_btn = Button(app, text='Reset Cmds', command=self.reset_cmds_cb)
+        reset_cmd_btn = Button(app, text='Reset Cmds',
+                               command=self.reset_cmds_cb)
         reset_cmd_btn.grid(row=num_jnts*2, column=1)

@@ -1,10 +1,10 @@
 enclosure size: {length: 10.0, width: 10.0, height: 3.0}
 lights: [light2]
-cameras: [cameraL]
+cameras: [cameraL, cameraR]
 environment: "./checkered_floor.yaml"
 namespace: /ambf/env/
 max iterations: 50
-gravity: {x: 0.0, y: 0.0, z: -5.0}
+gravity: {x: 0.0, y: 0.0, z: -9.8}
 # shaders:
 #   path: ../../ambf_shaders/
 #   vertex: "shader.vs"
@@ -49,13 +49,13 @@ cameraL:
   field view angle: 1.2
   monitor: 1
   parent: BODY CameraFrame
+  # preprocessing shaders:
+  #   path: ../../ambf_shaders/preprocessing
+  #   vertex: shader.vs
+  #   fragment: shader.fs
   # publish image: True
   # publish image resolution: {width: 1920, height: 1080}
   # publish depth: True
-  # depth compute shaders:
-  #   path: /home/adnan/ambf/ambf_shaders/depth
-  #   vertex: "shader.vs"
-  #   fragment: "shader.fs"
   # publish depth resolution: {width: 640, height: 480}
   # multipass: True
 
@@ -69,7 +69,14 @@ cameraR:
   field view angle: 1.2
   monitor: 2
   parent: BODY CameraFrame
+  # preprocessing shaders:
+  #   path: ../../ambf_shaders/preprocessing
+  #   vertex: shader.vs
+  #   fragment: shader.fs
+  # publish image: True
+  # publish image resolution: {width: 1920, height: 1080}
   # publish depth: True
+  # publish depth resolution: {width: 640, height: 480}
   # multipass: True
 
 camera3:

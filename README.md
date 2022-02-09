@@ -1,3 +1,9 @@
+# Surgical Robotics Challenge
+For more information regarding the challenge, please visit https://collaborative-robotics.github.io/surgical-robotics-challenge/challenge-2021.html
+
+# [Discussions Forum](https://github.com/collaborative-robotics/surgical_robotics_challenge/discussions)
+Please checkout the [Discussions Tab](https://github.com/collaborative-robotics/surgical_robotics_challenge/discussions) for asking questions, posting suggestions, connecting with the community and for keeping up to date with the challenge.
+
 # 1. Install AMBF and ROS Prerequisites
 Make sure that the correct version of ROS is installed and sourced on your system. For streaming the image and depth data out of AMBF, please also install the following ROS packages
 - cv_bridge
@@ -28,21 +34,7 @@ Don't forget to build the repo using the instructions on AMBF's Readme
 # 2. Clone this repo to your local machine OR use a Dockerfile
 
 #### Option 1: (Clone repo to your local machine)
-  Clone this repo outside the AMBF source tree e.g. your home folder.
-
-  ```bash
-  git clone https://github.com/collaborative-robotics/surgical_robotics_challenge
-  ```
-
-  Let's call the location of this folder as
-  `<surgical_robotics_challenge>`
-
-  To make the python scripts within this repo available system wide
-  ```bash
-  cd <surgical_robotics_challenge>/scripts/
-  python install -e .
-  ```
-  If you are using Python3, change `python` to `python3` in the above command
+  Please refer to [README](./scripts/README.md) in the [scripts](./scripts) folder for instructions on installing the Python package for system-wide access.
 
 #### Option 2: (Use Dockerfile)
 
@@ -56,7 +48,7 @@ Don't forget to build the repo using the instructions on AMBF's Readme
   The simulation is spawned in AMBF with the launch file and AMBF Description Format (ADF) files from this repo:
   The `ambf_simulator` binary resides in `ambf/bin/lin-x86_64`. You should be in that directory before running the commands below. Alternatively, you can create a symlink to this binary.
   ```bash
-  ./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,14,15 -p 200 -t 1
+  ./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,14,15 -p 120 -t 1 --override_max_comm_freq 120
   ```
   This is an example of what the scene should look like (minus the motions of the PSM, Needle etc.):
 
@@ -67,13 +59,13 @@ Don't forget to build the repo using the instructions on AMBF's Readme
   To launch a different scene with just the needle (without any thread), you can run:
 
   ```bash
-  ./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,13,14 -p 200 -t 1
+  ./ambf_simulator --launch_file <surgical_robotics_challenge>/launch.yaml -l 0,1,3,4,13,14 -p 200 -t 1 --override_max_comm_freq 120
   ```
 
   And this is what the scene should now look like:
 
   <p align="center">
-  <img src=Media/sample_scene.gif width="480"/>
+  <img src=Media/neede_without_thread.gif width="480"/>
   </p>
 
 
@@ -83,10 +75,13 @@ Don't forget to build the repo using the instructions on AMBF's Readme
   https://github.com/WPI-AIM/ambf/wiki/Selecting-Robots
 
 ### 3b. Simulated Cameras
-  The simulated camera(s) is defined in the World file (`world_stereo.yaml`) which is set in the `launch.yaml` file.
+  The simulated camera(s) is defined in the World file ([`world_stereo.yaml`](./ADF/world/world_stereo.yaml)) which is set in the [`launch.yaml`](./launch.yaml) file.
   To enable the camera(s) to publish the scene image or depth data, follow the instructions on this page:
 
   https://github.com/WPI-AIM/ambf/wiki/Camera-feed-and-depth-camera
+
+### 3c. Camera Coordinate frames
+  To better understand the different camera coordinate frames and the difference between the AMBF and the Opencv camera convention, please refer to [camera_convention.md](./docs/camera_conventions.md)
 
 ### 3c. Resetting the Simulation
   You can press `CTRL+R` to reset the rigid bodies in simulation, and `CTRL+V` to reset the camera pose if you changed it with the mouse.
@@ -98,7 +93,7 @@ Don't forget to build the repo using the instructions on AMBF's Readme
 
 
 # 4. Interacting with Simulated Robots using Python Scripts:
-Please take a look at the scripts in the `scripts` folder:
+Please take a look at the scripts in the [`scripts`](./scripts) folder:
 
 
 # 5. Controlling via Input Devices

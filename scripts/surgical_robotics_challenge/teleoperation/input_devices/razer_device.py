@@ -1,3 +1,48 @@
+#!/usr/bin/env python
+# //==============================================================================
+# /*
+#     Software License Agreement (BSD License)
+#     Copyright (c) 2020-2021 Johns Hopkins University (JHU), Worcester Polytechnic Institute (WPI) All Rights Reserved.
+
+
+#     All rights reserved.
+
+#     Redistribution and use in source and binary forms, with or without
+#     modification, are permitted provided that the following conditions
+#     are met:
+
+#     * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+
+#     * Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution.
+
+#     * Neither the name of authors nor the names of its contributors may
+#     be used to endorse or promote products derived from this software
+#     without specific prior written permission.
+
+#     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+#     "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+#     LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+#     FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+#     COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+#     INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+#     BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+#     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+#     LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+#     ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#     POSSIBILITY OF SUCH DAMAGE.
+
+
+#     \author    <amunawar@jhu.edu>
+#     \author    Adnan Munawar
+#     \version   1.0
+# */
+# //==============================================================================
+
 import PyKDL
 from PyKDL import Frame, Rotation, Vector
 from razer_hydra.msg import Hydra
@@ -7,6 +52,8 @@ import rospy
 import time
 
 # Utilities
+
+
 def kdl_frame_to_pose_msg(kdl_pose):
     #### rotation 0-3 w,x,y,z
     #### translation 0-2 x,y,z
@@ -37,6 +84,7 @@ def pose_msg_to_kdl_frame(msg_pose):
 
     return f
 
+
 def hydra_msg_to_kdl_frame(msg_hydra):
     pose = msg_hydra.paddles[0].transform
     f = Frame()
@@ -54,8 +102,8 @@ def hydra_msg_to_kdl_frame(msg_hydra):
 # Init everything related to Geomagic
 class razer_Device:
     # The name should include the full qualified prefix. I.e. '/Geomagic/', or '/omniR_' etc.
-    def __init__(self, name = 'hydra_calib'):
-        pose_topic_name = name # + 'pose'
+    def __init__(self, name='hydra_calib'):
+        pose_topic_name = name  # + 'pose'
         twist_topic_name = name
         # twist_topic_name = name + 'twist'
         # button_topic_name = name + 'button'
@@ -70,8 +118,8 @@ class razer_Device:
         self._T_baseoffset = Frame(R_off, Vector(0, 0, 0))
         self._T_baseoffset_inverse = self._T_baseoffset.Inverse()
         self._T_tipoffset = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
-        self.clutch_button_pressed = False # Used as Position Engage Clutch
-        self.gripper_button_pressed = False # Used as Gripper Open Close Binary Angle
+        self.clutch_button_pressed = False  # Used as Position Engage Clutch
+        self.gripper_button_pressed = False  # Used as Gripper Open Close Binary Angle
         # self._force = DeviceFeedback()
         # self._force.force.x = 0
         # self._force.force.y = 0
@@ -80,8 +128,10 @@ class razer_Device:
         # self._force.position.y = 0
         # self._force.position.z = 0
 
-        self._pose_sub = rospy.Subscriber(pose_topic_name, Hydra, self.pose_cb, queue_size=1)
-        self._twist_sub = rospy.Subscriber(twist_topic_name, Hydra, self.twist_cb, queue_size=1)
+        self._pose_sub = rospy.Subscriber(
+            pose_topic_name, Hydra, self.pose_cb, queue_size=1)
+        self._twist_sub = rospy.Subscriber(
+            twist_topic_name, Hydra, self.twist_cb, queue_size=1)
         # self._button_sub = rospy.Subscriber(button_topic_name, DeviceButtonEvent, self.buttons_cb, queue_size=1)
         # self._force_pub = rospy.Publisher(force_topic_name, DeviceFeedback, queue_size=1)
 
@@ -137,9 +187,9 @@ class razer_Device:
         twist[0] = msg.paddles[1].joy[0]
         twist[1] = msg.paddles[1].joy[1]
         twist[2] = para_vel*msg.paddles[1].trigger
-        twist[3] = 0#para_ang*msg.paddles[1].joy[0]#msg.angular.x
-        twist[4] = 0#para_ang*msg.paddles[1].joy[1]#msg.angular.y
-        twist[5] = 0#para_ang*para_vel*msg.paddles[1].trigger#msg.angular.z
+        twist[3] = 0  # para_ang*msg.paddles[1].joy[0]#msg.angular.x
+        twist[4] = 0  # para_ang*msg.paddles[1].joy[1]#msg.angular.y
+        twist[5] = 0  # para_ang*para_vel*msg.paddles[1].trigger#msg.angular.z
         self.twist = self._T_baseoffset_inverse * twist
         pass
 
