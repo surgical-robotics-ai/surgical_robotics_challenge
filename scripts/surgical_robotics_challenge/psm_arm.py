@@ -84,6 +84,7 @@ class PSM:
         self.actuators.append(self.client.get_obj_handle(name + '/Actuator0'))
         time.sleep(0.5)
         self.grasped = [False, False, False]
+        self.graspable_objs_prefix = ["Needle", "Thread", "Puzzle"]
 
         self.T_t_b_home = Frame(Rotation.RPY(3.14, 0.0, 1.57079), Vector(0.0, 0.0, -1.0))
 
@@ -138,12 +139,13 @@ class PSM:
                 if self.sensor is not None:
                     if self.sensor.is_triggered(i):
                         sensed_obj = self.sensor.get_sensed_object(i)
-                        if sensed_obj == 'Needle' or 'Thread' in sensed_obj:
-                            if not self.grasped[i]:
-                                qualified_name = '/ambf/env/BODY ' + sensed_obj
-                                self.actuators[i].actuate(qualified_name)
-                                self.grasped[i] = True
-                                print('Grasping Sensed Object Names', sensed_obj)
+                        for s in self.graspable_objs_prefix:
+                            if s in sensed_obj:
+                                if not self.grasped[i]:
+                                    qualified_name = sensed_obj
+                                    self.actuators[i].actuate(qualified_name)
+                                    self.grasped[i] = True
+                                    print('Grasping Sensed Object Names', sensed_obj)
             else:
                 if self.actuators[i] is not None:
                     self.actuators[i].deactuate()
