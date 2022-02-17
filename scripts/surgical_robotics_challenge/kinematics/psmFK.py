@@ -118,9 +118,9 @@ def compute_FK(joint_pos, up_to_link):
     return T_N_0
 
 
-# T_7_0 = compute_FK([-0.5, 0, 0.2, 0, 0, 0])
-#
-# print(T_7_0)
-# print("\n AFTER ROUNDING \n")
-# print(round_mat(T_7_0, 4, 4, 3))
-# print(round_mat(T_7_0, 4, 4, 3))
+T_7_0 = compute_FK([-0.5, 0, 0.2, 0, 0, 0],6)
+
+print(T_7_0)
+print("\n AFTER ROUNDING \n")
+print(round_mat(T_7_0, 4, 4, 3))
+print(round_mat(T_7_0, 4, 4, 3))
