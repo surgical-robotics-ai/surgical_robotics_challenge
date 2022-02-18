@@ -71,6 +71,8 @@ class JointErrorsModel:
 
     def add_to_joints(self, q, joint_mask):
         if self._size_check(q, joint_mask):
+            if type(q) == tuple:
+                q = list(q)
             for i in range(len(joint_mask)):
                 if joint_mask[i]:
                     q[i] = q[i] + self.joint_erros_rad[i]
@@ -78,6 +80,8 @@ class JointErrorsModel:
 
     def remove_from_joints(self, q, joint_mask):
         if self._size_check(q, joint_mask):
+            if type(q) == tuple:
+                q = list(q)
             for i in range(len(joint_mask)):
                 if joint_mask[i]:
                     q[i] = q[i] - self.joint_erros_rad[i]
