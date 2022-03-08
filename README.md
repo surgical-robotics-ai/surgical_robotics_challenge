@@ -112,3 +112,19 @@ Then run one of the corresponding python scripts:
 **b. scripts/surgical_robotics_challenge/geomagic_multi_psm_control.py** (For Geomagic Touch/Phantom Omni)
 
 Refer to the `README` in the scripts folder for further information
+
+# 6. Citation
+If you find this work useful, please cite it as:
+
+```bibtex
+@article{munawar2022open,
+  title={Open Simulation Environment for Learning and Practice of Robot-Assisted Surgical Suturing},
+  author={Munawar, Adnan and Wu, Jie Ying and Fischer, Gregory S and Taylor, Russell H and Kazanzides, Peter},
+  journal={IEEE Robotics and Automation Letters},
+  volume={7},
+  number={2},
+  pages={3843--3850},
+  year={2022},
+  publisher={IEEE}
+}
+```
