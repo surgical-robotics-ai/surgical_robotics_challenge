@@ -19,7 +19,7 @@ The two actual cameras, namely "cameraL" and "cameraR" are parented to this kine
 
 The script [ecm_arm.py](https://github.com/collaborative-robotics/surgical_robotics_challenge/blob/master/scripts/surgical_robotics_challenge/ecm_arm.py) wraps this 'Camera Frame' to provide its pose. The method `measured_cp()` provides the pose of 'CameraFrame' in the world (simulation world) frame.
 
-To mimic the da Vinci ECM, [ecm_arm.py](https://github.com/collaborative-robotics/surgical_robotics_challenge/blob/master/scripts/surgical_robotics_challenge/ecm_arm.py) provides a joint command interface called `servo_jp()`. The method accepts a list of 4 joint commands and each value corresponds to the joint actuation of the actual ECM, i.e. joint 1 controls yaw, joint 2 controls pitch, joint 3 controls insertion, and joint 4 controls the roll.
+To mimic the da Vinci ECM, [ecm_arm.py](https://github.com/collaborative-robotics/surgical_robotics_challenge/blob/master/scripts/surgical_robotics_challenge/ecm_arm.py) provides a joint command interface via a method called `servo_jp()`. This method accepts a list of 4 joint commands where each command mimics that of the real ECM, i.e. joint 1 controls yaw, joint 2 controls pitch, joint 3 controls insertion, and joint 4 controls the roll.
 
 # NEEDLE FRAME
 
@@ -34,4 +34,4 @@ The entry and exit frames are shown in the figure below.
 <img src="./figures/Entry and Exit Frame.svg" />
 
 # NOTE:
-All the coordinate frames discussed above can be viewed using the scene blender files in this [folder](https://github.com/collaborative-robotics/surgical_robotics_challenge/tree/master/Blender)
+All the coordinate frames discussed above and the associated dimensions can be viewed using the blender scene files in this [folder](https://github.com/collaborative-robotics/surgical_robotics_challenge/tree/master/Blender).
