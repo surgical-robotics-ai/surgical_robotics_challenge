@@ -203,6 +203,7 @@ class ECMCRTKWrapper:
 
     def servo_jp_cb(self, js):
         self._servo_jp_cmd = js.position
+        self.arm.servo_jp(self._servo_jp_cmd)
 
     # def servo_jv_cb(self, js):
     #     self.arm.servo_jv(js.velocity)
@@ -218,7 +219,6 @@ class ECMCRTKWrapper:
     def run(self):
         self.publish_js()
         self.publish_cs()
-        self.arm.servo_jp(self._servo_jp_cmd)
 
 
 class SceneCRTKWrapper:
