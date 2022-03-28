@@ -11,6 +11,7 @@ import numpy as np
 from ambf_client import Client
 import time
 
+
 def add_break(s):
     time.sleep(s)
     print('-------------')
@@ -30,11 +31,42 @@ ecm = ECM(my_client, 'CameraFrame')
 # Get a handle to scene to access its elements, i.e. needle and entry / exit points
 scene = Scene(my_client)
 # Small sleep to let the handles initialize properly
-time.sleep(0.5)
+add_break(0.5)
 
 print("Resetting the world")
 world_handle.reset()
 add_break(3.0)
+
+####
+# Your control / ML / RL Code will go somewhere in this script
+####
+
+# The PSMs can be controlled either in joint space or cartesian space. For the
+# latter, the `servo_cp` command sets the end-effector pose w.r.t its Base frame.
+T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/2.), Vector(0., 0., -1.3))
+print("Setting the end-effector frame of PSM1 w.r.t Base", T_e_b)
+psm1.servo_cp(T_e_b)
+psm1.set_jaw_angle(0.2)
+add_break(1.0)
+T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/4.), Vector(0.1, -0.1, -1.3))
+print("Setting the end-effector frame of PSM2 w.r.t Base", T_e_b)
+psm2.servo_cp(T_e_b)
+psm2.set_jaw_angle(0.5)
+add_break(1.0)
+# Controlling in joint space
+jp = [0., 0., 1.35, 0.2, 0.3, 0.2]
+print("Setting PSM1 joint positions to ", jp)
+psm1.servo_jp(jp)
+add_break(1.0)
+jp = [0., 0., 1.35, -0.2, -0.3, -0.2]
+print("Setting PSM2 joint positions to ", jp)
+psm2.servo_jp(jp)
+add_break(1.0)
+# The ECM should always be controlled using its joint interface
+jp = [0., -0.1, 0.1, 0.0]
+print("Setting ECM joint positions to ", jp)
+ecm.servo_jp(jp)
+add_break(1.0)
 
 # To get the pose of objects
 print("PSM1 End-effector pose in Base Frame", psm1.measured_cp())
@@ -52,36 +84,10 @@ add_break(1.0)
 print("Entry 1 pose in World", scene.entry1_measured_cp())
 print("Exit 4 pose in World", scene.exit4_measured_cp())
 add_break(1.0)
-####
-#### Your control / ML - RL Code will go somewhere in this script
-####
 
-# The PSMs can be controlled either in joint space or cartesian space. For the
-# latter, the `servo_cp` command sets the end-effector pose w.r.t its Base frame.
-T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/2.), Vector(0., 0., -0.8))
-print("Setting the end-effector frame of PSM1 w.r.t Base", T_e_b)
-psm1.servo_cp(T_e_b)
-add_break(1.0)
-T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/4.), Vector(0.1, -0.1, -0.8))
-print("Setting the end-effector frame of PSM2 w.r.t Base", T_e_b)
-psm2.servo_cp(T_e_b)
-add_break(1.0)
-# Controlling in joint space
-jp = [0., 0., 1.0, 0.5, 0.7, 0.9]
-print("Setting PSM1 joint positions to ", jp)
-psm1.servo_jp(jp)
-add_break(1.0)
-jp = [0., 0., 1.0, -0.5, -0.7, -0.9]
-print("Setting PSM2 joint positions to ", jp)
-psm2.servo_jp(jp)
-add_break(1.0)
-# The ECM should always be controlled using its joint interface
-jp = [0., 0., 0.2, 0.3]
-print("Setting ECM joint positions to ", jp)
-ecm.servo_jp(jp)
+# Reset ECM Back to Start
+print("Resetting ECM pose")
+ecm.servo_jp([0., 0., 0., 0.])
 add_break(1.0)
 
-print("Resetting the world")
-world_handle.reset()
-add_break(3.0)
 print('END')
