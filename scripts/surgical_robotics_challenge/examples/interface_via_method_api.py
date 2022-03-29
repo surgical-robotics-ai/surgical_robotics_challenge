@@ -16,6 +16,7 @@ def add_break(s):
     time.sleep(s)
     print('-------------')
 
+
 # Create an instance of the client
 my_client = Client('my_example_client')
 my_client.connect()
@@ -63,10 +64,10 @@ print("Setting PSM2 joint positions to ", jp)
 psm2.servo_jp(jp)
 add_break(1.0)
 # The ECM should always be controlled using its joint interface
-jp = [0., -0.1, 0.1, 0.0]
+jp = [0., -0.3, 0.3, 0.2]
 print("Setting ECM joint positions to ", jp)
 ecm.servo_jp(jp)
-add_break(1.0)
+add_break(5.0)
 
 # To get the pose of objects
 print("PSM1 End-effector pose in Base Frame", psm1.measured_cp())

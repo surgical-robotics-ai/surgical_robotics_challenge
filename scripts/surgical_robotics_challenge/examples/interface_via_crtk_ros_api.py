@@ -6,6 +6,7 @@ from PyKDL import Frame, Rotation, Vector
 import time
 from enum import Enum
 import numpy as np
+from std_msgs.msg import Empty
 
 
 def add_break(s):
@@ -40,7 +41,7 @@ def list_to_sensor_msg_position(jp_list):
     return msg
 
 
-class ARMInteface:
+class ARMInterface:
     def __init__(self, arm_type):
         if arm_type == ArmType.PSM1:
             arm_name = '/CRTK/psm1'
@@ -130,20 +131,37 @@ class SceneInterface:
         return self._scene_object_poses[object_type]
 
 
+class WorldInterface:
+    def __init__(self):
+        self._reset_world_pub = rospy.Publisher('/ambf/env/World/Command/Reset', Empty, queue_size=1)
+        self._reset_bodies_pub = rospy.Publisher('/ambf/env/World/Command/ResetBodies', Empty, queue_size=1)
+
+    def reset(self):
+        self._reset_world_pub.publish(Empty())
+
+    def reset_bodies(self):
+        self._reset_bodies_pub.publish(Empty())
+
+
 # Create an instance of the client
 rospy.init_node('your_name_node')
 time.sleep(0.5)
+world_handle = WorldInterface()
 
 # Get a handle to PSM1
-psm1 = ARMInteface(ArmType.PSM1)
+psm1 = ARMInterface(ArmType.PSM1)
 # Get a handle  to PSM2
-psm2 = ARMInteface(ArmType.PSM2)
+psm2 = ARMInterface(ArmType.PSM2)
 # Get a handle to ECM
-ecm = ARMInteface(ArmType.ECM)
+ecm = ARMInterface(ArmType.ECM)
 # Get a handle to scene to access its elements, i.e. needle and entry / exit points
 scene = SceneInterface()
 # Small sleep to let the handles initialize properly
 add_break(0.5)
+
+print("Resetting the world")
+world_handle.reset()
+add_break(3.0)
 
 # The PSMs can be controlled either in joint space or cartesian space. For the
 # latter, the `servo_cp` command sets the end-effector pose w.r.t its Base frame.
@@ -167,7 +185,7 @@ print("Setting PSM2 joint positions to ", jp)
 psm2.servo_jp(jp)
 add_break(1.0)
 # The ECM should always be controlled using its joint interface
-jp = [0., -0.1, 0.1, 0.0]
+jp = [0., -0.3, 0.3, 0.2]
 print("Setting ECM joint positions to ", jp)
 ecm.servo_jp(jp)
 add_break(1.0)
