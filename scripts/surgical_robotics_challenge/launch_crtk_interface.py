@@ -267,6 +267,7 @@ class SceneCRTKWrapper:
     def publish_cs(self):
         for k, i in self._scene_object_pubs.items():
             i[2].transform = np_mat_to_transform(i[1]())
+            i[0].publish(i[2])
 
     def run(self):
         self.publish_cs()
