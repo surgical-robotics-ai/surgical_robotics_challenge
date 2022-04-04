@@ -112,6 +112,9 @@ class PSMCRTKWrapper:
         self.measured_cp_pub = rospy.Publisher(namespace + '/' + name + '/' + 'measured_cp', TransformStamped,
                                                queue_size=1)
 
+        self.T_b_w_pub = rospy.Publisher(namespace + '/' + name + '/' + 'T_b_w', TransformStamped,
+                                               queue_size=1)
+
         self.measured_cv_pub = rospy.Publisher(namespace + '/' + name + '/' + 'measured_cv', TwistStamped,
                                                queue_size=1)
 
@@ -132,6 +135,8 @@ class PSMCRTKWrapper:
 
         self._measured_cp_msg = TransformStamped()
         self._measured_cp_msg.header.frame_id = 'baselink'
+        self._T_b_w_msg = TransformStamped()
+        self._T_b_w_msg.header.frame_id = 'world'
         self._jaw_angle = 0.5
 
     def servo_cp_cb(self, cp):
@@ -160,9 +165,14 @@ class PSMCRTKWrapper:
         self._measured_cp_msg.transform = np_mat_to_transform(self.arm.measured_cp())
         self.measured_cp_pub.publish(self._measured_cp_msg)
 
+    def publish_T_b_w(self):
+        self._T_b_w_msg.transform = np_mat_to_transform(self.arm.get_T_b_w())
+        self.T_b_w_pub.publish(self._T_b_w_msg)
+
     def run(self):
         self.publish_js()
         self.publish_cs()
+        self.publish_T_b_w()
 
 
 class ECMCRTKWrapper:
