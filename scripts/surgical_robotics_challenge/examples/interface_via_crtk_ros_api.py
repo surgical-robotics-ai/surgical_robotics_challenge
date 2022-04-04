@@ -53,22 +53,30 @@ class ARMInterface:
             raise ("Error! Invalid Arm Type")
 
         self._cp_sub = rospy.Subscriber(arm_name + "/measured_cp", TransformStamped, self.cp_cb, queue_size=1)
+        self._cp_sub = rospy.Subscriber(arm_name + "/T_b_w", TransformStamped, self.T_b_w_cb, queue_size=1)
         self._jp_sub = rospy.Subscriber(arm_name + "/measured_cp", JointState, self.jp_cb, queue_size=1)
         self.cp_pub = rospy.Publisher(arm_name + "/servo_cp", TransformStamped, queue_size=1)
         self.jp_pub = rospy.Publisher(arm_name + "/servo_jp", JointState, queue_size=1)
         self.jaw_jp_pub = rospy.Publisher(arm_name + '/jaw/' + 'servo_jp', JointState, queue_size=1)
 
         self.measured_cp_msg = None
+        self.T_b_w_msg = None
         self.measured_jp_msg = None
 
     def cp_cb(self, msg):
         self.measured_cp_msg = msg
+
+    def T_b_w_cb(self, msg):
+        self.T_b_w_msg = msg
 
     def jp_cb(self, msg):
         self.measured_jp_msg = msg
 
     def measured_cp(self):
         return self.measured_cp_msg
+
+    def get_T_b_w(self):
+        return self.T_b_w_msg
 
     def measured_jp(self):
         return self.measured_jp_msg
@@ -188,15 +196,15 @@ add_break(1.0)
 jp = [0., -0.3, 0.3, 0.2]
 print("Setting ECM joint positions to ", jp)
 ecm.servo_jp(jp)
-add_break(1.0)
+add_break(5.0)
 
 # To get the pose of objects
 print("PSM1 End-effector pose in Base Frame", psm1.measured_cp())
-# print("PSM1 Base pose in World Frmae", psm1.get_T_b_w())
+print("PSM1 Base pose in World Frame", psm1.get_T_b_w())
 print("PSM1 Joint state", psm1.measured_jp())
 add_break(1.0)
 print("PSM2 End-effector pose in Base Frame", psm2.measured_cp())
-# print("PSM2 Base pose in World Frmae", psm2.get_T_b_w())
+print("PSM2 Base pose in World Frame", psm2.get_T_b_w())
 print("PSM2 Joint state", psm2.measured_jp())
 add_break(1.0)
 # Things are slightly different for ECM as the `measure_cp` returns pose in the world frame
@@ -204,7 +212,7 @@ print("ECM pose in World", ecm.measured_cp())
 add_break(1.0)
 # Scene object poses are all w.r.t World
 print("Entry 1 pose in World", scene.measured_cp(SceneObjectType.Entry1))
-print("Exit 4 pose in World", scene.measured_cp(SceneObjectType.Entry4))
+print("Exit 4 pose in World", scene.measured_cp(SceneObjectType.Exit4))
 add_break(1.0)
 
 # Reset ECM Back to Start

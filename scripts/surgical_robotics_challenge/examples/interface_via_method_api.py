@@ -71,11 +71,11 @@ add_break(5.0)
 
 # To get the pose of objects
 print("PSM1 End-effector pose in Base Frame", psm1.measured_cp())
-print("PSM1 Base pose in World Frmae", psm1.get_T_b_w())
+print("PSM1 Base pose in World Frame", psm1.get_T_b_w())
 print("PSM1 Joint state", psm1.measured_jp())
 add_break(1.0)
 print("PSM2 End-effector pose in Base Frame", psm2.measured_cp())
-print("PSM2 Base pose in World Frmae", psm2.get_T_b_w())
+print("PSM2 Base pose in World Frame", psm2.get_T_b_w())
 print("PSM2 Joint state", psm2.measured_jp())
 add_break(1.0)
 # Things are slightly different for ECM as the `measure_cp` returns pose in the world frame
