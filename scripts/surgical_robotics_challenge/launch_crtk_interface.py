@@ -40,7 +40,6 @@
 #     \version   1.0
 # */
 # //==============================================================================
-
 import rospy
 from ambf_client import Client
 import psm_arm
@@ -52,6 +51,7 @@ from geometry_msgs.msg import TransformStamped, Transform, TwistStamped
 from PyKDL import Rotation, Vector, Frame
 from argparse import ArgumentParser
 from surgical_robotics_challenge.utils.utilities import get_boolean_from_opt
+from enum import Enum
 
 
 def rot_mat_to_quat(cp):
@@ -231,92 +231,42 @@ class ECMCRTKWrapper:
         self.publish_cs()
 
 
+class SceneObjectType(Enum):
+    Needle=1
+    Entry1=2
+    Entry2=3
+    Entry3=4
+    Entry4=5
+    Exit1=6
+    Exit2=7
+    Exit3=8
+    Exit4=9
+
+
 class SceneCRTKWrapper:
     def __init__(self, client, namespace):
         self.namespace = namespace
         self.scene = scene.Scene(client)
+        self._scene_object_pubs = dict()
+        self._scene_object_pubs[SceneObjectType.Needle] = [None, self.scene.needle_measured_cp, TransformStamped()]
+        self._scene_object_pubs[SceneObjectType.Entry1] = [None, self.scene.entry1_measured_cp, TransformStamped()]
+        self._scene_object_pubs[SceneObjectType.Entry2] = [None, self.scene.entry2_measured_cp, TransformStamped()]
+        self._scene_object_pubs[SceneObjectType.Entry3] = [None, self.scene.entry3_measured_cp, TransformStamped()]
+        self._scene_object_pubs[SceneObjectType.Entry4] = [None, self.scene.entry4_measured_cp, TransformStamped()]
+        self._scene_object_pubs[SceneObjectType.Exit1] = [None, self.scene.exit1_measured_cp, TransformStamped()]
+        self._scene_object_pubs[SceneObjectType.Exit2] = [None, self.scene.exit2_measured_cp, TransformStamped()]
+        self._scene_object_pubs[SceneObjectType.Exit3] = [None, self.scene.exit3_measured_cp, TransformStamped()]
+        self._scene_object_pubs[SceneObjectType.Exit4] = [None, self.scene.exit4_measured_cp, TransformStamped()]
 
-        self.needle_cp_pub = rospy.Publisher(namespace + '/' + 'Needle' + '/' + 'measured_cp', TransformStamped,
-                                               queue_size=1)
-
-        self.entry1_cp_pub = rospy.Publisher(namespace + '/' + 'Entry1' + '/' + 'measured_cp', TransformStamped,
-                                               queue_size=1)
-
-        self.entry2_cp_pub = rospy.Publisher(namespace + '/' + 'Entry2' + '/' + 'measured_cp', TransformStamped,
-                                               queue_size=1)
-
-        self.entry3_cp_pub = rospy.Publisher(namespace + '/' + 'Entry3' + '/' + 'measured_cp', TransformStamped,
-                                               queue_size=1)
-
-        self.entry4_cp_pub = rospy.Publisher(namespace + '/' + 'Entry4' + '/' + 'measured_cp', TransformStamped,
-                                               queue_size=1)
-
-        self.exit1_cp_pub = rospy.Publisher(namespace + '/' + 'Exit1' + '/' + 'measured_cp', TransformStamped,
-                                               queue_size=1)
-
-        self.exit2_cp_pub = rospy.Publisher(namespace + '/' + 'Exit2' + '/' + 'measured_cp', TransformStamped,
-                                               queue_size=1)
-
-        self.exit3_cp_pub = rospy.Publisher(namespace + '/' + 'Exit3' + '/' + 'measured_cp', TransformStamped,
-                                               queue_size=1)
-
-        self.exit4_cp_pub = rospy.Publisher(namespace + '/' + 'Exit4' + '/' + 'measured_cp', TransformStamped,
-                                               queue_size=1)
-
-        self._needle_cp_msg = TransformStamped()
-        self._needle_cp_msg.header.frame_id = 'World'
-
-        self._entry1_cp_msg = TransformStamped()
-        self._entry1_cp_msg.header.frame_id = 'World'
-
-        self._entry2_cp_msg = TransformStamped()
-        self._entry2_cp_msg.header.frame_id = 'World'
-
-        self._entry3_cp_msg = TransformStamped()
-        self._entry3_cp_msg.header.frame_id = 'World'
-
-        self._entry4_cp_msg = TransformStamped()
-        self._entry4_cp_msg.header.frame_id = 'World'
-
-        self._exit1_cp_msg = TransformStamped()
-        self._exit1_cp_msg.header.frame_id = 'World'
-
-        self._exit2_cp_msg = TransformStamped()
-        self._exit2_cp_msg.header.frame_id = 'World'
-
-        self._exit3_cp_msg = TransformStamped()
-        self._exit3_cp_msg.header.frame_id = 'World'
-
-        self._exit4_cp_msg = TransformStamped()
-        self._exit4_cp_msg.header.frame_id = 'World'
+        suffix = '/measured_cp'
+        for k, i in self._scene_object_pubs.items():
+            i[0] = rospy.Publisher(namespace + '/' + k.name + suffix,
+                                                            TransformStamped, queue_size=1)
+            i[2].header.frame_id = 'world'
 
     def publish_cs(self):
-        self._needle_cp_msg.transform = np_mat_to_transform(self.scene.needle_measured_cp())
-        self.needle_cp_pub.publish(self._needle_cp_msg)
-
-        self._entry1_cp_msg.transform = np_mat_to_transform(self.scene.entry1_measured_cp())
-        self.entry1_cp_pub.publish(self._entry1_cp_msg)
-
-        self._entry2_cp_msg.transform = np_mat_to_transform(self.scene.entry2_measured_cp())
-        self.entry2_cp_pub.publish(self._entry2_cp_msg)
-
-        self._entry3_cp_msg.transform = np_mat_to_transform(self.scene.entry3_measured_cp())
-        self.entry3_cp_pub.publish(self._entry3_cp_msg)
-
-        self._entry4_cp_msg.transform = np_mat_to_transform(self.scene.entry4_measured_cp())
-        self.entry4_cp_pub.publish(self._entry4_cp_msg)
-
-        self._exit1_cp_msg.transform = np_mat_to_transform(self.scene.exit1_measured_cp())
-        self.exit1_cp_pub.publish(self._exit1_cp_msg)
-
-        self._exit2_cp_msg.transform = np_mat_to_transform(self.scene.exit2_measured_cp())
-        self.exit2_cp_pub.publish(self._exit2_cp_msg)
-
-        self._exit3_cp_msg.transform = np_mat_to_transform(self.scene.exit3_measured_cp())
-        self.exit3_cp_pub.publish(self._exit3_cp_msg)
-
-        self._exit4_cp_msg.transform = np_mat_to_transform(self.scene.exit4_measured_cp())
-        self.exit4_cp_pub.publish(self._exit4_cp_msg)
+        for k, i in self._scene_object_pubs.items():
+            i[2].transform = np_mat_to_transform(i[1]())
 
     def run(self):
         self.publish_cs()
