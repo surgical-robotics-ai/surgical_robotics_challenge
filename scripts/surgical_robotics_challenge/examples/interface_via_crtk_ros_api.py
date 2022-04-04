@@ -7,11 +7,21 @@ import time
 from enum import Enum
 import numpy as np
 from std_msgs.msg import Empty
+from sensor_msgs.msg import Image
 
 
 def add_break(s):
     time.sleep(s)
     print('-------------')
+
+
+class ImageSub:
+    def __init__(self, image_topic):
+        self.image_sub = rospy.Subscriber(image_topic, Image, self.image_cb)
+        self.image_msg = Image()
+
+    def image_cb(self, image_msg):
+        self.image_msg = image_msg
 
 
 class ArmType(Enum):
@@ -53,7 +63,7 @@ class ARMInterface:
             raise ("Error! Invalid Arm Type")
 
         self._cp_sub = rospy.Subscriber(arm_name + "/measured_cp", TransformStamped, self.cp_cb, queue_size=1)
-        self._cp_sub = rospy.Subscriber(arm_name + "/T_b_w", TransformStamped, self.T_b_w_cb, queue_size=1)
+        self._T_b_w_sub = rospy.Subscriber(arm_name + "/T_b_w", TransformStamped, self.T_b_w_cb, queue_size=1)
         self._jp_sub = rospy.Subscriber(arm_name + "/measured_cp", JointState, self.jp_cb, queue_size=1)
         self.cp_pub = rospy.Publisher(arm_name + "/servo_cp", TransformStamped, queue_size=1)
         self.jp_pub = rospy.Publisher(arm_name + "/servo_jp", JointState, queue_size=1)
@@ -167,6 +177,10 @@ scene = SceneInterface()
 # Small sleep to let the handles initialize properly
 add_break(0.5)
 
+# Add you camera stream subs
+cameraL_sub = ImageSub('/ambf/env/cameras/cameraL/ImageData')
+cameraR_sub = ImageSub('/ambf/env/cameras/cameraR/ImageData')
+
 print("Resetting the world")
 world_handle.reset()
 add_break(3.0)
@@ -214,6 +228,10 @@ add_break(1.0)
 print("Entry 1 pose in World", scene.measured_cp(SceneObjectType.Entry1))
 print("Exit 4 pose in World", scene.measured_cp(SceneObjectType.Exit4))
 add_break(1.0)
+
+# Query Image Subs
+print('cameraL Image Data Size: ', cameraL_sub.image_msg.height, cameraL_sub.image_msg.width)
+print('cameraR Image Data Size: ', cameraR_sub.image_msg.height, cameraR_sub.image_msg.width)
 
 # Reset ECM Back to Start
 print("Resetting ECM pose")

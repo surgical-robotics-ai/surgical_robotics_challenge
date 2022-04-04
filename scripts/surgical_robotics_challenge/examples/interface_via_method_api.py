@@ -3,6 +3,8 @@
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.scene import Scene
+import rospy
+from sensor_msgs.msg import Image
 
 from PyKDL import Frame, Rotation, Vector
 import numpy as np
@@ -15,6 +17,15 @@ import time
 def add_break(s):
     time.sleep(s)
     print('-------------')
+
+
+class ImageSub:
+    def __init__(self, image_topic):
+        self.image_sub = rospy.Subscriber(image_topic, Image, self.image_cb)
+        self.image_msg = Image()
+
+    def image_cb(self, image_msg):
+        self.image_msg = image_msg
 
 
 # Create an instance of the client
@@ -33,6 +44,10 @@ ecm = ECM(my_client, 'CameraFrame')
 scene = Scene(my_client)
 # Small sleep to let the handles initialize properly
 add_break(0.5)
+
+# Add you camera stream subs
+cameraL_sub = ImageSub('/ambf/env/cameras/cameraL/ImageData')
+cameraR_sub = ImageSub('/ambf/env/cameras/cameraR/ImageData')
 
 print("Resetting the world")
 world_handle.reset()
@@ -85,6 +100,10 @@ add_break(1.0)
 print("Entry 1 pose in World", scene.entry1_measured_cp())
 print("Exit 4 pose in World", scene.exit4_measured_cp())
 add_break(1.0)
+
+# Query Image Subs
+print('cameraL Image Data Size: ', cameraL_sub.image_msg.height, cameraL_sub.image_msg.width)
+print('cameraR Image Data Size: ', cameraR_sub.image_msg.height, cameraR_sub.image_msg.width)
 
 # Reset ECM Back to Start
 print("Resetting ECM pose")
