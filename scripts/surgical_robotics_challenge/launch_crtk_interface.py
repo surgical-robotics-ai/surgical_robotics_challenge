@@ -192,7 +192,7 @@ class ECMCRTKWrapper:
         self._measured_js_msg.name = ["j0", "j1", "j2", "j3"]
 
         self._measured_cp_msg = TransformStamped()
-        self._measured_cp_msg.header.frame_id = 'base_link'
+        self._measured_cp_msg.header.frame_id = 'baselink'
 
         self._measured_cv_msg = TwistStamped()
         self._measured_cv_msg.header.frame_id = 'world'
