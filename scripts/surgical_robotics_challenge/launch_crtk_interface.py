@@ -154,6 +154,7 @@ class PSMCRTKWrapper:
         self._jaw_angle = jp.position[0]
 
     def publish_js(self):
+        self._measured_js_msg.header.stamp = rospy.Time.now()
         self._measured_js_msg.position = self.arm.measured_jp()
         self._measured_js_msg.velocity = self.arm.measured_jv()
         self.measured_js_pub.publish(self._measured_js_msg)
@@ -163,10 +164,12 @@ class PSMCRTKWrapper:
         self.arm.run_grasp_logic(self._jaw_angle)
 
     def publish_cs(self):
+        self._measured_cp_msg.header.stamp = rospy.Time.now()
         self._measured_cp_msg.pose = np_mat_to_pose(self.arm.measured_cp())
         self.measured_cp_pub.publish(self._measured_cp_msg)
 
     def publish_T_b_w(self):
+        self._T_b_w_msg.header.stamp = rospy.Time.now()
         self._T_b_w_msg.pose = np_mat_to_pose(self.arm.get_T_b_w())
         self.T_b_w_pub.publish(self._T_b_w_msg)
 
@@ -220,10 +223,12 @@ class ECMCRTKWrapper:
     #     self.arm.servo_jv(js.velocity)
 
     def publish_js(self):
+        self._measured_js_msg.header.stamp = rospy.Time.now()
         self._measured_js_msg.position = self.arm.measured_jp()
         self.measured_js_pub.publish(self._measured_js_msg)
 
     def publish_cs(self):
+        self._measured_cp_msg.header.stamp = rospy.Time.now()
         self._measured_cp_msg.pose = np_mat_to_pose(self.arm.measured_cp())
         self.measured_cp_pub.publish(self._measured_cp_msg)
 
@@ -266,6 +271,7 @@ class SceneCRTKWrapper:
 
     def publish_cs(self):
         for k, i in self._scene_object_pubs.items():
+            i[2].header.stamp = rospy.Time.now()
             i[2].pose = np_mat_to_pose(i[1]())
             i[0].publish(i[2])
 
