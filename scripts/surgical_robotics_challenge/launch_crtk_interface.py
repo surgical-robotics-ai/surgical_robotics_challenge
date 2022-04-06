@@ -135,7 +135,7 @@ class PSMCRTKWrapper:
         self._measured_js_msg.name = self.arm.get_joint_names()
 
         self._measured_cp_msg = PoseStamped()
-        self._measured_cp_msg.header.frame_id = 'baselink'
+        self._measured_cp_msg.header.frame_id = name + '/baselink'
         self._T_b_w_msg = PoseStamped()
         self._T_b_w_msg.header.frame_id = 'world'
         self._jaw_angle = 0.5
@@ -203,7 +203,7 @@ class ECMCRTKWrapper:
         self._measured_js_msg.name = ["j0", "j1", "j2", "j3"]
 
         self._measured_cp_msg = PoseStamped()
-        self._measured_cp_msg.header.frame_id = 'baselink'
+        self._measured_cp_msg.header.frame_id = name + '/baselink'
 
         self._measured_cv_msg = TwistStamped()
         self._measured_cv_msg.header.frame_id = 'world'
