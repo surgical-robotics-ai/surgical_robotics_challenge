@@ -1,6 +1,6 @@
 # Import the relevant classes
 import rospy
-from geometry_msgs.msg import TransformStamped, PoseStamped
+from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
 from PyKDL import Frame, Rotation, Vector
 import time
@@ -30,17 +30,17 @@ class ArmType(Enum):
     ECM=3
 
 
-def frame_to_transform_stamped_msg(frame):
-    msg = TransformStamped()
+def frame_to_pose_stamped_msg(frame):
+    msg = PoseStamped()
     msg.header.stamp = rospy.Time.now()
-    msg.transform.translation.x = frame.p[0]
-    msg.transform.translation.y = frame.p[1]
-    msg.transform.translation.z = frame.p[2]
+    msg.pose.position.x = frame.p[0]
+    msg.pose.position.y = frame.p[1]
+    msg.pose.position.z = frame.p[2]
 
-    msg.transform.rotation.x = frame.M.GetQuaternion()[0]
-    msg.transform.rotation.y = frame.M.GetQuaternion()[1]
-    msg.transform.rotation.z = frame.M.GetQuaternion()[2]
-    msg.transform.rotation.w = frame.M.GetQuaternion()[3]
+    msg.pose.orientation.x = frame.M.GetQuaternion()[0]
+    msg.pose.orientation.y = frame.M.GetQuaternion()[1]
+    msg.pose.orientation.z = frame.M.GetQuaternion()[2]
+    msg.pose.orientation.w = frame.M.GetQuaternion()[3]
 
     return msg
 
@@ -62,10 +62,10 @@ class ARMInterface:
         else:
             raise ("Error! Invalid Arm Type")
 
-        self._cp_sub = rospy.Subscriber(arm_name + "/measured_cp", TransformStamped, self.cp_cb, queue_size=1)
-        self._T_b_w_sub = rospy.Subscriber(arm_name + "/T_b_w", TransformStamped, self.T_b_w_cb, queue_size=1)
+        self._cp_sub = rospy.Subscriber(arm_name + "/measured_cp", PoseStamped, self.cp_cb, queue_size=1)
+        self._T_b_w_sub = rospy.Subscriber(arm_name + "/T_b_w", PoseStamped, self.T_b_w_cb, queue_size=1)
         self._jp_sub = rospy.Subscriber(arm_name + "/measured_cp", JointState, self.jp_cb, queue_size=1)
-        self.cp_pub = rospy.Publisher(arm_name + "/servo_cp", TransformStamped, queue_size=1)
+        self.cp_pub = rospy.Publisher(arm_name + "/servo_cp", PoseStamped, queue_size=1)
         self.jp_pub = rospy.Publisher(arm_name + "/servo_jp", JointState, queue_size=1)
         self.jaw_jp_pub = rospy.Publisher(arm_name + '/jaw/' + 'servo_jp', JointState, queue_size=1)
 
@@ -93,7 +93,7 @@ class ARMInterface:
 
     def servo_cp(self, pose):
         if type(pose) == Frame:
-            msg = frame_to_transform_stamped_msg(pose)
+            msg = frame_to_pose_stamped_msg(pose)
         else:
             msg = pose
         self.cp_pub.publish(msg)
@@ -139,7 +139,7 @@ class SceneInterface:
         namespace = '/CRTK/'
         suffix = '/measured_cp'
         for k, i in self._scene_object_poses.items():
-            self._subs.append(rospy.Subscriber(namespace + k.name + suffix, TransformStamped,
+            self._subs.append(rospy.Subscriber(namespace + k.name + suffix, PoseStamped,
                                                self.state_cb, callback_args=k, queue_size=1))
 
     def state_cb(self, msg, key):
