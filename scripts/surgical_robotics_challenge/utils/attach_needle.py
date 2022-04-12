@@ -46,6 +46,7 @@
 from ambf_client import Client
 import PyKDL
 from PyKDL import Vector, Rotation
+from surgical_robotics_challenge.utils.utilities import cartesian_interpolate_step
 import numpy as np
 import time
 import rospy
@@ -61,6 +62,7 @@ def get_obj_trans(obj):
     R = Rotation.RPY(obj.get_rpy()[0], obj.get_rpy()[1], obj.get_rpy()[2])
     return PyKDL.Frame(R, P)
 
+
 class NeedleOffsets:
     TnINt1 = PyKDL.Frame(Rotation.RPY(-np.pi/2., 0., np.pi),
                    Vector(-0.10727960616350174, -0.07585766911506653, -0.013998392969369888))
@@ -75,22 +77,26 @@ def attach_needle(needle, link, T_offset):
     if link is None:
         print('Not a valid link, returning')
         return
+    T_nINw = get_obj_trans(needle)
     while not reached and not rospy.is_shutdown():
-
         T_tINw = get_obj_trans(link)
-
         T_nINw_cmd = T_tINw * T_offset
 
-        needle.set_pos(T_nINw_cmd.p[0], T_nINw_cmd.p[1], T_nINw_cmd.p[2])
-        needle.set_rot(T_nINw_cmd.M.GetQuaternion())
-        time.sleep(0.001)
-        P_nINw_cmd = (get_obj_trans(link) * T_offset).p
-        P_nINw_cur = get_obj_trans(needle).p
-
-        error = (P_nINw_cmd - P_nINw_cur).Norm()
-        print(error)
-        if error < 0.001:
+        T_delta, error_max = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01)
+        r_delta = T_delta.M.GetRPY()
+        # print(error_max)
+        if error_max < 0.01:
             reached = True
+            break
+
+        T_cmd = Frame()
+        T_cmd.p = T_nINw.p + T_delta.p
+        T_cmd.M = T_nINw.M * Rotation.RPY(r_delta[0], r_delta[1], r_delta[2])
+        T_nINw = T_cmd
+        needle.set_pos(T_cmd.p[0], T_cmd.p[1], T_cmd.p[2])
+        needle.set_rpy(T_cmd.M.GetRPY()[0], T_cmd.M.GetRPY()[1], T_cmd.M.GetRPY()[2])
+        time.sleep(0.001)
+        # T_nINw = get_obj_trans(needle)
 
     # Wait for the needle to get there
     time.sleep(3)
