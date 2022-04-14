@@ -5,6 +5,7 @@ from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.scene import Scene
 import rospy
 from sensor_msgs.msg import Image
+from surgical_robotics_challenge.task_completion_report import TaskCompletionReport, PoseStamped
 
 from PyKDL import Frame, Rotation, Vector
 import numpy as np
@@ -42,6 +43,8 @@ psm2 = PSM(my_client, 'psm2')
 ecm = ECM(my_client, 'CameraFrame')
 # Get a handle to scene to access its elements, i.e. needle and entry / exit points
 scene = Scene(my_client)
+# Create an instance of task completion report with you team name
+task_report = TaskCompletionReport(team_name='my_team_name')
 # Small sleep to let the handles initialize properly
 add_break(0.5)
 
@@ -100,6 +103,18 @@ add_break(1.0)
 print("Entry 1 pose in World", scene.entry1_measured_cp())
 print("Exit 4 pose in World", scene.exit4_measured_cp())
 add_break(1.0)
+
+# When you are done with each task, you can report your results.
+my_found_needle_pose = PoseStamped()
+my_found_needle_pose.pose.orientation.w = 1.0
+my_found_needle_pose.header = 'CameraFrame'
+task_report.task_1_report(my_found_needle_pose)
+
+# For task 2, report when you think you are done
+task_report.task_2_report(complete=True)
+
+# For task 3, report when you think you are done
+task_report.task_3_report(complete=True)
 
 # Query Image Subs
 print('cameraL Image Data Size: ', cameraL_sub.image_msg.height, cameraL_sub.image_msg.width)
