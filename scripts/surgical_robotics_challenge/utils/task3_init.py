@@ -61,7 +61,7 @@ class NeedleInitialization:
         c.connect()
         self.needle = c.get_obj_handle('Needle')
         self.psm_tip = c.get_obj_handle('psm2' + '/toolyawlink')
-        time.sleep(0.5)
+        time.sleep(1.0)
         self._release = False
         self._reached = False
 
@@ -69,9 +69,10 @@ class NeedleInitialization:
         return self.TnINt2
 
     def get_obj_trans(self, obj):
-        P = Vector(obj.get_pos().x, obj.get_pos().y, obj.get_pos().z)
-        R = Rotation.RPY(obj.get_rpy()[0], obj.get_rpy()[1], obj.get_rpy()[2])
-        return Frame(R, P)
+        p = obj.get_pos()
+        r = obj.get_rpy()
+        return Frame(Rotation.RPY(r[0], r[1], r[2]),
+                     Vector(p.x, p.y, p.z))
 
     def lock_at_tip(self):
         print('Moving Needle to PSM 2 Tip')
@@ -86,7 +87,6 @@ class NeedleInitialization:
         while not reached_far:
             T_tINw = self.get_obj_trans(self.psm_tip)
             T_nINw_cmd = T_tINw * self.TnINt2_far
-
             T_delta, error_max = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01)
             r_delta = T_delta.M.GetRPY()
             # print(error_max)
@@ -103,11 +103,9 @@ class NeedleInitialization:
             time.sleep(0.01)
 
         time.sleep(2.0)
-
         while not self._release and not rospy.is_shutdown():
             T_tINw = self.get_obj_trans(self.psm_tip)
             T_nINw_cmd = T_tINw * self.TnINt2
-
             T_delta, error_max = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01)
             r_delta = T_delta.M.GetRPY()
             # print(error_max)
