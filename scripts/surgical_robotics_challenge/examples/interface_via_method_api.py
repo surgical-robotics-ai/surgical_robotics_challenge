@@ -82,10 +82,13 @@ print("Setting PSM2 joint positions to ", jp)
 psm2.servo_jp(jp)
 add_break(1.0)
 # The ECM should always be controlled using its joint interface
-jp = [0., -0.3, 0.3, 0.2]
+jp = [0., 0.2, -0.3, 0.2]
 print("Setting ECM joint positions to ", jp)
 ecm.servo_jp(jp)
 add_break(5.0)
+
+# Set the initial conditions for task 3
+scene.task_3_setup_init(psm2)
 
 # To get the pose of objects
 print("PSM1 End-effector pose in Base Frame", psm1.measured_cp())
@@ -107,7 +110,7 @@ add_break(1.0)
 # When you are done with each task, you can report your results.
 my_found_needle_pose = PoseStamped()
 my_found_needle_pose.pose.orientation.w = 1.0
-my_found_needle_pose.header = 'CameraFrame'
+my_found_needle_pose.header.frame_id = 'CameraFrame'
 task_report.task_1_report(my_found_needle_pose)
 
 # For task 2, report when you think you are done
@@ -123,6 +126,10 @@ print('cameraR Image Data Size: ', cameraR_sub.image_msg.height, cameraR_sub.ima
 # Reset ECM Back to Start
 print("Resetting ECM pose")
 ecm.servo_jp([0., 0., 0., 0.])
+add_break(1.0)
+
+# Open the jaw angle to drop the needle
+psm2.set_jaw_angle(0.8)
 add_break(1.0)
 
 print('END')

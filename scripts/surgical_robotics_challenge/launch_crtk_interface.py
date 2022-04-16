@@ -46,6 +46,7 @@ import psm_arm
 import ecm_arm
 import scene
 import time
+from std_msgs.msg import Empty
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import PoseStamped, Pose, TwistStamped
 from PyKDL import Rotation, Vector, Frame
@@ -151,16 +152,15 @@ class PSMCRTKWrapper:
 
     def servo_jaw_jp_cb(self, jp):
         self._jaw_angle = jp.position[0]
+        # Set jaw angle and run grasp logic
+        self.arm.set_jaw_angle(self._jaw_angle)
+        self.arm.run_grasp_logic(self._jaw_angle)
 
     def publish_js(self):
         self._measured_js_msg.header.stamp = rospy.Time.now()
         self._measured_js_msg.position = self.arm.measured_jp()
         self._measured_js_msg.velocity = self.arm.measured_jv()
         self.measured_js_pub.publish(self._measured_js_msg)
-
-        # Set jaw angle and run grasp logic
-        self.arm.set_jaw_angle(self._jaw_angle)
-        self.arm.run_grasp_logic(self._jaw_angle)
 
     def publish_cs(self):
         self._measured_cp_msg.header.stamp = rospy.Time.now()
@@ -286,26 +286,36 @@ class SceneManager:
         self._components = []
         if options.run_psm_one is True:
             print("Launching CRTK-ROS Interface for PSM1 ")
-            psm1 = PSMCRTKWrapper(self.client, 'psm1', options.namespace)
-            self._components.append(psm1)
+            self.psm1 = PSMCRTKWrapper(self.client, 'psm1', options.namespace)
+            self._components.append(self.psm1)
         if options.run_psm_two is True:
             print("Launching CRTK-ROS Interface for PSM2 ")
-            psm2 = PSMCRTKWrapper(self.client, 'psm2', options.namespace)
-            self._components.append(psm2)
+            self.psm2 = PSMCRTKWrapper(self.client, 'psm2', options.namespace)
+            self._components.append(self.psm2)
         if options.run_psm_three is True:
             print("Launching CRTK-ROS Interface for PSM3 ")
-            psm3 = PSMCRTKWrapper(self.client, 'psm3', options.namespace)
-            self._components.append(psm3)
+            self.psm3 = PSMCRTKWrapper(self.client, 'psm3', options.namespace)
+            self._components.append(self.psm3)
         if options.run_ecm:
             print("Launching CRTK-ROS Interface for ECM ")
-            ecm = ECMCRTKWrapper(self.client, 'ecm', options.namespace)
-            self._components.append(ecm)
+            self.ecm = ECMCRTKWrapper(self.client, 'ecm', options.namespace)
+            self._components.append(self.ecm)
         if options.run_scene:
             print("Launching CRTK-ROS Interface for Scene ")
-            scene = SceneCRTKWrapper(self.client, options.namespace)
-            self._components.append(scene)
+            self.scene = SceneCRTKWrapper(self.client, options.namespace)
+            self._components.append(self.scene)
+
+        self._task_3_init_sub = rospy.Subscriber('/CRTK/scene/task_3_setup/init',
+                                                Empty, self.task_3_setup_cb, queue_size=1)
+
+        self._task_3_setup_reaady_pub = rospy.Publisher('/CRTK/scene/task_3_setup/ready', Empty, queue_size=1)
 
         self._rate = rospy.Rate(options.rate)
+
+    def task_3_setup_cb(self, msg):
+        print("CRTK-ROS Based: Task 3 Setup Called")
+        self.scene.scene.task_3_setup_init(self.psm2.arm)
+        self._task_3_setup_reaady_pub.publish(Empty())
 
     def run(self):
         while not rospy.is_shutdown():
