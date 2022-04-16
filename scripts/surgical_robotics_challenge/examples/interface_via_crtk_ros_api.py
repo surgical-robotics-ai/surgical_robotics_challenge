@@ -8,6 +8,7 @@ from enum import Enum
 import numpy as np
 from std_msgs.msg import Empty
 from sensor_msgs.msg import Image
+from surgical_robotics_challenge.task_completion_report import TaskCompletionReport
 
 
 def add_break(s):
@@ -142,11 +143,26 @@ class SceneInterface:
             self._subs.append(rospy.Subscriber(namespace + k.name + suffix, PoseStamped,
                                                self.state_cb, callback_args=k, queue_size=1))
 
+        self._task_3_ready = False
+        self._task_3_setup_init_pub = rospy.Publisher('/CRTK/scene/task_3_setup/init', Empty, queue_size=1)
+
+        self._task_3_setup_ready_sub = rospy.Subscriber('/CRTK/scene/task_3_setup/ready',
+                                                        Empty, self.task_3_setup_ready_cb, queue_size=1)
+
     def state_cb(self, msg, key):
         self._scene_object_poses[key] = msg
 
     def measured_cp(self, object_type):
         return self._scene_object_poses[object_type]
+
+    def task_3_setup_ready_cb(self, msg):
+        self._task_3_ready = True
+
+    def task_3_setup_init(self):
+        self._task_3_ready = False
+        self._task_3_setup_init_pub.publish(Empty())
+        while not self._task_3_ready:
+            time.sleep(0.1)
 
 
 class WorldInterface:
@@ -174,6 +190,8 @@ psm2 = ARMInterface(ArmType.PSM2)
 ecm = ARMInterface(ArmType.ECM)
 # Get a handle to scene to access its elements, i.e. needle and entry / exit points
 scene = SceneInterface()
+# Create an instance of task completion report with you team name
+task_report = TaskCompletionReport(team_name='my_team_name')
 # Small sleep to let the handles initialize properly
 add_break(0.5)
 
@@ -207,10 +225,13 @@ print("Setting PSM2 joint positions to ", jp)
 psm2.servo_jp(jp)
 add_break(1.0)
 # The ECM should always be controlled using its joint interface
-jp = [0., -0.3, 0.3, 0.2]
+jp = [0., 0.2, -0.3, 0.2]
 print("Setting ECM joint positions to ", jp)
 ecm.servo_jp(jp)
 add_break(5.0)
+
+# Set the initial conditions for task 3
+scene.task_3_setup_init()
 
 # To get the pose of objects
 print("PSM1 End-effector pose in Base Frame", psm1.measured_cp())
@@ -229,6 +250,18 @@ print("Entry 1 pose in World", scene.measured_cp(SceneObjectType.Entry1))
 print("Exit 4 pose in World", scene.measured_cp(SceneObjectType.Exit4))
 add_break(1.0)
 
+# When you are done with each task, you can report your results.
+my_found_needle_pose = PoseStamped()
+my_found_needle_pose.pose.orientation.w = 1.0
+my_found_needle_pose.header.frame_id = 'CameraFrame'
+task_report.task_1_report(my_found_needle_pose)
+
+# For task 2, report when you think you are done
+task_report.task_2_report(complete=True)
+
+# For task 3, report when you think you are done
+task_report.task_3_report(complete=True)
+
 # Query Image Subs
 print('cameraL Image Data Size: ', cameraL_sub.image_msg.height, cameraL_sub.image_msg.width)
 print('cameraR Image Data Size: ', cameraR_sub.image_msg.height, cameraR_sub.image_msg.width)
@@ -236,6 +269,10 @@ print('cameraR Image Data Size: ', cameraR_sub.image_msg.height, cameraR_sub.ima
 # Reset ECM Back to Start
 print("Resetting ECM pose")
 ecm.servo_jp([0., 0., 0., 0.])
+add_break(1.0)
+
+# Open the jaw angle to drop the needle
+psm2.set_jaw_angle(0.8)
 add_break(1.0)
 
 print('END')

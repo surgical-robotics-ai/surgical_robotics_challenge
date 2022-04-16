@@ -5,6 +5,7 @@ from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.scene import Scene
 import rospy
 from sensor_msgs.msg import Image
+from surgical_robotics_challenge.task_completion_report import TaskCompletionReport, PoseStamped
 
 from PyKDL import Frame, Rotation, Vector
 import numpy as np
@@ -42,6 +43,8 @@ psm2 = PSM(my_client, 'psm2')
 ecm = ECM(my_client, 'CameraFrame')
 # Get a handle to scene to access its elements, i.e. needle and entry / exit points
 scene = Scene(my_client)
+# Create an instance of task completion report with you team name
+task_report = TaskCompletionReport(team_name='my_team_name')
 # Small sleep to let the handles initialize properly
 add_break(0.5)
 
@@ -79,10 +82,13 @@ print("Setting PSM2 joint positions to ", jp)
 psm2.servo_jp(jp)
 add_break(1.0)
 # The ECM should always be controlled using its joint interface
-jp = [0., -0.3, 0.3, 0.2]
+jp = [0., 0.2, -0.3, 0.2]
 print("Setting ECM joint positions to ", jp)
 ecm.servo_jp(jp)
 add_break(5.0)
+
+# Set the initial conditions for task 3
+scene.task_3_setup_init(psm2)
 
 # To get the pose of objects
 print("PSM1 End-effector pose in Base Frame", psm1.measured_cp())
@@ -101,6 +107,18 @@ print("Entry 1 pose in World", scene.entry1_measured_cp())
 print("Exit 4 pose in World", scene.exit4_measured_cp())
 add_break(1.0)
 
+# When you are done with each task, you can report your results.
+my_found_needle_pose = PoseStamped()
+my_found_needle_pose.pose.orientation.w = 1.0
+my_found_needle_pose.header.frame_id = 'CameraFrame'
+task_report.task_1_report(my_found_needle_pose)
+
+# For task 2, report when you think you are done
+task_report.task_2_report(complete=True)
+
+# For task 3, report when you think you are done
+task_report.task_3_report(complete=True)
+
 # Query Image Subs
 print('cameraL Image Data Size: ', cameraL_sub.image_msg.height, cameraL_sub.image_msg.width)
 print('cameraR Image Data Size: ', cameraR_sub.image_msg.height, cameraR_sub.image_msg.width)
@@ -108,6 +126,10 @@ print('cameraR Image Data Size: ', cameraR_sub.image_msg.height, cameraR_sub.ima
 # Reset ECM Back to Start
 print("Resetting ECM pose")
 ecm.servo_jp([0., 0., 0., 0.])
+add_break(1.0)
+
+# Open the jaw angle to drop the needle
+psm2.set_jaw_angle(0.8)
 add_break(1.0)
 
 print('END')

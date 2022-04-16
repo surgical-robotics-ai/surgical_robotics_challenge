@@ -43,6 +43,7 @@
 # */
 # //==============================================================================
 from surgical_robotics_challenge.kinematics.ecmFK import *
+from surgical_robotics_challenge.utils.utilities import cartesian_interpolate_step
 from PyKDL import Frame, Rotation, Vector, Twist
 import time
 from threading import Thread
@@ -80,28 +81,14 @@ class ECM:
         while not pos_goal_reached or not rot_goal_reached:
             if self._force_exit_thread:
                 break
-            pe = self._T_c_w_cmd.p - self._measured_cp.p
-            pe_norm = pe.Normalize()
 
-            p_cmd = pe * min(self._max_vel, pe_norm)
-
-            # Check for Rotation
-            R_diff = self._measured_cp.M.Inverse() * self._T_c_w_cmd.M
-            re = Vector(R_diff.GetRPY()[0], R_diff.GetRPY()[1], R_diff.GetRPY()[2])
-            re_norm = re.Normalize()
-
-            r_cmd = re * min(self._max_vel, re_norm)
-
-            self._T_cmd.p = self._measured_cp.p + p_cmd
+            T_step, error_max = cartesian_interpolate_step(self._measured_cp, self._T_c_w_cmd, self._max_vel)
+            r_cmd = T_step.M.GetRPY()
+            self._T_cmd.p = self._measured_cp.p + T_step.p
             self._T_cmd.M = self._measured_cp.M * Rotation.RPY(r_cmd[0], r_cmd[1], r_cmd[2])
             self._measured_cp = self._T_cmd
             self.camera_handle.set_pos(self._T_cmd.p[0], self._T_cmd.p[1], self._T_cmd.p[2])
             self.camera_handle.set_rpy(self._T_cmd.M.GetRPY()[0], self._T_cmd.M.GetRPY()[1], self._T_cmd.M.GetRPY()[2])
-            # print('pe_norm ', pe_norm, " | re_norm ", re_norm)
-            if pe_norm < 0.001:
-                pos_goal_reached = True
-            if re_norm < 0.001:
-                rot_goal_reached = True
             time.sleep(0.01)
         self._thread_busy = False
 
