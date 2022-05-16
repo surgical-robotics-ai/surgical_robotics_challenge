@@ -98,12 +98,6 @@ class Scene:
     def exit4_measured_cp(self):
         return ambf_pose_to_frame(self._exit4)
 
-    def get_obj_trans(self, obj):
-        p = obj.get_pos()
-        r = obj.get_rpy()
-        return Frame(Rotation.RPY(r[0], r[1], r[2]),
-                     Vector(p.x, p.y, p.z))
-
     def task_3_setup_init(self, psm2):
         print("METHOD Based: Task 3 Setup Called")
         TnINt2 = Frame(Rotation.RPY(-np.pi / 2., 0., 0.),
@@ -127,12 +121,12 @@ class Scene:
         if psm2_tip is None:
             print('Not a valid link, returning')
             return
-        T_nINw = self.get_obj_trans(self._needle)
+        T_nINw = ambf_pose_to_frame(self._needle)
         # First reach the farther point
         reached_far = False
         reached = False
         while not reached_far:
-            T_tINw = self.get_obj_trans(psm2_tip)
+            T_tINw = ambf_pose_to_frame(psm2_tip)
             T_nINw_cmd = T_tINw * TnINt2_far
             T_delta, error_max = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01)
             r_delta = T_delta.M.GetRPY()
@@ -151,7 +145,7 @@ class Scene:
 
         time.sleep(2.0)
         while not release:
-            T_tINw = self.get_obj_trans(psm2_tip)
+            T_tINw = ambf_pose_to_frame(psm2_tip)
             T_nINw_cmd = T_tINw * TnINt2
             T_delta, error_max = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01)
             r_delta = T_delta.M.GetRPY()
