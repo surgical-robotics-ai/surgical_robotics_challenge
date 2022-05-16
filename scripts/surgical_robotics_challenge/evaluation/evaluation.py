@@ -206,7 +206,7 @@ class Task_2_Evaluation:
         # Cross-sectional distance from the exit hole's center
         self._L_ntINexit_lateral = 0.0
         # Cross-sectional distance from the entry hole's center
-        self._L_ntINextry_lateral = 0.0
+        self._L_ntINentry_lateral = 0.0
 
     def update_scene_trajectories(self):
         SK = SceneKinematics(self._hole_count)
@@ -237,48 +237,96 @@ class Task_2_Evaluation:
         self.update_scene_trajectories()
         print('Completion Report Submitted, Running evaluation')
         # Find the closes exit to the needle tip
-        exit_idx = self.find_closest_exit_to_needle_tip(self._scene_trajectories[-1])
+        Traj_last = self._scene_trajectories[-1]
+        closest_exit_idx = self.find_closest_exit_to_needle_tip(Traj_last)
+        T_exitINw = Traj_last.T_exitsINw[closest_exit_idx]
+        T_ntINw = Traj_last.T_ntINw
 
+        self._L_ntINexit_axial = self.compute_needle_axial_distance_from_hole(T_exitINw, T_ntINw)
 
-    def find_closest_entry_to_needle_tip(self):
-        # Compute needle tip pose
-        T_ntINw = self._needle_kinematics.get_tip_pose()
-        E_ntINentries = [] * self._hole_count
+        self._L_ntINexit_lateral, traj_idx = self.compute_needle_lateral_distance_from_exit(closest_exit_idx, traj_offset=1)
 
-        # Update entry poses
-        for i in range(self._hole_count):
-            self._T_entriesINw[i] = ambf_obj_pose_to_frame(self._entry_points[i])
-            E_ntINentries[i] = (self._T_entriesINw[i].Inverse() * T_ntINw).p.Norm()
+        # Compute a new offset to start the search
+        traj_offset = len(self._scene_trajectories) - traj_idx
+        closest_entry_idx = closest_exit_idx
+        self._L_ntINentry_lateral, traj_idx = self.compute_needle_lateral_distance_from_entry(closest_entry_idx, traj_offset)
 
-
-        self._L_ntINexit_axial = self.compute_needle_axial_distance_from_exit()
-
-    def find_closest_exit_to_needle_tip(self, SK):
-        E_ntINexits = [Frame()]*SK._hole_count
-        for i in range(SK._hole_count):
-            E_ntINexits[i] = (SK.T_exitsINw[i].Inverse() * SK.T_ntINw).p.Norm()
+    def find_closest_exit_to_needle_tip(self, Traj):
+        '''
+        :param Traj:
+        :return:
+        '''
+        E_ntINexits = [Frame()] * Traj._hole_count
+        for i in range(Traj._hole_count):
+            E_ntINexits[i] = (Traj.T_exitsINw[i].Inverse() * Traj.T_ntINw).p.Norm()
 
         # Find closes entry
         min_idx = np.argmin(E_ntINexits)
         return min_idx
 
-    def compute_needle_axial_distance_from_exit(self):
-        SK = self._scene_trajectories[-1]
-        exit_idx = self.find_closest_exit_to_needle_tip(SK)
-        T_exitINw = SK.T_entriesINw[exit_idx]
-        T_ntINw = SK.T_ntINw
+    def compute_needle_axial_distance_from_hole(self, T_hINw, T_ntINw):
+        '''
+        :param T_hINw:
+        :param T_ntINw:
+        :return:
+        '''
+        P_ntINhole = (T_hINw.Inverse() * T_ntINw).p
+        # The z value of the above vector is the axial distance between the needle tip
+        # and the hole origin
+        return P_ntINhole[2]
 
-        P_ntINexit = (T_exitINw.Inverse() * T_ntINw).p
-        # The z value of the above vector is the axis distance between the needle tip
-        # and the exit hole origin
-        return P_ntINexit[2]
+    def compute_needle_lateral_distance_from_hole(self, T_hINw, T_ntINw):
+        P_ntINhole = (T_hINw.Inverse() * T_ntINw).p
+        P_ntINhole[2] = 0.
+        return P_ntINhole.Norm()
 
-    def compute_needle_lateral_distance_from_exit(self):
-        pass
+    def compute_needle_lateral_distance_from_exit(self, exit_idx, traj_offset):
+        min_traj_idx = -1
+        # Check trajectory to find where the needle tip passed through the exit hole
+        L_min = 0.1
+        L_max = -0.1
+        end_traj_idx = (len(self._scene_trajectories) - 1) - traj_offset
+        for i in range(end_traj_idx, -1, -1):
+            Traj = self._scene_trajectories[i]
+            L = self.compute_needle_axial_distance_from_hole(Traj.T_exitsINw[exit_idx], Traj.T_ntINw)
+            if abs(L) < L_min:
+                L_min = L
+                min_traj_idx = i
+            if min_traj_idx != -1 and L < L_max: # Needle is too far in, break search
+                break
+
+        if min_traj_idx == -1:
+            raise 'Error, unable to compute lateral distance between needle tip and exit hole'
+
+        T_exitINw = self._scene_trajectories[min_traj_idx].T_exitsINw[exit_idx]
+        T_ntINw = self._scene_trajectories[min_traj_idx].T_ntINw
+        lateral_distance = self.compute_needle_lateral_distance_from_hole(T_exitINw, T_ntINw)
+        return lateral_distance, min_traj_idx
+
+    def compute_needle_lateral_distance_from_entry(self, entry_idx, traj_offset):
+        min_traj_idx = -1
+        # Check trajectory to find where the needle tip passed through the entry hole
+        L_min = 0.1
+        L_max = 0.1
+        end_traj_idx = (len(self._scene_trajectories) - 1) - traj_offset
+        for i in range(end_traj_idx, -1, -1):
+            Traj = self._scene_trajectories[i]
+            L = self.compute_needle_axial_distance_from_hole(Traj.T_entriesINw[entry_idx], Traj.T_ntINw)
+            if abs(L) < L_min:
+                L_min = L
+                min_traj_idx = i
+            if min_traj_idx != -1 and L > L_max:  # Needle is too far in, break search
+                break
+
+        if min_traj_idx == -1:
+            raise 'Error, unable to compute lateral distance between needle tip and entry hole'
+
+        T_entryINw = self._scene_trajectories[min_traj_idx].T_entriesINw[entry_idx]
+        T_ntINw = self._scene_trajectories[min_traj_idx].T_ntINw
+        lateral_distance = self.compute_needle_lateral_distance_from_hole(T_entryINw, T_ntINw)
+        return lateral_distance, min_traj_idx
 
 
-    def compute_needle_lateral_distance_from_exit(self):
-        pass
 
 
 
