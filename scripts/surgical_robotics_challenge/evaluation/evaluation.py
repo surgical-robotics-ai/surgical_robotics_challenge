@@ -11,6 +11,11 @@ from collections import deque
 
 
 def frame_to_pose_stamped_msg(frame):
+    """
+
+    :param frame:
+    :return:
+    """
     msg = PoseStamped()
     msg.header.stamp = rospy.Time.now()
     msg.pose.position.x = frame.p[0]
@@ -26,6 +31,11 @@ def frame_to_pose_stamped_msg(frame):
 
 
 def pose_stamped_msg_to_frame(msg):
+    """
+
+    :param msg:
+    :return:
+    """
     p = Vector(msg.pose.position.x,
                msg.pose.position.y,
                msg.pose.position.z)
@@ -39,6 +49,11 @@ def pose_stamped_msg_to_frame(msg):
 
 
 def ambf_obj_pose_to_frame(obj):
+    """
+
+    :param obj:
+    :return:
+    """
     p = Vector(obj.get_pos().x,
                obj.get_pos().y,
                obj.get_pos().z)
@@ -49,36 +64,12 @@ def ambf_obj_pose_to_frame(obj):
     return Frame(R, p)
 
 
-class TaskEvaluationSetup:
-    def __init__(self, team_name):
-        self._team_name = team_name
-        try:
-            rospy.init_node('challenge_evaluation_node')
-        except:
-            # Already initialized, so ignore
-            done_nothing = True
-        prefix = '/surgical_robotics_challenge/completion_report/' + self._team_name
-        self._task1_sub = rospy.Subscriber(prefix + '/task1/', PoseStamped, self.task_1_cb, queue_size=1)
-        self._task2_sub = rospy.Subscriber(prefix + '/task2/', Bool, self.task_2_cb, queue_size=1)
-        self._task3_sub = rospy.Subscriber(prefix + '/task3/', Bool, self.task_3_cb, queue_size=1)
-
-        self._needle_pose = None
-        self._start_time = rospy.Time.now()
-        self._completion_time = None
-
-    def task_1_cb(self, msg):
-        self._completion_time = rospy.Time.now()
-        self._needle_pose = msg
-
-    def task_2_cb(self, msg):
-        self._completion_time = rospy.Time.now()
-
-    def task_3_cb(self, msg):
-        self._completion_time = rospy.Time.now()
-
-
 class NeedleKinematics:
     def __int__(self):
+        """
+
+        :return:
+        """
         self._needle_sub = rospy.Subscriber('/ambf/env/Needle/State', RigidBodyState, self.needle_cb, queue_size=1)
         # Base in Needle Origin
         self._T_bINn = Frame(Rotation.RPY(0., 0., 0.), Vector(-0.102, 0., 0.))
@@ -90,17 +81,34 @@ class NeedleKinematics:
         self._T_nINw = Frame()
 
     def needle_cb(self, msg):
+        """
+
+        :param msg:
+        :return:
+        """
         self._T_nINw = pose_stamped_msg_to_frame(msg.pose)
 
     def get_tip_pose(self):
+        """
+
+        :return:
+        """
         T_tINw = self._T_nINw.Inverse() * self._T_tINn
         return T_tINw
 
     def get_base_pose(self):
+        """
+
+        :return:
+        """
         T_bINw = self._T_nINw.Inverse() * self._T_bINn
         return T_bINw
 
     def get_mid_pose(self):
+        """
+
+        :return:
+        """
         T_mINw = self._T_nINw.Inverse() * self._T_mINn
         return T_mINw
 
@@ -110,6 +118,12 @@ class NeedleKinematics:
 
 class Task_1_Evaluation:
     def __int__(self, client, team_name):
+        """
+
+        :param client:
+        :param team_name:
+        :return:
+        """
         self._world = client.get_world_handle()
         self._needle_kinematics = NeedleKinematics()
         self._ecm_sub = rospy.Subscriber('/ambf/env/CameraFrame/State', RigidBodyState, self._ecm_cb, queue_size=1)
@@ -130,15 +144,31 @@ class Task_1_Evaluation:
         self._done = False
 
     def ecm_cb(self, msg):
+        """
+
+        :param msg:
+        :return:
+        """
         self._T_ecmINw = pose_stamped_msg_to_frame(msg.pose)
 
     def task_completion_cb(self, msg):
+        """
+
+        :param msg:
+        :return:
+        """
         self._completion_time = self._world._state.sim_time - self._start_time
         T_nINe = pose_stamped_msg_to_frame(msg)
         ecm_pose = self._
         self._done = True
 
     def print_evaluation(self, T_reported, T_actual):
+        """
+
+        :param T_reported:
+        :param T_actual:
+        :return:
+        """
         P_tip_reported = (T_reported * self._needle_kinematics.get_tip_pose()).p
         P_tip_actual = (T_actual * self._needle_kinematics.get_tip_pose()).p
         e_tip = (P_tip_actual - P_tip_reported).Norm()
@@ -154,11 +184,15 @@ class Task_1_Evaluation:
         e_base = (P_base_actual - P_base_reported).Norm()
         print('Base Error: ', e_base)
 
-        print('Team: ', self._team_name, ' Completion Report: ')
+        print('Team: ', self._team_name, ' Task 1 Completion Report: ')
         print('\t Completion Time: ', self._completion_time)
         print('\t Task 1 Score (Lower is Better): ', e_tip + e_mid + e_base)
 
-    def evaluate(self, ):
+    def evaluate(self):
+        """
+
+        :return:
+        """
         while not self._done:
             time.sleep(0.01)
             print(time.time(), ' ) Waiting for task 1 completion report')
@@ -169,6 +203,11 @@ class Task_1_Evaluation:
 
 class SceneKinematics:
     def __int__(self, hole_count):
+        """
+
+        :param hole_count:
+        :return:
+        """
         self._hole_count = hole_count
         self.T_entriesINw = [Frame()] * self._hole_count
         self.T_exitsINw = [Frame()] * self._hole_count
@@ -178,6 +217,12 @@ class SceneKinematics:
 
 class Task_2_Evaluation:
     def __int__(self, client, team_name):
+        """
+
+        :param client:
+        :param team_name:
+        :return:
+        """
         self._world = client.get_world_handle()
         self._needle_kinematics = NeedleKinematics(client)
         self._team_name = team_name
@@ -208,7 +253,13 @@ class Task_2_Evaluation:
         # Cross-sectional distance from the entry hole's center
         self._L_ntINentry_lateral = 0.0
 
+        self._entry_exit_idx = -1
+
     def update_scene_trajectories(self):
+        """
+
+        :return:
+        """
         SK = SceneKinematics(self._hole_count)
         for i in range(self._hole_count):
             SK.T_entriesINw[i] = ambf_obj_pose_to_frame(self._entry_points[i])
@@ -218,6 +269,11 @@ class Task_2_Evaluation:
         self._scene_trajectories.append(SK)
 
     def task_completion_cb(self, msg):
+        """
+
+        :param msg:
+        :return:
+        """
         if msg.data is False:
             print('Error!, Task 2 Completion Message must be True')
 
@@ -225,9 +281,22 @@ class Task_2_Evaluation:
         self._done = True
 
     def print_evaluation(self):
-        pass
+        """
+
+        :return:
+        """
+        print('Team: ', self._team_name, ' Task 2 Completion Report: ')
+        print('\t Completion Time: ', self._completion_time)
+        print('\t Entry/Exit Targeted Hole: ', self._entry_exit_idx + 1)
+        print('\t Needle Tip Axial Distance From Exit Hole (Lower is Better): ', self._L_ntINexit_axial)
+        print('\t Needle Tip Lateral Distance From Exit Hole (Lower is Better): ', self._L_ntINexit_lateral)
+        print('\t Needle Tip Lateral Distance From Entry Hole (Lower is Better): ', self._L_ntINentry_lateral)
 
     def evaluate(self):
+        """
+
+        :return:
+        """
         while not self._done:
             time.sleep(0.01)
             print(time.time(), ' ) Waiting for task 2 completion report')
@@ -250,12 +319,15 @@ class Task_2_Evaluation:
         traj_offset = len(self._scene_trajectories) - traj_idx
         closest_entry_idx = closest_exit_idx
         self._L_ntINentry_lateral, traj_idx = self.compute_needle_lateral_distance_from_entry(closest_entry_idx, traj_offset)
+        self._entry_exit_idx = closest_entry_idx
+        self.print_evaluation()
 
     def find_closest_exit_to_needle_tip(self, Traj):
-        '''
+        """
+
         :param Traj:
         :return:
-        '''
+        """
         E_ntINexits = [Frame()] * Traj._hole_count
         for i in range(Traj._hole_count):
             E_ntINexits[i] = (Traj.T_exitsINw[i].Inverse() * Traj.T_ntINw).p.Norm()
@@ -265,22 +337,35 @@ class Task_2_Evaluation:
         return min_idx
 
     def compute_needle_axial_distance_from_hole(self, T_hINw, T_ntINw):
-        '''
+        """
+
         :param T_hINw:
         :param T_ntINw:
         :return:
-        '''
+        """
         P_ntINhole = (T_hINw.Inverse() * T_ntINw).p
         # The z value of the above vector is the axial distance between the needle tip
         # and the hole origin
         return P_ntINhole[2]
 
     def compute_needle_lateral_distance_from_hole(self, T_hINw, T_ntINw):
+        """
+
+        :param T_hINw:
+        :param T_ntINw:
+        :return:
+        """
         P_ntINhole = (T_hINw.Inverse() * T_ntINw).p
         P_ntINhole[2] = 0.
         return P_ntINhole.Norm()
 
     def compute_needle_lateral_distance_from_exit(self, exit_idx, traj_offset):
+        """
+
+        :param exit_idx:
+        :param traj_offset:
+        :return:
+        """
         min_traj_idx = -1
         # Check trajectory to find where the needle tip passed through the exit hole
         L_min = 0.1
@@ -304,6 +389,12 @@ class Task_2_Evaluation:
         return lateral_distance, min_traj_idx
 
     def compute_needle_lateral_distance_from_entry(self, entry_idx, traj_offset):
+        """
+
+        :param entry_idx:
+        :param traj_offset:
+        :return:
+        """
         min_traj_idx = -1
         # Check trajectory to find where the needle tip passed through the entry hole
         L_min = 0.1
@@ -325,10 +416,3 @@ class Task_2_Evaluation:
         T_ntINw = self._scene_trajectories[min_traj_idx].T_ntINw
         lateral_distance = self.compute_needle_lateral_distance_from_hole(T_entryINw, T_ntINw)
         return lateral_distance, min_traj_idx
-
-
-
-
-
-
-
