@@ -102,7 +102,7 @@ class NeedleKinematics:
 
         :return:
         """
-        T_tINw = self._T_nINw.Inverse() * self._T_tINn
+        T_tINw = self._T_nINw * self._T_tINn
         return T_tINw
 
     def get_base_pose(self):
@@ -110,7 +110,7 @@ class NeedleKinematics:
 
         :return:
         """
-        T_bINw = self._T_nINw.Inverse() * self._T_bINn
+        T_bINw = self._T_nINw * self._T_bINn
         return T_bINw
 
     def get_mid_pose(self):
@@ -118,7 +118,7 @@ class NeedleKinematics:
 
         :return:
         """
-        T_mINw = self._T_nINw.Inverse() * self._T_mINn
+        T_mINw = self._T_nINw * self._T_mINn
         return T_mINw
 
     def get_pose(self):
@@ -178,24 +178,25 @@ class Task_1_Evaluation:
         :param T_actual:
         :return:
         """
-        P_tip_reported = (T_reported * self._needle_kinematics.get_tip_pose()).p
-        P_tip_actual = (T_actual * self._needle_kinematics.get_tip_pose()).p
-        e_tip = (P_tip_actual - P_tip_reported).Norm()
-        print('Tip Error: ', e_tip)
-
-        P_mid_reported = (T_reported * self._needle_kinematics.get_mid_pose()).p
-        P_mid_actual = (T_actual * self._needle_kinematics.get_mid_pose()).p
-        e_mid = (P_mid_actual - P_mid_reported).Norm()
-        print('Mid Error: ', e_mid)
+        print('Team: ', self._team_name, ' Task 1 Completion Report: ')
 
         P_base_reported = (T_reported * self._needle_kinematics.get_base_pose()).p
         P_base_actual = (T_actual * self._needle_kinematics.get_base_pose()).p
         e_base = (P_base_actual - P_base_reported).Norm()
-        print('Base Error: ', e_base)
+        print('\t Base Error: ', e_base)
 
-        print('Team: ', self._team_name, ' Task 1 Completion Report: ')
+        P_mid_reported = (T_reported * self._needle_kinematics.get_mid_pose()).p
+        P_mid_actual = (T_actual * self._needle_kinematics.get_mid_pose()).p
+        e_mid = (P_mid_actual - P_mid_reported).Norm()
+        print('\t Mid Error: ', e_mid)
+
+        P_tip_reported = (T_reported * self._needle_kinematics.get_tip_pose()).p
+        P_tip_actual = (T_actual * self._needle_kinematics.get_tip_pose()).p
+        e_tip = (P_tip_actual - P_tip_reported).Norm()
+        print('\t Tip Error: ', e_tip)
+
         print('\t Completion Time: ', self._completion_time)
-        print('\t Task 1 Score (Lower is Better): ', e_tip + e_mid + e_base)
+        print('\t Task 1 Overall Score (Lower is Better): ', e_tip + e_mid + e_base)
 
     def evaluate(self):
         """
@@ -233,7 +234,7 @@ class Task_2_Evaluation:
         :return:
         """
         self._world = client.get_world_handle()
-        self._needle_kinematics = NeedleKinematics(client)
+        self._needle_kinematics = NeedleKinematics()
         self._team_name = team_name
         self._hole_count = 4
         self._entry_points = []
@@ -306,14 +307,18 @@ class Task_2_Evaluation:
 
         :return:
         """
+        t = 0.0
         while not self._done:
             time.sleep(0.01)
-            print(time.time(), ' ) Waiting for task 2 completion report')
             self.update_scene_trajectories()
+            t = t + 0.01
+            if t % 1.0 >= 0.99:
+                print(time.time(), ' ) Waiting for task 2 completion report')
 
         # Record the final trajectories
         self.update_scene_trajectories()
         print('Completion Report Submitted, Running evaluation')
+        print(len(self._scene_trajectories))
         # Find the closes exit to the needle tip
         Traj_last = self._scene_trajectories[-1]
         closest_exit_idx = self.find_closest_exit_to_needle_tip(Traj_last)
@@ -383,6 +388,7 @@ class Task_2_Evaluation:
         for i in range(end_traj_idx, -1, -1):
             Traj = self._scene_trajectories[i]
             L = self.compute_needle_axial_distance_from_hole(Traj.T_exitsINw[exit_idx], Traj.T_ntINw)
+            print(i, ') L: ', L, ' | Exit Idx: ', exit_idx)
             if abs(L) < L_min:
                 L_min = L
                 min_traj_idx = i
@@ -390,7 +396,7 @@ class Task_2_Evaluation:
                 break
 
         if min_traj_idx == -1:
-            raise 'Error, unable to compute lateral distance between needle tip and exit hole'
+            raise Exception('Error, unable to compute lateral distance between needle tip and exit hole')
 
         T_exitINw = self._scene_trajectories[min_traj_idx].T_exitsINw[exit_idx]
         T_ntINw = self._scene_trajectories[min_traj_idx].T_ntINw
