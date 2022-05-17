@@ -36,14 +36,23 @@ def pose_stamped_msg_to_frame(msg):
     :param msg:
     :return:
     """
-    p = Vector(msg.pose.position.x,
-               msg.pose.position.y,
-               msg.pose.position.z)
+    return pose_msg_to_frame(msg.pose)
 
-    R = Rotation.Quaternion(msg.pose.orientation.x,
-                            msg.pose.orientation.y,
-                            msg.pose.orientation.z,
-                            msg.pose.orientation.w)
+
+def pose_msg_to_frame(msg):
+    """
+
+    :param msg:
+    :return:
+    """
+    p = Vector(msg.position.x,
+               msg.position.y,
+               msg.position.z)
+
+    R = Rotation.Quaternion(msg.orientation.x,
+                            msg.orientation.y,
+                            msg.orientation.z,
+                            msg.orientation.w)
 
     return Frame(R, p)
 
@@ -65,7 +74,7 @@ def ambf_obj_pose_to_frame(obj):
 
 
 class NeedleKinematics:
-    def __int__(self):
+    def __init__(self):
         """
 
         :return:
@@ -86,7 +95,7 @@ class NeedleKinematics:
         :param msg:
         :return:
         """
-        self._T_nINw = pose_stamped_msg_to_frame(msg.pose)
+        self._T_nINw = pose_msg_to_frame(msg.pose)
 
     def get_tip_pose(self):
         """
@@ -117,7 +126,7 @@ class NeedleKinematics:
 
 
 class Task_1_Evaluation:
-    def __int__(self, client, team_name):
+    def __init__(self, client, team_name):
         """
 
         :param client:
@@ -143,13 +152,13 @@ class Task_1_Evaluation:
         self._T_nINw_reported = Frame()
         self._done = False
 
-    def ecm_cb(self, msg):
+    def _ecm_cb(self, msg):
         """
 
         :param msg:
         :return:
         """
-        self._T_ecmINw = pose_stamped_msg_to_frame(msg.pose)
+        self._T_ecmINw = pose_msg_to_frame(msg.pose)
 
     def task_completion_cb(self, msg):
         """
@@ -159,7 +168,7 @@ class Task_1_Evaluation:
         """
         self._completion_time = self._world._state.sim_time - self._start_time
         T_nINe = pose_stamped_msg_to_frame(msg)
-        ecm_pose = self._
+        self._T_nINw_reported = self._T_ecmINw * T_nINe
         self._done = True
 
     def print_evaluation(self, T_reported, T_actual):
@@ -194,15 +203,15 @@ class Task_1_Evaluation:
         :return:
         """
         while not self._done:
-            time.sleep(0.01)
-            print(time.time(), ' ) Waiting for task 1 completion report')
+            time.sleep(1.0)
+            print('[', time.time(), '] Waiting for task 1 completion report')
 
         T_nINw_actual = self._needle_kinematics.get_pose()
         self.print_evaluation(self._T_nINw_reported, T_nINw_actual)
 
 
 class SceneKinematics:
-    def __int__(self, hole_count):
+    def __init__(self, hole_count):
         """
 
         :param hole_count:
@@ -216,7 +225,7 @@ class SceneKinematics:
 
 
 class Task_2_Evaluation:
-    def __int__(self, client, team_name):
+    def __init__(self, client, team_name):
         """
 
         :param client:
