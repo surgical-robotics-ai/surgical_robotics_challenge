@@ -214,6 +214,9 @@ class Task_1_Evaluation:
 
 class Task_2_Evaluation_Report():
     def __init__(self):
+        """
+
+        """
         self._team_name = None
         # Needle protruding from the exit as the end of task
         self._L_ntINexit_axial = 0.0
@@ -240,6 +243,9 @@ class Task_2_Evaluation_Report():
 
 
 class HoleType(Enum):
+    """
+
+    """
     ENTRY = 0
     EXIT = 1
 
@@ -261,6 +267,9 @@ class SceneKinematicsFrame:
 
 class NeedleContactEvent:
     def __init__(self):
+        """
+
+        """
         self._hole_type = None
         self._T_ntINhole = Frame()
         self._t = 0.0
@@ -269,11 +278,40 @@ class NeedleContactEvent:
         self._hole_bounds = Vector(0.05, 0.05, 0.05)
 
     def compute_needle_hole_collision(self, T_ntINhole):
+        """
+
+        :param T_ntINhole:
+        :return:
+        """
         for j in range(3):
             if abs(T_ntINhole.p[j]) > self._hole_bounds[j]:
                 # Needle tip is out of bounds, ignore
                 return True
         return False
+
+    def compute_axial_distance_from_hole(self):
+        """
+
+        :return:
+        """
+        # The axial distance is along the z axes
+        return abs(self._T_ntINhole.p[2])
+
+    def compute_lateral_distance_from_hole(self):
+        """
+
+        :return:
+        """
+        p = self._T_ntINhole.p
+        p[2] = 0.
+        return p.Norm()
+
+    def get_P_ntINhole(self):
+        """
+
+        :return:
+        """
+        return self._T_ntINhole.p
 
 
 class Task_2_Evaluation():
@@ -319,27 +357,36 @@ class Task_2_Evaluation():
         :return:
         """
         SKF = SceneKinematicsFrame(self._hole_count)
+        SKF.t = self._world._state.sim_time
         SKF.T_ntINw = self._needle_kinematics.get_tip_pose()
 
         for hole_type in HoleType:
             for i in range(self._hole_count):
                 SKF.T_holesINw[hole_type][i] = ambf_obj_pose_to_frame(self._hole_objs[hole_type][i])
 
-                # Check for needle tip contact with entry
-                T_ntINhole = SKF.T_holesINw[hole_type][i].Inverse() * SKF.T_ntINw
-                self.compute_needle_hole_proximity_event(T_ntINhole, hole_type, i, self._world._state.sim_time)
-
         self._scene_trajectories.append(SKF)
+        return SKF
 
-    def compute_needle_hole_proximity_event(self, T_ntINhole, hole_type, hole_idx, time):
-        ne = NeedleContactEvent()
-        if not ne.compute_needle_hole_collision(T_ntINhole):
-            ne._hole_type = hole_type
-            ne._T_ntINhole = T_ntINhole
-            ne._t = time
-            ne._hole_idx = hole_idx
-            self._needle_holes_proximity_events[hole_type][hole_idx].append(ne)
-            print('\t\t', ne._hole_type, ne._hole_idx, ne._T_ntINhole.p.Norm())
+    def compute_needle_hole_proximity_event(self, SKF):
+        """
+
+        :param SKF:
+        :return:
+        """
+        proximity_events = []
+        for hole_type in HoleType:
+            for i in range(self._hole_count):
+                T_ntINhole = SKF.T_holesINw[hole_type][i].Inverse() * SKF.T_ntINw
+                ne = NeedleContactEvent()
+                if not ne.compute_needle_hole_collision(T_ntINhole):
+                    ne._hole_type = hole_type
+                    ne._hole_idx = i
+                    ne._T_ntINhole = T_ntINhole
+                    ne._t = SKF.t
+                    self._needle_holes_proximity_events[hole_type][i].append(ne)
+                    proximity_events.append(ne)
+                    print('\t\t', ne._hole_type, ne._hole_idx, ne._T_ntINhole.p.Norm())
+        return proximity_events
 
     def task_completion_cb(self, msg):
         """
@@ -361,14 +408,32 @@ class Task_2_Evaluation():
         t = 0.0
         while not self._done:
             time.sleep(0.01)
-            self.capture_scene_kinematics()
+            SKF = self.capture_scene_kinematics()
+            self.compute_needle_hole_proximity_event(SKF)
             t = t + 0.01
             if t % 1.0 >= 0.99:
                 print(time.time(), ' ) Waiting for task 2 completion report')
 
         # Record the final trajectories
-        self.capture_scene_kinematics()
+        SKF = self.capture_scene_kinematics()
         print('Completion Report Submitted, Running evaluation')
-        print(len(self._needle_hole_proximity_events))
+
+        # Find the proximity events for the final needle tip pose
+        proximity_events = self.compute_needle_hole_proximity_event(SKF)
+        final_event = None
+        P_ntINhole_min = Vector(100000., 100000., 100000.)
+        for event in proximity_events:
+            if event._T_ntINhole.p.Norm() < P_ntINhole_min.Norm():
+                final_event = event
+
+        if final_event is None:
+            raise Exception('Error! The is far off from the exits')
+
+        print(final_event._hole_type,
+              final_event._hole_idx,
+              final_event.compute_axial_distance_from_hole(),
+              final_event.compute_lateral_distance_from_hole())
+
+        print(len(self._needle_holes_proximity_events))
 
         self._report.print()
