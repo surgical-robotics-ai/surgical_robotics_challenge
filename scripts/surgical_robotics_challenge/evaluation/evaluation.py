@@ -8,6 +8,7 @@ from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Bool
 import numpy as np
 from collections import deque
+from enum import Enum
 
 
 def frame_to_pose_stamped_msg(frame):
@@ -211,51 +212,9 @@ class Task_1_Evaluation:
         self.print_evaluation(self._T_nINw_reported, T_nINw_actual)
 
 
-class SceneKinematics:
-    def __init__(self, hole_count):
-        """
-
-        :param hole_count:
-        :return:
-        """
-        self._hole_count = hole_count
-        self.T_entriesINw = [Frame()] * self._hole_count
-        self.T_exitsINw = [Frame()] * self._hole_count
-        self.T_ntINw = Frame()
-        self.t = 0.0
-
-
-class Task_2_Evaluation:
-    def __init__(self, client, team_name):
-        """
-
-        :param client:
-        :param team_name:
-        :return:
-        """
-        self._world = client.get_world_handle()
-        self._needle_kinematics = NeedleKinematics()
-        self._team_name = team_name
-        self._hole_count = 4
-        self._entry_points = []
-        self._exit_points = []
-        for i in range(self._hole_count):
-            self._entry_points.append(client.get_obj_handle("Entry" + str(i+1)))
-            self._exit_points.append(client.get_obj_handle("Exit" + str(i+1)))
-
-        self._scene_trajectories = deque()
-
-        try:
-            rospy.init_node('challenge_evaluation_node')
-        except:
-            # Already initialized, so ignore
-            done_nothing = True
-        prefix = '/surgical_robotics_challenge/completion_report/' + self._team_name
-        self._task_sub = rospy.Subscriber(prefix + '/task2/', Bool, self.task_completion_cb, queue_size=1)
-
-        self._start_time = self._world._state.sim_time
-        self._completion_time = self._start_time + 60.0
-        self._done = False
+class Task_2_Evaluation_Report():
+    def __init__(self):
+        self._team_name = None
         # Needle protruding from the exit as the end of task
         self._L_ntINexit_axial = 0.0
         # Cross-sectional distance from the exit hole's center
@@ -265,18 +224,120 @@ class Task_2_Evaluation:
 
         self._entry_exit_idx = -1
 
-    def update_scene_trajectories(self):
+        self._completion_time = 100000.0
+
+    def print(self):
         """
 
         :return:
         """
-        SK = SceneKinematics(self._hole_count)
+        print('Team: ', self._team_name, ' Task 2 Completion Report: ')
+        print('\t Completion Time: ', self._completion_time)
+        print('\t Entry/Exit Targeted Hole: ', self._entry_exit_idx + 1)
+        print('\t Needle Tip Axial Distance From Exit Hole (Lower is Better): ', self._L_ntINexit_axial)
+        print('\t Needle Tip Lateral Distance From Exit Hole (Lower is Better): ', self._L_ntINexit_lateral)
+        print('\t Needle Tip Lateral Distance From Entry Hole (Lower is Better): ', self._L_ntINentry_lateral)
+
+
+class HoleType(Enum):
+    ENTRY = 0
+    EXIT = 1
+
+
+class SceneKinematicsFrame:
+    def __init__(self, hole_count):
+        """
+
+        :param hole_count:
+        :return:
+        """
+        self._hole_count = hole_count
+        self.T_holesINw = dict()
+        self.T_holesINw[HoleType.ENTRY] = [Frame()] * self._hole_count
+        self.T_holesINw[HoleType.EXIT] = [Frame()] * self._hole_count
+        self.T_ntINw = Frame()
+        self.t = 0.0
+
+
+class NeedleContactEvent:
+    def __init__(self):
+        self._hole_type = None
+        self._T_ntINhole = Frame()
+        self._t = 0.0
+        self._hole_idx = -1
+        # The Object Aligned Bounding Box to check for needle tip
+        self._hole_bounds = Vector(0.05, 0.05, 0.05)
+
+    def compute_needle_hole_collision(self, T_ntINhole):
+        for j in range(3):
+            if abs(T_ntINhole.p[j]) > self._hole_bounds[j]:
+                # Needle tip is out of bounds, ignore
+                return True
+        return False
+
+
+class Task_2_Evaluation():
+    def __init__(self, client, team_name):
+        """
+
+        :param client:
+        :param team_name:
+        :return:
+        """
+        self._world = client.get_world_handle()
+        self._needle_kinematics = NeedleKinematics()
+        self._hole_count = 4
+        self._hole_objs = dict()
+        self._hole_objs[HoleType.ENTRY] = []
+        self._hole_objs[HoleType.EXIT] = []
         for i in range(self._hole_count):
-            SK.T_entriesINw[i] = ambf_obj_pose_to_frame(self._entry_points[i])
-            SK.T_exitsINw[i] = ambf_obj_pose_to_frame(self._exit_points[i])
-        SK.T_ntINw = self._needle_kinematics.get_tip_pose()
-        SK.t = self._world._state.sim_time
-        self._scene_trajectories.append(SK)
+            self._hole_objs[HoleType.ENTRY].append(client.get_obj_handle("Entry" + str(i+1)))
+            self._hole_objs[HoleType.EXIT].append(client.get_obj_handle("Exit" + str(i+1)))
+
+        self._scene_trajectories = deque()
+        self._needle_hole_proximity_events = deque()
+
+        try:
+            rospy.init_node('challenge_evaluation_node')
+        except:
+            # Already initialized, so ignore
+            done_nothing = True
+        prefix = '/surgical_robotics_challenge/completion_report/' + team_name
+        self._task_sub = rospy.Subscriber(prefix + '/task2/', Bool, self.task_completion_cb, queue_size=1)
+
+        self._done = False
+        self._report = Task_2_Evaluation_Report()
+        self._report._team_name = team_name
+        self._entry_exit_idx = -1
+        self._start_time = self._world._state.sim_time
+
+    def capture_scene_kinematics(self):
+        """
+
+        :return:
+        """
+        SKF = SceneKinematicsFrame(self._hole_count)
+        SKF.T_ntINw = self._needle_kinematics.get_tip_pose()
+
+        for hole_type in HoleType:
+            for i in range(self._hole_count):
+                SKF.T_holesINw[hole_type][i] = ambf_obj_pose_to_frame(self._hole_objs[hole_type][i])
+
+                # Check for needle tip contact with entry
+                T_ntINhole = SKF.T_holesINw[hole_type][i].Inverse() * SKF.T_ntINw
+                self.compute_needle_hole_proximity_event(T_ntINhole, hole_type, i, self._world._state.sim_time)
+
+        self._scene_trajectories.append(SKF)
+
+    def compute_needle_hole_proximity_event(self, T_ntINhole, hole_type, hole_idx, time):
+        ne = NeedleContactEvent()
+        if not ne.compute_needle_hole_collision(T_ntINhole):
+            ne._hole_type = hole_type
+            ne._T_ntINhole = T_ntINhole
+            ne._t = time
+            ne._hole_idx = hole_idx
+            self._needle_hole_proximity_events.append(ne)
+            print('\t\t', ne._hole_type, ne._hole_idx, ne._T_ntINhole.p.Norm())
 
     def task_completion_cb(self, msg):
         """
@@ -290,18 +351,6 @@ class Task_2_Evaluation:
         self._completion_time = self._world._state.sim_time - self._start_time
         self._done = True
 
-    def print_evaluation(self):
-        """
-
-        :return:
-        """
-        print('Team: ', self._team_name, ' Task 2 Completion Report: ')
-        print('\t Completion Time: ', self._completion_time)
-        print('\t Entry/Exit Targeted Hole: ', self._entry_exit_idx + 1)
-        print('\t Needle Tip Axial Distance From Exit Hole (Lower is Better): ', self._L_ntINexit_axial)
-        print('\t Needle Tip Lateral Distance From Exit Hole (Lower is Better): ', self._L_ntINexit_lateral)
-        print('\t Needle Tip Lateral Distance From Entry Hole (Lower is Better): ', self._L_ntINentry_lateral)
-
     def evaluate(self):
         """
 
@@ -310,124 +359,14 @@ class Task_2_Evaluation:
         t = 0.0
         while not self._done:
             time.sleep(0.01)
-            self.update_scene_trajectories()
+            self.capture_scene_kinematics()
             t = t + 0.01
             if t % 1.0 >= 0.99:
                 print(time.time(), ' ) Waiting for task 2 completion report')
 
         # Record the final trajectories
-        self.update_scene_trajectories()
+        self.capture_scene_kinematics()
         print('Completion Report Submitted, Running evaluation')
-        print(len(self._scene_trajectories))
-        # Find the closes exit to the needle tip
-        Traj_last = self._scene_trajectories[-1]
-        closest_exit_idx = self.find_closest_exit_to_needle_tip(Traj_last)
-        T_exitINw = Traj_last.T_exitsINw[closest_exit_idx]
-        T_ntINw = Traj_last.T_ntINw
+        print(len(self._needle_hole_proximity_events))
 
-        self._L_ntINexit_axial = self.compute_needle_axial_distance_from_hole(T_exitINw, T_ntINw)
-
-        self._L_ntINexit_lateral, traj_idx = self.compute_needle_lateral_distance_from_exit(closest_exit_idx, traj_offset=1)
-
-        # Compute a new offset to start the search
-        traj_offset = len(self._scene_trajectories) - traj_idx
-        closest_entry_idx = closest_exit_idx
-        self._L_ntINentry_lateral, traj_idx = self.compute_needle_lateral_distance_from_entry(closest_entry_idx, traj_offset)
-        self._entry_exit_idx = closest_entry_idx
-        self.print_evaluation()
-
-    def find_closest_exit_to_needle_tip(self, Traj):
-        """
-
-        :param Traj:
-        :return:
-        """
-        E_ntINexits = [Frame()] * Traj._hole_count
-        for i in range(Traj._hole_count):
-            E_ntINexits[i] = (Traj.T_exitsINw[i].Inverse() * Traj.T_ntINw).p.Norm()
-
-        # Find closes entry
-        min_idx = np.argmin(E_ntINexits)
-        return min_idx
-
-    def compute_needle_axial_distance_from_hole(self, T_hINw, T_ntINw):
-        """
-
-        :param T_hINw:
-        :param T_ntINw:
-        :return:
-        """
-        P_ntINhole = (T_hINw.Inverse() * T_ntINw).p
-        # The z value of the above vector is the axial distance between the needle tip
-        # and the hole origin
-        return P_ntINhole[2]
-
-    def compute_needle_lateral_distance_from_hole(self, T_hINw, T_ntINw):
-        """
-
-        :param T_hINw:
-        :param T_ntINw:
-        :return:
-        """
-        P_ntINhole = (T_hINw.Inverse() * T_ntINw).p
-        P_ntINhole[2] = 0.
-        return P_ntINhole.Norm()
-
-    def compute_needle_lateral_distance_from_exit(self, exit_idx, traj_offset):
-        """
-
-        :param exit_idx:
-        :param traj_offset:
-        :return:
-        """
-        min_traj_idx = -1
-        # Check trajectory to find where the needle tip passed through the exit hole
-        L_min = 0.1
-        L_max = -0.1
-        end_traj_idx = (len(self._scene_trajectories) - 1) - traj_offset
-        for i in range(end_traj_idx, -1, -1):
-            Traj = self._scene_trajectories[i]
-            L = self.compute_needle_axial_distance_from_hole(Traj.T_exitsINw[exit_idx], Traj.T_ntINw)
-            print(i, ') L: ', L, ' | Exit Idx: ', exit_idx)
-            if abs(L) < L_min:
-                L_min = L
-                min_traj_idx = i
-            if min_traj_idx != -1 and L < L_max: # Needle is too far in, break search
-                break
-
-        if min_traj_idx == -1:
-            raise Exception('Error, unable to compute lateral distance between needle tip and exit hole')
-
-        T_exitINw = self._scene_trajectories[min_traj_idx].T_exitsINw[exit_idx]
-        T_ntINw = self._scene_trajectories[min_traj_idx].T_ntINw
-        lateral_distance = self.compute_needle_lateral_distance_from_hole(T_exitINw, T_ntINw)
-        return lateral_distance, min_traj_idx
-
-    def compute_needle_lateral_distance_from_entry(self, entry_idx, traj_offset):
-        """
-
-        :param entry_idx:
-        :param traj_offset:
-        :return:
-        """
-        min_traj_idx = -1
-        # Check trajectory to find where the needle tip passed through the entry hole
-        L_min = 0.1
-        L_max = 0.1
-        end_traj_idx = (len(self._scene_trajectories) - 1) - traj_offset
-        for i in range(end_traj_idx, -1, -1):
-            Traj = self._scene_trajectories[i]
-            L = self.compute_needle_axial_distance_from_hole(Traj.T_entriesINw[entry_idx], Traj.T_ntINw)
-            if abs(L) < L_min:
-                L_min = L
-                min_traj_idx = i
-            if min_traj_idx != -1 and L > L_max:  # Needle is too far in, break search
-                break
-
-        if min_traj_idx == -1:
-            raise 'Error, unable to compute lateral distance between needle tip and entry hole'
-
-        T_entryINw = self._scene_trajectories[min_traj_idx].T_entriesINw[entry_idx]
-        T_ntINw = self._scene_trajectories[min_traj_idx].T_ntINw
-        lateral_distance = self.compute_needle_lateral_distance_from_hole(T_entryINw, T_ntINw)
-        return lateral_distance, min_traj_idx
+        self._report.print()
