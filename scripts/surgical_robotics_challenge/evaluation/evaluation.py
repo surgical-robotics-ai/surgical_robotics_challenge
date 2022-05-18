@@ -295,7 +295,9 @@ class Task_2_Evaluation():
             self._hole_objs[HoleType.EXIT].append(client.get_obj_handle("Exit" + str(i+1)))
 
         self._scene_trajectories = deque()
-        self._needle_hole_proximity_events = deque()
+        self._needle_holes_proximity_events = dict()
+        self._needle_holes_proximity_events[HoleType.ENTRY] = [deque()]*self._hole_count
+        self._needle_holes_proximity_events[HoleType.EXIT] = [deque()]*self._hole_count
 
         try:
             rospy.init_node('challenge_evaluation_node')
@@ -336,7 +338,7 @@ class Task_2_Evaluation():
             ne._T_ntINhole = T_ntINhole
             ne._t = time
             ne._hole_idx = hole_idx
-            self._needle_hole_proximity_events.append(ne)
+            self._needle_holes_proximity_events[hole_type][hole_idx].append(ne)
             print('\t\t', ne._hole_type, ne._hole_idx, ne._T_ntINhole.p.Norm())
 
     def task_completion_cb(self, msg):
