@@ -75,18 +75,19 @@ def ambf_obj_pose_to_frame(obj):
 
 
 class NeedleKinematics:
+    # Base in Needle Origin
+    T_bINn = Frame(Rotation.RPY(0., 0., 0.), Vector(-0.102, 0., 0.))
+    # Mid in Needle Origin
+    T_mINn = Frame(Rotation.RPY(0., 0., -1.091), Vector(-0.048, 0.093, 0.))
+    # Tip in Needle Origin
+    T_tINn = Frame(Rotation.RPY(0., 0., -0.585), Vector(0.056, 0.085, 0.))
+
     def __init__(self):
         """
 
         :return:
         """
         self._needle_sub = rospy.Subscriber('/ambf/env/Needle/State', RigidBodyState, self.needle_cb, queue_size=1)
-        # Base in Needle Origin
-        self._T_bINn = Frame(Rotation.RPY(0., 0., 0.), Vector(-0.102, 0., 0.))
-        # Mid in Needle Origin
-        self._T_mINn = Frame(Rotation.RPY(0., 0., -1.091), Vector(-0.048, 0.093, 0.))
-        # Tip in Needle Origin
-        self._T_tINn = Frame(Rotation.RPY(0., 0., -0.585), Vector(0.056, 0.085, 0.))
         # Needle in World
         self._T_nINw = Frame()
 
@@ -103,7 +104,7 @@ class NeedleKinematics:
 
         :return:
         """
-        T_tINw = self._T_nINw * self._T_tINn
+        T_tINw = self._T_nINw * self.T_tINn
         return T_tINw
 
     def get_base_pose(self):
@@ -111,7 +112,7 @@ class NeedleKinematics:
 
         :return:
         """
-        T_bINw = self._T_nINw * self._T_bINn
+        T_bINw = self._T_nINw * self.T_bINn
         return T_bINw
 
     def get_mid_pose(self):
@@ -119,11 +120,46 @@ class NeedleKinematics:
 
         :return:
         """
-        T_mINw = self._T_nINw * self._T_mINn
+        T_mINw = self._T_nINw * self.T_mINn
         return T_mINw
 
     def get_pose(self):
         return self._T_nINw
+
+
+class Task_1_Evaluation_Report():
+    def __init__(self):
+        """
+
+        """
+        self.team_name = None
+
+        self.E_base = None
+
+        self.E_mid = None
+
+        self.E_tip = None
+
+        self.completion_time = None
+
+        self.success = False
+
+    def print_report(self):
+        """
+
+        :return:
+        """
+
+        print('Team: ', self.team_name, ' Task 1 Completion Report: ')
+        if self.success:
+            print(OK_STR('\t Task Successful: '))
+            print('\t Completion Time: ', self.completion_time)
+            print('\t Base Error: ', self.E_base)
+            print('\t Mid Error: ', self.E_mid)
+            print('\t Tip Error: ', self.E_tip)
+            print('\t Task 1 Overall Score (Lower is Better): ', self.E_base + self.E_mid + self.E_tip)
+        else:
+            print(FAIL_STR('Task Failed: '))
 
 
 class Task_1_Evaluation:
@@ -149,9 +185,9 @@ class Task_1_Evaluation:
 
         time.sleep(1.0)
         self._start_time = rospy.Time.now().to_sec()
-        self._completion_time = self._start_time + 60.0
         self._T_nINw_reported = Frame()
         self._done = False
+        self._report = Task_1_Evaluation_Report()
 
     def _ecm_cb(self, msg):
         """
@@ -167,37 +203,10 @@ class Task_1_Evaluation:
         :param msg:
         :return:
         """
-        self._completion_time = rospy.Time.now().to_sec() - self._start_time
+        self._report.completion_time = rospy.Time.now().to_sec() - self._start_time
         T_nINe = pose_stamped_msg_to_frame(msg)
         self._T_nINw_reported = self._T_ecmINw * T_nINe
         self._done = True
-
-    def print_evaluation(self, T_reported, T_actual):
-        """
-
-        :param T_reported:
-        :param T_actual:
-        :return:
-        """
-        print('Team: ', self._team_name, ' Task 1 Completion Report: ')
-
-        P_base_reported = (T_reported * self._needle_kinematics.get_base_pose()).p
-        P_base_actual = (T_actual * self._needle_kinematics.get_base_pose()).p
-        e_base = (P_base_actual - P_base_reported).Norm()
-        print('\t Base Error: ', e_base)
-
-        P_mid_reported = (T_reported * self._needle_kinematics.get_mid_pose()).p
-        P_mid_actual = (T_actual * self._needle_kinematics.get_mid_pose()).p
-        e_mid = (P_mid_actual - P_mid_reported).Norm()
-        print('\t Mid Error: ', e_mid)
-
-        P_tip_reported = (T_reported * self._needle_kinematics.get_tip_pose()).p
-        P_tip_actual = (T_actual * self._needle_kinematics.get_tip_pose()).p
-        e_tip = (P_tip_actual - P_tip_reported).Norm()
-        print('\t Tip Error: ', e_tip)
-
-        print('\t Completion Time: ', self._completion_time)
-        print('\t Task 1 Overall Score (Lower is Better): ', e_tip + e_mid + e_base)
 
     def evaluate(self):
         """
@@ -207,9 +216,26 @@ class Task_1_Evaluation:
         while not self._done:
             time.sleep(1.0)
             print('[', time.time(), '] Waiting for task 1 completion report')
+            T_nINw = self._needle_kinematics.get_pose()
+            T_nINe = self._T_ecmINw.Inverse() * T_nINw
+            print(T_nINe.p)
+            print(T_nINe.M.GetQuaternion())
 
-        T_nINw_actual = self._needle_kinematics.get_pose()
-        self.print_evaluation(self._T_nINw_reported, T_nINw_actual)
+        T_nINw = self._needle_kinematics.get_pose()
+
+        P_b_r = (self._T_nINw_reported * NeedleKinematics.T_bINn).p
+        P_m_r = (self._T_nINw_reported * NeedleKinematics.T_mINn).p
+        P_t_r = (self._T_nINw_reported * NeedleKinematics.T_tINn).p
+
+        P_b = (T_nINw * NeedleKinematics.T_bINn).p
+        P_m = (T_nINw * NeedleKinematics.T_mINn).p
+        P_t = (T_nINw * NeedleKinematics.T_tINn).p
+
+        self._report.success = True
+        self._report.E_base = (P_b - P_b_r).Norm()
+        self._report.E_mid = (P_m - P_m_r).Norm()
+        self._report.E_tip = (P_t - P_t_r).Norm()
+        self._report.print_report()
 
 
 class Task_2_Evaluation_Report():
