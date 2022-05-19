@@ -263,8 +263,8 @@ class SceneKinematicsFrame:
         """
         self._hole_count = hole_count
         self.T_holesINw = dict()
-        self.T_holesINw[HoleType.ENTRY] = [Frame()] * self._hole_count
-        self.T_holesINw[HoleType.EXIT] = [Frame()] * self._hole_count
+        self.T_holesINw[HoleType.ENTRY] = [Frame() for _ in range(self._hole_count)]
+        self.T_holesINw[HoleType.EXIT] = [Frame() for _ in range(self._hole_count)]
         self.T_ntINw = Frame()
         self.t = 0.0
 
@@ -330,8 +330,8 @@ class Task_2_Evaluation():
 
         self._scene_trajectories = deque()
         self._needle_holes_proximity_events = dict()
-        self._needle_holes_proximity_events[HoleType.ENTRY] = [deque()]*self._hole_count
-        self._needle_holes_proximity_events[HoleType.EXIT] = [deque()]*self._hole_count
+        self._needle_holes_proximity_events[HoleType.ENTRY] = [deque() for _ in range(self._hole_count)]
+        self._needle_holes_proximity_events[HoleType.EXIT] = [deque() for _ in range(self._hole_count)]
 
         try:
             rospy.init_node('challenge_evaluation_node')
@@ -397,13 +397,20 @@ class Task_2_Evaluation():
                     ne.hole_idx = hidx
                     ne.T_ntINhole = T_ntINhole
                     ne.t = SKF.t
-                    self._needle_holes_proximity_events[hole_type][hidx].append(ne)
-                    if ne.hole_type != hole_type or ne.hole_idx != hidx:
-                        print('ERROR! For hole_type: ', hole_type, ' and hole_idx: ', hidx,
-                              ' NE hole_type: ', ne.hole_type, ' hole_idx: ', ne.hole_idx)
+                    self.validate_needle_event(hole_type, hidx, ne)
+                    (self._needle_holes_proximity_events[hole_type][hidx]).append(ne)
                     proximity_events.append(ne)
                     # print('\t\t', ne.hole_type, ne.hole_idx, ne.T_ntINhole.p.Norm())
         return proximity_events
+
+    def validate_needle_event(self, hole_type, hole_idx, NE, print_output=True):
+        if NE.hole_type != hole_type or NE.hole_idx != hole_idx:
+            if print_output:
+                print('ERROR! For hole_type: ', hole_type, ' and hole_idx: ' , hole_idx,
+                      ' NE hole_type: ', NE.hole_type, ' hole_idx: ', NE.hole_idx)
+            return False
+        else:
+            return True
 
     def validate_needle_insertion_events(self):
         incorrect_events = 0
@@ -414,9 +421,7 @@ class Task_2_Evaluation():
                 for e in range(event_count):
                     NE = self._needle_holes_proximity_events[hole_type][hidx][e]
                     total_events = total_events + 1
-                    if NE.hole_type != hole_type or NE.hole_idx != hidx:
-                        # print('ERROR! For hole_type: ', hole_type, ' and hole_idx: ' , hidx,
-                        #       ' NE hole_type: ', NE.hole_type, ' hole_idx: ', NE.hole_idx)
+                    if not self.validate_needle_event(hole_type, hidx, NE, print_output=False):
                         incorrect_events = incorrect_events + 1
         print('Total Events: ', total_events, ' Incorrect Events: ', incorrect_events)
 
@@ -439,13 +444,14 @@ class Task_2_Evaluation():
                         i_nearest_to_origin = 0
                         z_min_abs = z0
 
-                    for i in range(2, event_size):
-                        z = abs(self._needle_holes_proximity_events[hole_type][hidx][i].T_ntINhole.p[2])
+                    for ev in range(2, event_size):
+                        z = abs(self._needle_holes_proximity_events[hole_type][hidx][ev].T_ntINhole.p[2])
                         if z <= z_min_abs: # Using lte instead of le for comparison to find the latest time in the queue
                             z_min_abs = z
-                            i_nearest_to_origin = i
+                            i_nearest_to_origin = ev
                 if i_nearest_to_origin != -1:
                     NCE = self._needle_holes_proximity_events[hole_type][hidx][i_nearest_to_origin]
+                    self.validate_needle_event(hole_type, hidx, NCE, print_output=True)
                     if abs(NCE.T_ntINhole.p[2]) < NCE.insertion_depth_threshold:
                         hole_insertion_events.append(NCE)
 
