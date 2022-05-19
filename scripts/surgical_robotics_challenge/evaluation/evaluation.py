@@ -454,7 +454,8 @@ class Task_2_Evaluation():
                     self.validate_needle_event(hole_type, hidx, NCE, print_output=True)
                     if abs(NCE.T_ntINhole.p[2]) < NCE.insertion_depth_threshold:
                         hole_insertion_events.append(NCE)
-
+        # Sort the list based on time events
+        hole_insertion_events.sort(key=lambda x: x.t, reverse=True)
         return hole_insertion_events
 
     def task_completion_cb(self, msg):
