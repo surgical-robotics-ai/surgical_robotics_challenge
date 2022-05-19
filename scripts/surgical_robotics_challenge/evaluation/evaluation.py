@@ -9,7 +9,6 @@ from std_msgs.msg import Bool
 import numpy as np
 from collections import deque
 from enum import Enum
-from collections import OrderedDict
 
 
 def frame_to_pose_stamped_msg(frame):
@@ -221,17 +220,19 @@ class Task_2_Evaluation_Report():
         self.team_name = None
 
         # Needle protruding from the exit as the end of task
-        self.L_ntINexit_axial = 0.0
+        self.L_ntINexit_axial = None
 
         # Cross-sectional distance from the exit hole's center
-        self.L_ntINexit_lateral = 0.0
+        self.L_ntINexit_lateral = None
 
         # Cross-sectional distance from the entry hole's center
-        self.L_ntINentry_lateral = 0.0
+        self.L_ntINentry_lateral = None
 
-        self.entry_exit_idx = -1
+        self.entry_exit_idx = None
 
-        self.completion_time = -1.0
+        self.completion_time = None
+
+        self.success = False
 
     def print_report(self):
         """
@@ -239,11 +240,15 @@ class Task_2_Evaluation_Report():
         :return:
         """
         print('Team: ', self.team_name, ' Task 2 Completion Report: ')
-        print('\t Completion Time: ', self.completion_time)
-        print('\t Entry/Exit Targeted Hole: ', self.entry_exit_idx + 1)
-        print('\t Needle Tip Axial Distance From Exit Hole (Lower is Better): ', self.L_ntINexit_axial)
-        print('\t Needle Tip Lateral Distance From Exit Hole (Lower is Better): ', self.L_ntINexit_lateral)
-        print('\t Needle Tip Lateral Distance From Entry Hole (Lower is Better): ', self.L_ntINentry_lateral)
+        if self.success:
+            print(OK_STR('\t Task Successful: '))
+            print('\t Completion Time: ', self.completion_time)
+            print('\t Targeted Entry/Exit Hole Pair (1 to 4): ', self.entry_exit_idx + 1)
+            print('\t Needle Tip Axial Distance From Exit Hole (Lower is Better): ', self.L_ntINexit_axial)
+            print('\t Needle Tip Lateral Distance From Exit Hole (Lower is Better): ', self.L_ntINexit_lateral)
+            print('\t Needle Tip Lateral Distance From Entry Hole (Lower is Better): ', self.L_ntINentry_lateral)
+        else:
+            print(FAIL_STR('Task Failed: '))
 
 
 class HoleType(Enum):
@@ -270,16 +275,15 @@ class SceneKinematicsFrame:
 
     def find_closest_hole_to_needle_tip(self):
         NCE = NeedleContactEvent()
-        P_ntINhole = Vector(1., 1., 1.) * 100000
-        closest_hole_idx = -1
-        closest_hole_type = None
+        min_distance = 10000.
         for hole_type in HoleType:
-            for i in range(self._hole_count):
-                T = self.T_holesINw[hole_type][i].Inverse() * self.T_ntINw
-                if T.p.Norm() < P_ntINhole.Norm():
+            for hidx in range(self._hole_count):
+                T = self.T_holesINw[hole_type][hidx].Inverse() * self.T_ntINw
+                if T.p.Norm() < min_distance:
+                    min_distance = T.p.Norm()
                     NCE.T_ntINhole = T
                     NCE.hole_type = hole_type
-                    NCE.hole_idx = i
+                    NCE.hole_idx = hidx
                     NCE.t = self.t
         return NCE
 
@@ -425,7 +429,7 @@ class Task_2_Evaluation():
                         incorrect_events = incorrect_events + 1
         print('Total Events: ', total_events, ' Incorrect Events: ', incorrect_events)
 
-    def compute_insertion_info_from_collision_events(self):
+    def compute_insertion_events_from_proximity_events(self):
         hole_insertion_events = []
         for hole_type in HoleType:
             for hidx in range(self._hole_count):
@@ -489,18 +493,31 @@ class Task_2_Evaluation():
         print('Completion Report Submitted, Running evaluation')
 
         NCE = SKF.find_closest_hole_to_needle_tip()
-        L_axial = self.compute_axial_distance_from_hole(NCE.T_ntINhole)
-        L_lateral = self.compute_lateral_distance_from_hole(NCE.T_ntINhole)
 
-        self.validate_needle_insertion_events()
+        # self.validate_needle_insertion_events()
 
+        self._report.success = False # Initialize to false
         if NCE.hole_type is HoleType.EXIT:
-            self._report.L_ntINexit_axial = L_axial
-            self._report.L_ntINexit_lateral = L_lateral
             self._report.completion_time = self._completion_time
-
-            Iinfo = self.compute_insertion_info_from_collision_events()
-            for inf in Iinfo:
-                print(inf)
+            insertion_events = self.compute_insertion_events_from_proximity_events()
+            if len(insertion_events) < 2:
+                # Failed
+                pass
+            else:
+                event0 = insertion_events[0]
+                event1 = insertion_events[1]
+                if event0.hole_type is NCE.hole_type and event0.hole_idx == NCE.hole_idx:
+                    if event1.hole_type is HoleType.ENTRY and event1.hole_idx == NCE.hole_idx:
+                        self._report.success = True
+                        self._report.entry_exit_idx = NCE.hole_idx
+                        self._report.L_ntINexit_axial = self.compute_axial_distance_from_hole(NCE.T_ntINhole)
+                        self._report.L_ntINexit_lateral = self.compute_lateral_distance_from_hole(event0.T_ntINhole)
+                        self._report.L_ntINentry_lateral = self.compute_lateral_distance_from_hole(event1.T_ntINhole)
+                else:
+                    # Failed
+                    pass
+        else:
+            # Failed
+            pass
 
         self._report.print_report()
