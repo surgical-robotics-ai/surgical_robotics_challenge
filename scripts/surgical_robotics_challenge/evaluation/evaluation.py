@@ -148,7 +148,7 @@ class Task_1_Evaluation:
         self._task_sub = rospy.Subscriber(prefix + '/task1/', PoseStamped, self.task_completion_cb, queue_size=1)
 
         time.sleep(1.0)
-        self._start_time = self._world._state.sim_time
+        self._start_time = rospy.Time.now().to_sec()
         self._completion_time = self._start_time + 60.0
         self._T_nINw_reported = Frame()
         self._done = False
@@ -167,7 +167,7 @@ class Task_1_Evaluation:
         :param msg:
         :return:
         """
-        self._completion_time = self._world._state.sim_time - self._start_time
+        self._completion_time = rospy.Time.now().to_sec() - self._start_time
         T_nINe = pose_stamped_msg_to_frame(msg)
         self._T_nINw_reported = self._T_ecmINw * T_nINe
         self._done = True
@@ -349,7 +349,7 @@ class Task_2_Evaluation():
         self._report = Task_2_Evaluation_Report()
         self._report.team_name = team_name
         self._entry_exit_idx = -1
-        self._start_time = self._world._state.sim_time
+        self._start_time = rospy.Time.now().to_sec()
         time.sleep(1.0)
 
     def compute_axial_distance_from_hole(self, T_ntINhole):
@@ -471,7 +471,7 @@ class Task_2_Evaluation():
         if msg.data is False:
             print('Error!, Task 2 Completion Message must be True')
 
-        self._completion_time = self._world._state.sim_time - self._start_time
+        self._report.completion_time = rospy.Time.now().to_sec() - self._start_time
         self._done = True
 
     def evaluate(self):
@@ -498,7 +498,6 @@ class Task_2_Evaluation():
 
         self._report.success = False # Initialize to false
         if NCE.hole_type is HoleType.EXIT:
-            self._report.completion_time = self._completion_time
             insertion_events = self.compute_insertion_events_from_proximity_events()
             if len(insertion_events) < 2:
                 # Failed
