@@ -233,7 +233,7 @@ class Task_2_Evaluation_Report():
 
         self.completion_time = -1.0
 
-    def print(self):
+    def print_report(self):
         """
 
         :return:
@@ -276,22 +276,23 @@ class SceneKinematicsFrame:
         for hole_type in HoleType:
             for i in range(self._hole_count):
                 T = self.T_holesINw[hole_type][i].Inverse() * self.T_ntINw
-                if T.p.norm() < P_ntINhole.Norm():
-                    NCE._T_ntINhole = T
-                    NCE._hole_type = hole_type
-                    NCE._hole_idx = i
-                    NCE._t = self.t
+                if T.p.Norm() < P_ntINhole.Norm():
+                    NCE.T_ntINhole = T
+                    NCE.hole_type = hole_type
+                    NCE.hole_idx = i
+                    NCE.t = self.t
         return NCE
+
 
 class NeedleContactEvent:
     def __init__(self):
         """
 
         """
-        self._hole_type = None
-        self._T_ntINhole = Frame()
-        self._t = 0.0
-        self._hole_idx = -1
+        self.hole_type = None
+        self.T_ntINhole = Frame()
+        self.t = 0.0
+        self.hole_idx = -1
         # The Object Aligned Bounding Box to check for needle tip
         self._hole_bounds = Vector(0.05, 0.05, 0.05)
 
@@ -390,13 +391,13 @@ class Task_2_Evaluation():
                 T_ntINhole = SKF.T_holesINw[hole_type][i].Inverse() * SKF.T_ntINw
                 ne = NeedleContactEvent()
                 if not ne.compute_needle_hole_proximity_intersection(T_ntINhole):
-                    ne._hole_type = hole_type
-                    ne._hole_idx = i
-                    ne._T_ntINhole = T_ntINhole
-                    ne._t = SKF.t
+                    ne.hole_type = hole_type
+                    ne.hole_idx = i
+                    ne.T_ntINhole = T_ntINhole
+                    ne.t = SKF.t
                     self._needle_holes_proximity_events[hole_type][i].append(ne)
                     proximity_events.append(ne)
-                    print('\t\t', ne._hole_type, ne._hole_idx, ne._T_ntINhole.p.Norm())
+                    print('\t\t', ne.hole_type, ne.hole_idx, ne.T_ntINhole.p.Norm())
         return proximity_events
 
     def compute_insertion_info_from_collision_events(self):
@@ -404,15 +405,14 @@ class Task_2_Evaluation():
         for hole_type in HoleType:
             for hidx in range(self._hole_count):
                 event_size = len(self._needle_holes_proximity_events[hole_type][hidx])
-                z_min = -1
-                i_min = -1
-                if event_size == 1:
-                    z_min = self._needle_holes_proximity_events[hole_type][hidx][0]._T_ntINhole.p[2]
+                if event_size == 0:
+                    i_min = -1
+                elif event_size == 1:
                     i_min = 0
                 else:
-                    z1 = self._needle_holes_proximity_events[hole_type][hidx][1]._T_ntINhole.p[2]
-                    z0 = self._needle_holes_proximity_events[hole_type][hidx][0]._T_ntINhole.p[2]
-                    if  z1 < z0:
+                    z1 = self._needle_holes_proximity_events[hole_type][hidx][1].T_ntINhole.p[2]
+                    z0 = self._needle_holes_proximity_events[hole_type][hidx][0].T_ntINhole.p[2]
+                    if z1 < z0:
                         i_min = 1
                         z_min = z1
                     else:
@@ -420,13 +420,13 @@ class Task_2_Evaluation():
                         z_min = z0
 
                     for i in range(2, event_size):
-                        z = self._needle_holes_proximity_events[hole_type][hidx][i]._T_ntINhole.p[2]
-                        if z < z_min:
+                        z = self._needle_holes_proximity_events[hole_type][hidx][i].T_ntINhole.p[2]
+                        if z <= z_min: # Using lte instead of le for comparison to find the latest time in the queue
                             z_min = z
                             i_min = i
                 if i_min != -1:
                     NCE = self._needle_holes_proximity_events[hole_type][hidx][i_min]
-                    hole_insertion_events[NCE._t] = NCE
+                    hole_insertion_events[NCE.t] = NCE
 
         return hole_insertion_events
 
@@ -461,12 +461,15 @@ class Task_2_Evaluation():
         print('Completion Report Submitted, Running evaluation')
 
         NCE = SKF.find_closest_hole_to_needle_tip()
-        L_axial = self.compute_axial_distance_from_hole(NCE._T_ntINhole)
-        L_lateral = self.compute_lateral_distance_from_hole(NCE._T_ntINhole)
+        L_axial = self.compute_axial_distance_from_hole(NCE.T_ntINhole)
+        L_lateral = self.compute_lateral_distance_from_hole(NCE.T_ntINhole)
 
-        if NCE._hole_type is HoleType.EXIT:
+        if NCE.hole_type is HoleType.EXIT:
             self._report.L_ntINexit_axial = L_axial
             self._report.L_ntINexit_lateral = L_lateral
             self._report.completion_time = self._completion_time
 
-        self._report.print()
+            Iinfo = self.compute_insertion_info_from_collision_events()
+            print(Iinfo)
+
+        self._report.print_report()
