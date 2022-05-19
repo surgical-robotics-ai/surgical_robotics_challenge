@@ -9,6 +9,7 @@ from std_msgs.msg import Bool
 import numpy as np
 from collections import deque
 from enum import Enum
+from collections import OrderedDict
 
 
 def frame_to_pose_stamped_msg(frame):
@@ -217,29 +218,32 @@ class Task_2_Evaluation_Report():
         """
 
         """
-        self._team_name = None
+        self.team_name = None
+
         # Needle protruding from the exit as the end of task
-        self._L_ntINexit_axial = 0.0
+        self.L_ntINexit_axial = 0.0
+
         # Cross-sectional distance from the exit hole's center
-        self._L_ntINexit_lateral = 0.0
+        self.L_ntINexit_lateral = 0.0
+
         # Cross-sectional distance from the entry hole's center
-        self._L_ntINentry_lateral = 0.0
+        self.L_ntINentry_lateral = 0.0
 
-        self._entry_exit_idx = -1
+        self.entry_exit_idx = -1
 
-        self._completion_time = 100000.0
+        self.completion_time = -1.0
 
     def print(self):
         """
 
         :return:
         """
-        print('Team: ', self._team_name, ' Task 2 Completion Report: ')
-        print('\t Completion Time: ', self._completion_time)
-        print('\t Entry/Exit Targeted Hole: ', self._entry_exit_idx + 1)
-        print('\t Needle Tip Axial Distance From Exit Hole (Lower is Better): ', self._L_ntINexit_axial)
-        print('\t Needle Tip Lateral Distance From Exit Hole (Lower is Better): ', self._L_ntINexit_lateral)
-        print('\t Needle Tip Lateral Distance From Entry Hole (Lower is Better): ', self._L_ntINentry_lateral)
+        print('Team: ', self.team_name, ' Task 2 Completion Report: ')
+        print('\t Completion Time: ', self.completion_time)
+        print('\t Entry/Exit Targeted Hole: ', self.entry_exit_idx + 1)
+        print('\t Needle Tip Axial Distance From Exit Hole (Lower is Better): ', self.L_ntINexit_axial)
+        print('\t Needle Tip Lateral Distance From Exit Hole (Lower is Better): ', self.L_ntINexit_lateral)
+        print('\t Needle Tip Lateral Distance From Entry Hole (Lower is Better): ', self.L_ntINentry_lateral)
 
 
 class HoleType(Enum):
@@ -264,6 +268,20 @@ class SceneKinematicsFrame:
         self.T_ntINw = Frame()
         self.t = 0.0
 
+    def find_closest_hole_to_needle_tip(self):
+        NCE = NeedleContactEvent()
+        P_ntINhole = Vector(1., 1., 1.) * 100000
+        closest_hole_idx = -1
+        closest_hole_type = None
+        for hole_type in HoleType:
+            for i in range(self._hole_count):
+                T = self.T_holesINw[hole_type][i].Inverse() * self.T_ntINw
+                if T.p.norm() < P_ntINhole.Norm():
+                    NCE._T_ntINhole = T
+                    NCE._hole_type = hole_type
+                    NCE._hole_idx = i
+                    NCE._t = self.t
+        return NCE
 
 class NeedleContactEvent:
     def __init__(self):
@@ -277,7 +295,7 @@ class NeedleContactEvent:
         # The Object Aligned Bounding Box to check for needle tip
         self._hole_bounds = Vector(0.05, 0.05, 0.05)
 
-    def compute_needle_hole_collision(self, T_ntINhole):
+    def compute_needle_hole_proximity_intersection(self, T_ntINhole):
         """
 
         :param T_ntINhole:
@@ -288,30 +306,6 @@ class NeedleContactEvent:
                 # Needle tip is out of bounds, ignore
                 return True
         return False
-
-    def compute_axial_distance_from_hole(self):
-        """
-
-        :return:
-        """
-        # The axial distance is along the z axes
-        return abs(self._T_ntINhole.p[2])
-
-    def compute_lateral_distance_from_hole(self):
-        """
-
-        :return:
-        """
-        p = self._T_ntINhole.p
-        p[2] = 0.
-        return p.Norm()
-
-    def get_P_ntINhole(self):
-        """
-
-        :return:
-        """
-        return self._T_ntINhole.p
 
 
 class Task_2_Evaluation():
@@ -347,9 +341,26 @@ class Task_2_Evaluation():
 
         self._done = False
         self._report = Task_2_Evaluation_Report()
-        self._report._team_name = team_name
+        self._report.team_name = team_name
         self._entry_exit_idx = -1
         self._start_time = self._world._state.sim_time
+
+    def compute_axial_distance_from_hole(self, T_ntINhole):
+        """
+
+        :return:
+        """
+        # The axial distance is along the z axes
+        return abs(T_ntINhole.p[2])
+
+    def compute_lateral_distance_from_hole(self, T_ntINhole):
+        """
+
+        :return:
+        """
+        p = T_ntINhole.p
+        p[2] = 0.
+        return p.Norm()
 
     def capture_scene_kinematics(self):
         """
@@ -378,7 +389,7 @@ class Task_2_Evaluation():
             for i in range(self._hole_count):
                 T_ntINhole = SKF.T_holesINw[hole_type][i].Inverse() * SKF.T_ntINw
                 ne = NeedleContactEvent()
-                if not ne.compute_needle_hole_collision(T_ntINhole):
+                if not ne.compute_needle_hole_proximity_intersection(T_ntINhole):
                     ne._hole_type = hole_type
                     ne._hole_idx = i
                     ne._T_ntINhole = T_ntINhole
@@ -387,6 +398,37 @@ class Task_2_Evaluation():
                     proximity_events.append(ne)
                     print('\t\t', ne._hole_type, ne._hole_idx, ne._T_ntINhole.p.Norm())
         return proximity_events
+
+    def compute_insertion_info_from_collision_events(self):
+        hole_insertion_events = OrderedDict()
+        for hole_type in HoleType:
+            for hidx in range(self._hole_count):
+                event_size = len(self._needle_holes_proximity_events[hole_type][hidx])
+                z_min = -1
+                i_min = -1
+                if event_size == 1:
+                    z_min = self._needle_holes_proximity_events[hole_type][hidx][0]._T_ntINhole.p[2]
+                    i_min = 0
+                else:
+                    z1 = self._needle_holes_proximity_events[hole_type][hidx][1]._T_ntINhole.p[2]
+                    z0 = self._needle_holes_proximity_events[hole_type][hidx][0]._T_ntINhole.p[2]
+                    if  z1 < z0:
+                        i_min = 1
+                        z_min = z1
+                    else:
+                        i_min = 0
+                        z_min = z0
+
+                    for i in range(2, event_size):
+                        z = self._needle_holes_proximity_events[hole_type][hidx][i]._T_ntINhole.p[2]
+                        if z < z_min:
+                            z_min = z
+                            i_min = i
+                if i_min != -1:
+                    NCE = self._needle_holes_proximity_events[hole_type][hidx][i_min]
+                    hole_insertion_events[NCE._t] = NCE
+
+        return hole_insertion_events
 
     def task_completion_cb(self, msg):
         """
@@ -418,22 +460,13 @@ class Task_2_Evaluation():
         SKF = self.capture_scene_kinematics()
         print('Completion Report Submitted, Running evaluation')
 
-        # Find the proximity events for the final needle tip pose
-        proximity_events = self.compute_needle_hole_proximity_event(SKF)
-        final_event = None
-        P_ntINhole_min = Vector(100000., 100000., 100000.)
-        for event in proximity_events:
-            if event._T_ntINhole.p.Norm() < P_ntINhole_min.Norm():
-                final_event = event
+        NCE = SKF.find_closest_hole_to_needle_tip()
+        L_axial = self.compute_axial_distance_from_hole(NCE._T_ntINhole)
+        L_lateral = self.compute_lateral_distance_from_hole(NCE._T_ntINhole)
 
-        if final_event is None:
-            raise Exception('Error! The is far off from the exits')
-
-        print(final_event._hole_type,
-              final_event._hole_idx,
-              final_event.compute_axial_distance_from_hole(),
-              final_event.compute_lateral_distance_from_hole())
-
-        print(len(self._needle_holes_proximity_events))
+        if NCE._hole_type is HoleType.EXIT:
+            self._report.L_ntINexit_axial = L_axial
+            self._report.L_ntINexit_lateral = L_lateral
+            self._report.completion_time = self._completion_time
 
         self._report.print()
