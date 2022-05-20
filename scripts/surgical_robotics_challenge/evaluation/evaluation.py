@@ -533,7 +533,7 @@ class Task_2_Evaluation():
                 self._needle_holes_proximity_events)
             if len(insertion_events) < 2:
                 # Failed
-                print('Failed Task, Number of hole insertion events = ', len(insertion_events))
+                print('Failed Task, Number of hole insertion events = ', len(insertion_events), '/2')
             else:
                 event0 = insertion_events[0]
                 event1 = insertion_events[1]
@@ -714,29 +714,35 @@ class Task_3_Evaluation():
         if NCE.hole_type is HoleType.EXIT:
             insertion_events = ContactEventHelper.compute_insertion_events_from_proximity_events(
                 self._needle_holes_proximity_events)
-            if len(insertion_events) < 2:
+            if len(insertion_events) < 8:
                 # Failed
-                print('Failed Task, Number of hole insertion events = ', len(insertion_events))
+                print('Failed Task, Number of hole insertion events = ', len(insertion_events), '/8')
             else:
-                event0 = insertion_events[0]
-                event1 = insertion_events[1]
-                if event0.hole_type is NCE.hole_type and event0.hole_idx == NCE.hole_idx:
-                    if event1.hole_type is HoleType.ENTRY and event1.hole_idx == NCE.hole_idx:
-                        self._report.success = True
-                        self._report.entry_exit_idx = NCE.hole_idx
-                        self._report.L_ntINexit_axial = ContactEventHelper.compute_axial_distance_from_hole(NCE.T_ntINhole)
-                        self._report.L_ntINexit_lateral = ContactEventHelper.compute_lateral_distance_from_hole(event0.T_ntINhole)
-                        self._report.L_ntINentry_lateral = ContactEventHelper.compute_lateral_distance_from_hole(event1.T_ntINhole)
+                self._report.L_ntINexit_axial = ContactEventHelper.compute_axial_distance_from_hole(
+                    NCE.T_ntINhole)
+                self._report.success = True
+                for hidx in range(GlobalParams.hole_count):
+                    event0 = insertion_events[2*hidx]
+                    event1 = insertion_events[2*hidx+1]
+                    if event0.hole_type is HoleType.EXIT and event0.hole_idx == hidx:
+                        if event1.hole_type is HoleType.ENTRY and event1.hole_idx == hidx:
+                            self._report.L_ntINexit_lateral[hidx] = ContactEventHelper.compute_lateral_distance_from_hole(
+                                event0.T_ntINhole)
+                            self._report.L_ntINentry_lateral[hidx] = ContactEventHelper.compute_lateral_distance_from_hole(
+                                event1.T_ntINhole)
+                        else:
+                            # Failed
+                            print('Failed Task, Entry hole type / idx mismatch from closest type / idx')
+                            print('Closest Type: ', NCE.hole_type, ' Idx: ', NCE.hole_idx)
+                            print('Event1 Type: ', event1.hole_type, ' Idx: ', event1.hole_idx)
+                            self._report.success = False
                     else:
                         # Failed
-                        print('Failed Task, Entry hole type / idx mismatch from closest type / idx')
+                        print('Failed Task, Exit hole type / idx mismatch from closest type / idx')
                         print('Closest Type: ', NCE.hole_type, ' Idx: ', NCE.hole_idx)
-                        print('Event1 Type: ', event1.hole_type, ' Idx: ', event1.hole_idx)
-                else:
-                    # Failed
-                    print('Failed Task, Exit hole type / idx mismatch from closest type / idx')
-                    print('Closest Type: ', NCE.hole_type, ' Idx: ', NCE.hole_idx)
-                    print('Event0 Type: ', event0.hole_type, ' Idx: ', event0.hole_idx)
+                        print('Event0 Type: ', event0.hole_type, ' Idx: ', event0.hole_idx)
+                        self._report.success = False
+
         else:
             print('Failed Task, The closest hole to needle tip and report completion is not of type ', HoleType.EXIT)
 
