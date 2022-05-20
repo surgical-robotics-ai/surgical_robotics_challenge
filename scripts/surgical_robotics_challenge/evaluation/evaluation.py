@@ -9,6 +9,8 @@ from std_msgs.msg import Bool
 import numpy as np
 from collections import deque
 from enum import Enum
+from ambf_client import Client
+from argparse import ArgumentParser
 
 
 def frame_to_pose_stamped_msg(frame):
@@ -76,7 +78,7 @@ def ambf_obj_pose_to_frame(obj):
 
 class GlobalParams:
     hole_count = 4
-    # The Object Aligned Bounding Box to check for needle tip
+    # The Object Aligned Bounding Box (OABB) to check for needle tip
     hole_bounds = Vector(0.05, 0.05, 0.05)
     insertion_depth_threshold = 0.01
 
@@ -273,9 +275,11 @@ class Task_2_Evaluation_Report():
             print(OK_STR('\t Task Successful: '))
             print('\t Completion Time: ', self.completion_time)
             print('\t Targeted Entry/Exit Hole Pair (1 to 4): ', self.entry_exit_idx + 1)
-            print('\t Needle Tip Axial Distance From Exit Hole (Lower is Better): ', self.L_ntINexit_axial)
-            print('\t Needle Tip Lateral Distance From Exit Hole (Lower is Better): ', self.L_ntINexit_lateral)
-            print('\t Needle Tip Lateral Distance From Entry Hole (Lower is Better): ', self.L_ntINentry_lateral)
+            print('\t Needle Tip Axial Distance From Exit Hole (Recommended 0.05): ', self.L_ntINexit_axial)
+            print('\t Needle Tip Lateral Distance From Exit Hole During Insertion (Lower is Better): ',
+                  self.L_ntINexit_lateral)
+            print('\t Needle Tip Lateral Distance From Entry Hole During Insertion (Lower is Better): ',
+                  self.L_ntINentry_lateral)
         else:
             print(FAIL_STR('Task Failed: '))
 
@@ -370,30 +374,40 @@ class ContactEventHelper:
         for hole_type in HoleType:
             for hidx in range(GlobalParams.hole_count):
                 event_size = len(needle_holes_proximity_events[hole_type][hidx])
-                if event_size == 0:
-                    i_nearest_to_origin = -1
-                elif event_size == 1:
-                    i_nearest_to_origin = 0
+                i_insertion = -1
+                if event_size < 2:
+                    # No insertion to report as we only have a single point within hole's OABB
+                    pass
                 else:
-                    z1 = abs(needle_holes_proximity_events[hole_type][hidx][1].T_ntINhole.p[2])
-                    z0 = abs(needle_holes_proximity_events[hole_type][hidx][0].T_ntINhole.p[2])
-                    if z1 < z0:
-                        i_nearest_to_origin = 1
-                        z_min_abs = z1
-                    else:
-                        i_nearest_to_origin = 0
-                        z_min_abs = z0
+                    for ev in range(event_size-1, 0, -1):
+                        z1 = needle_holes_proximity_events[hole_type][hidx][ev].T_ntINhole.p[2]
+                        z0 = needle_holes_proximity_events[hole_type][hidx][ev-1].T_ntINhole.p[2]
 
-                    for ev in range(2, event_size):
-                        z = abs(needle_holes_proximity_events[hole_type][hidx][ev].T_ntINhole.p[2])
-                        if z <= z_min_abs:  # Using lte instead of le for comparison to find the latest time in the queue
-                            z_min_abs = z
-                            i_nearest_to_origin = ev
-                if i_nearest_to_origin != -1:
-                    NCE = needle_holes_proximity_events[hole_type][hidx][i_nearest_to_origin]
-                    ContactEventHelper.validate_needle_event(hole_type, hidx, NCE, print_output=True)
-                    if abs(NCE.T_ntINhole.p[2]) < GlobalParams.insertion_depth_threshold:
-                        hole_insertion_events.append(NCE)
+                        if hole_type is HoleType.ENTRY:
+                            if z1 < 0. < z0:
+                                i_insertion = ev
+                                break
+                        elif hole_type is HoleType.EXIT:
+                            if z1 > 0. > z0:
+                                i_insertion = ev
+                                break
+                        else:
+                            raise Exception('Cannot Happen')
+
+                    # For debugging
+                    if i_insertion == -1:
+                        depths = []
+                        for ev in range(event_size):
+                            z = needle_holes_proximity_events[hole_type][hidx][ev].T_ntINhole.p[2]
+                            depths.append(z)
+                        print('Error! For hole_type', hole_type, 'hole_idx', hidx)
+                        print('Error! Not able to find insertion from depths')
+                        print(depths)
+
+                if i_insertion != -1:
+                    NCE = needle_holes_proximity_events[hole_type][hidx][i_insertion]
+                    # ContactEventHelper.validate_needle_event(hole_type, hidx, NCE, print_output=True)
+                    hole_insertion_events.append(NCE)
         # Sort the list based on time events
         hole_insertion_events.sort(key=lambda x: x.t, reverse=True)
         return hole_insertion_events
@@ -487,7 +501,7 @@ class Task_2_Evaluation():
                     ne.hole_idx = hidx
                     ne.T_ntINhole = T_ntINhole
                     ne.t = SKF.t
-                    ContactEventHelper.validate_needle_event(hole_type, hidx, ne)
+                    # ContactEventHelper.validate_needle_event(hole_type, hidx, ne)
                     (self._needle_holes_proximity_events[hole_type][hidx]).append(ne)
                     proximity_events.append(ne)
                     # print('\t\t', ne.hole_type, ne.hole_idx, ne.T_ntINhole.p.Norm())
@@ -591,12 +605,14 @@ class Task_3_Evaluation_Report():
         if self.success:
             print(OK_STR('\t Task Successful: '))
             print('\t Completion Time: ', self.completion_time)
-            print('\t Needle Tip Axial Distance From Exit Hole (4/4) (Lower is Better): ', self.L_ntINexit_axial)
+            print('\t Needle Tip Axial Distance From Exit Hole (4/4) (Recommended 0.05): ', self.L_ntINexit_axial)
             for hidx in range(GlobalParams.hole_count):
                 print('--------------------------------------------')
-                print('\t Hole Number: ', hidx + 1, '/', GlobalParams.hole_count + 1)
-                print('\t Needle Tip Lateral Distance From Exit Hole (Lower is Better): ', self.L_ntINexit_lateral[hidx])
-                print('\t Needle Tip Lateral Distance From Entry Hole (Lower is Better): ', self.L_ntINentry_lateral[hidx])
+                print('\t Hole Number: ', hidx + 1, '/', GlobalParams.hole_count)
+                print('\t Needle Tip Lateral Distance From Exit Hole During Insertion (Lower is Better): ',
+                      self.L_ntINexit_lateral[hidx])
+                print('\t Needle Tip Lateral Distance From Entry Hole During Insertion (Lower is Better): ',
+                      self.L_ntINentry_lateral[hidx])
         else:
             print(FAIL_STR('Task Failed: '))
 
@@ -670,7 +686,7 @@ class Task_3_Evaluation():
                     ne.hole_idx = hidx
                     ne.T_ntINhole = T_ntINhole
                     ne.t = SKF.t
-                    ContactEventHelper.validate_needle_event(hole_type, hidx, ne)
+                    # ContactEventHelper.validate_needle_event(hole_type, hidx, ne)
                     (self._needle_holes_proximity_events[hole_type][hidx]).append(ne)
                     proximity_events.append(ne)
                     # print('\t\t', ne.hole_type, ne.hole_idx, ne.T_ntINhole.p.Norm())
@@ -716,16 +732,20 @@ class Task_3_Evaluation():
                 self._needle_holes_proximity_events)
             if len(insertion_events) < 8:
                 # Failed
-                print('Failed Task, Number of hole insertion events = ', len(insertion_events), '/8')
+                print('Failed Task, Number of hole insertion events =', len(insertion_events), 'out of 8')
+                for ie in insertion_events:
+                    print('\t Successful insertion into', ie.hole_type, ie.hole_idx)
             else:
                 self._report.L_ntINexit_axial = ContactEventHelper.compute_axial_distance_from_hole(
                     NCE.T_ntINhole)
                 self._report.success = True
+                correct_idx = GlobalParams.hole_count
                 for hidx in range(GlobalParams.hole_count):
                     event0 = insertion_events[2*hidx]
                     event1 = insertion_events[2*hidx+1]
-                    if event0.hole_type is HoleType.EXIT and event0.hole_idx == hidx:
-                        if event1.hole_type is HoleType.ENTRY and event1.hole_idx == hidx:
+                    correct_idx = correct_idx - 1
+                    if event0.hole_type is HoleType.EXIT and event0.hole_idx == correct_idx:
+                        if event1.hole_type is HoleType.ENTRY and event1.hole_idx == correct_idx:
                             self._report.L_ntINexit_lateral[hidx] = ContactEventHelper.compute_lateral_distance_from_hole(
                                 event0.T_ntINhole)
                             self._report.L_ntINentry_lateral[hidx] = ContactEventHelper.compute_lateral_distance_from_hole(
@@ -733,13 +753,13 @@ class Task_3_Evaluation():
                         else:
                             # Failed
                             print('Failed Task, Entry hole type / idx mismatch from closest type / idx')
-                            print('Closest Type: ', NCE.hole_type, ' Idx: ', NCE.hole_idx)
+                            print('Closest Type: ', NCE.hole_type, ' Idx: ', correct_idx)
                             print('Event1 Type: ', event1.hole_type, ' Idx: ', event1.hole_idx)
                             self._report.success = False
                     else:
                         # Failed
                         print('Failed Task, Exit hole type / idx mismatch from closest type / idx')
-                        print('Closest Type: ', NCE.hole_type, ' Idx: ', NCE.hole_idx)
+                        print('Closest Type: ', NCE.hole_type, ' Idx: ', correct_idx)
                         print('Event0 Type: ', event0.hole_type, ' Idx: ', event0.hole_idx)
                         self._report.success = False
 
@@ -747,3 +767,32 @@ class Task_3_Evaluation():
             print('Failed Task, The closest hole to needle tip and report completion is not of type ', HoleType.EXIT)
 
         self._report.print_report()
+
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument('-t', action='store', dest='team_name', help='Team Name', default='test_team')
+    parser.add_argument('-e', action='store', dest='task_evaluation', help='Task to evaluate (1,2 or 3)')
+
+    parsed_args = parser.parse_args()
+    print('Specified Arguments')
+    print(parsed_args)
+
+    client = Client('surgical_robotics_task_evaluation')
+    client.connect()
+
+    team_name = parsed_args.team_name
+    task_to_evaluate = int(parsed_args.task_evaluation)
+    if task_to_evaluate not in [1, 2, 3]:
+        raise Exception('ERROR! Acceptable task evaluation options (-e option) are 1, 2 or 3')
+
+    task_eval = None
+    if task_to_evaluate == 1:
+        task_eval = Task_1_Evaluation(client, team_name)
+    elif task_to_evaluate == 2:
+        task_eval = Task_2_Evaluation(client, team_name)
+    elif task_to_evaluate == 3:
+        task_eval = Task_3_Evaluation(client, team_name)
+
+    task_eval.evaluate()
+    print(OK_STR('GOOD BYE'))
