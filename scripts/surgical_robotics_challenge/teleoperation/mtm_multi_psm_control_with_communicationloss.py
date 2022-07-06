@@ -78,6 +78,7 @@ class ControllerInterface:
         self.leader.enable_gravity_comp()
 
         self.communication_loss = False
+        self.enable_ghost = False
 
     def switch_psm(self):
         self._update_T_c_b = True
@@ -92,6 +93,31 @@ class ControllerInterface:
     def update_camera_pose(self):
         self.gui.App.update()
         self._camera.servo_jp(self.gui.jnt_cmds)
+
+    def update_arm_pose_withloss(self):
+        self.update_T_b_c()
+        if self.leader.coag_button_pressed or self.leader.clutch_button_pressed:
+            # self.leader.optimize_wrist_platform()
+            f = Wrench()
+            self.leader.servo_cf(f)
+        else:
+            if self.leader.is_active():
+                self.leader.servo_cp(self.leader.pre_coag_pose_msg)
+        twist = self.leader.measured_cv() * 0.035
+        self.cmd_xyz = self.active_psm.T_t_b_home.p
+        if not self.leader.clutch_button_pressed:
+            delta_t = self._T_c_b.M * twist.vel
+            self.cmd_xyz = self.cmd_xyz + delta_t
+            self.active_psm.T_t_b_home.p = self.cmd_xyz
+        if self.leader.coag_button_pressed:
+            self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
+            self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
+            if (self.communication_loss == False):
+                self.active_psm.servo_cp(self.T_IK)
+            #self.active_psm.servo_cp(self.T_IK)
+        if (self.communication_loss == False):
+            self.active_psm.set_jaw_angle(self.leader.get_jaw_angle())
+        #self.active_psm.set_jaw_angle(self.leader.get_jaw_angle())
 
     def update_arm_pose(self):
         self.update_T_b_c()
@@ -141,7 +167,10 @@ class ControllerInterface:
             self.leader.switch_psm = False
 
         self.update_camera_pose()
-        self.update_arm_pose()
+        if self.active_psm.name == "psm1" or "psm2":
+            self.update_arm_pose_withloss()
+        else:
+            self.update_arm_pose()
         self.subscribe_communicationLoss()
         # self.update_visual_markers()
 
@@ -231,6 +260,18 @@ if __name__ == "__main__":
         psm = PSM(c, arm_name, add_joint_errors=False)
         if psm.is_present():
             psm_arms.append(psm)
+
+    arm_name = 'psm1_ghost'
+    print('LOADING CONTROLLER FOR ', arm_name)
+    psm = PSM(c, arm_name, add_joint_errors=False)
+    if psm.is_present():
+        psm_arms.append(psm)
+
+    arm_name = 'psm2_ghost'
+    print('LOADING CONTROLLER FOR ', arm_name)
+    psm = PSM(c, arm_name, add_joint_errors=False)
+    if psm.is_present():
+        psm_arms.append(psm)
 
     if len(psm_arms) == 0:
         print('No Valid PSM Arms Specified')
