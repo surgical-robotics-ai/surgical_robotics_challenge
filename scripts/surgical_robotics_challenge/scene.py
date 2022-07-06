@@ -44,6 +44,8 @@
 # //==============================================================================
 
 from PyKDL import Frame, Rotation, Vector, Twist
+import numpy as np
+from surgical_robotics_challenge.utils.utilities import cartesian_interpolate_step
 import time
 
 
@@ -95,3 +97,80 @@ class Scene:
 
     def exit4_measured_cp(self):
         return ambf_pose_to_frame(self._exit4)
+
+    def task_3_setup_init(self, psm2):
+        print("METHOD Based: Task 3 Setup Called")
+        TnINt2 = Frame(Rotation.RPY(-np.pi / 2., 0., 0.),
+                            Vector(0.09973019361495972, -0.05215135216712952, 0.03237169608473778))
+        TnINt2_far = Frame(Rotation.RPY(-np.pi / 2., 0., 0.),
+                                Vector(0.09973019361495972, -0.2, 0.03237169608473778))
+        psm2_tip = self.client.get_obj_handle('psm2' + '/toolyawlink')
+        time.sleep(0.5)
+        release = False
+        reached = False
+
+        # First we shall move the PSM to its initial pose using joint commands OR pose command
+        psm2.servo_jp([-0.4, -0.22, 1.39, -1.64, -0.37, -0.11])
+        # Open the Jaws
+        psm2.set_jaw_angle(0.8)
+        # Sleep to achieve the target pose and jaw angle
+        time.sleep(0.5)
+
+        print('Moving Needle to PSM 2 Tip')
+        release = False
+        if psm2_tip is None:
+            print('Not a valid link, returning')
+            return
+        T_nINw = ambf_pose_to_frame(self._needle)
+        # First reach the farther point
+        reached_far = False
+        reached = False
+        while not reached_far:
+            T_tINw = ambf_pose_to_frame(psm2_tip)
+            T_nINw_cmd = T_tINw * TnINt2_far
+            T_delta, error_max = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01)
+            r_delta = T_delta.M.GetRPY()
+            # print(error_max)
+            if error_max < 0.01:
+                reached_far = True
+                break
+
+            T_cmd = Frame()
+            T_cmd.p = T_nINw.p + T_delta.p
+            T_cmd.M = T_nINw.M * Rotation.RPY(r_delta[0], r_delta[1], r_delta[2])
+            T_nINw = T_cmd
+            self._needle.set_pos(T_cmd.p[0], T_cmd.p[1], T_cmd.p[2])
+            self._needle.set_rpy(T_cmd.M.GetRPY()[0], T_cmd.M.GetRPY()[1], T_cmd.M.GetRPY()[2])
+            time.sleep(0.01)
+
+        time.sleep(2.0)
+        while not release:
+            T_tINw = ambf_pose_to_frame(psm2_tip)
+            T_nINw_cmd = T_tINw * TnINt2
+            T_delta, error_max = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01)
+            r_delta = T_delta.M.GetRPY()
+            # print(error_max)
+            if error_max < 0.01:
+                reached = True
+                break
+
+            T_cmd = Frame()
+            T_cmd.p = T_nINw.p + T_delta.p
+            T_cmd.M = T_nINw.M * Rotation.RPY(r_delta[0], r_delta[1], r_delta[2])
+            T_nINw = T_cmd
+            self._needle.set_pos(T_cmd.p[0], T_cmd.p[1], T_cmd.p[2])
+            self._needle.set_rpy(T_cmd.M.GetRPY()[0], T_cmd.M.GetRPY()[1], T_cmd.M.GetRPY()[2])
+            time.sleep(0.01)
+        time.sleep(1.0)
+        for i in range(30):
+            # Close the jaws to grasp the needle
+            # Calling it repeatedly a few times so that the needle is forced
+            # between the gripper tips and grasped properly
+            psm2.set_jaw_angle(0.0)
+            time.sleep(0.01)
+
+        time.sleep(0.5)
+        print('Releasing Needle')
+        release = True
+        self._needle.set_force(0, 0, 0)
+        self._needle.set_torque(0, 0, 0)

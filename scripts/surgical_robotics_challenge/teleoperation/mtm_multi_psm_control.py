@@ -82,7 +82,7 @@ class ControllerInterface:
         print('Switching Control of Next PSM Arm: ', self.active_psm.name)
 
     def update_T_b_c(self):
-        if self._update_T_c_b or self._camera.has_pose_changed:
+        if self._update_T_c_b or self._camera.has_pose_changed():
             self._T_c_b = self.active_psm.get_T_w_b() * self._camera.get_T_c_w()
             self._update_T_c_b = False
 
