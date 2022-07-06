@@ -42,11 +42,12 @@
 #     \version   1.0
 # */
 # //==============================================================================
+import numpy as np
 from surgical_robotics_challenge.kinematics.psmIK import *
-from PyKDL import Frame, Rotation, Vector
-import time
 from surgical_robotics_challenge.utils.joint_pos_recorder import JointPosRecorder
 from surgical_robotics_challenge.utils.joint_errors_model import JointErrorsModel
+from PyKDL import Frame, Rotation, Vector
+import time
 
 jpRecorder = JointPosRecorder()
 
@@ -96,12 +97,14 @@ class PSM:
         self._num_joints = 6
         self._ik_solution = np.zeros([self._num_joints])
         self._last_jp = np.zeros([self._num_joints])
+        self._joints_error_mask = [1, 1, 1, 0, 0, 0]  # Only apply error to joints with 1's
+        self._joint_error_model = JointErrorsModel(self.name, self._num_joints)
         if add_joint_errors:
-            self._errors_distribution_deg = [-5., -2. , 2., 5.]
-        else:
-            self._errors_distribution_deg = [0.] # No Error
-        self._joints_error_mask = [1, 1, 0, 0, 0, 0] # Only apply error to joints with 1's
-        self._joint_error_model = JointErrorsModel(self._num_joints, errors_distribution_deg=self._errors_distribution_deg)
+            max_errors_list = [0.] * self._num_joints  # No error
+            max_errors_list[0] = np.deg2rad(5.0) # Max Error Joint 0 -> +-5 deg
+            max_errors_list[1] = np.deg2rad(5.0) # Max Error Joint 1 -> +- 5 deg
+            max_errors_list[2] = 0.05 # Max Error Joint 2 -> +- 5 mm or 0.05 Simulation units
+            self._joint_error_model.generate_random_from_max_value(max_errors_list)
 
     def set_home_pose(self, pose):
         self.T_t_b_home = pose

@@ -128,3 +128,76 @@ def get_boolean_from_opt(opt):
     else:
         print("Error: Option is invalid: ", opt)
         raise ValueError
+
+def cartesian_interpolate_step(T_curr, T_goal, max_delta=0.01, deadband=0.01):
+    error = np.zeros(6)
+    pe = T_goal.p - T_curr.p
+    re = (T_curr.M.Inverse() * T_goal.M).GetRPY()
+    for i in range(6):
+        if i < 3:
+            error[i] = pe[i]
+        else:
+            error[i] = re[i-3]
+
+    error_max = max(np.abs(error))
+    if error_max <= deadband:
+        error_scaled = error * 0.
+    else:
+        error_scaled = error / error_max
+
+    error_scaled = error_scaled * max_delta
+
+    T_step = Frame(Rotation.RPY(error_scaled[3], error_scaled[4], error_scaled[5]),
+                                Vector(error_scaled[0], error_scaled[1], error_scaled[2]))
+    return T_step, error_max
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+def toStr(f):
+    return "{:.3f}".format(f)
+
+
+def WARN_STR(val):
+    if type(val) != str:
+        val = toStr(val)
+    valStr = bcolors.WARNING + val + bcolors.ENDC
+    return valStr
+
+
+def WARN2_STR(val):
+    if type(val) != str:
+        val = toStr(val)
+    valStr = bcolors.OKCYAN + val + bcolors.ENDC
+    return valStr
+
+
+def OK_STR(val):
+    if type(val) != str:
+        val = toStr(val)
+    valStr = bcolors.OKGREEN + val + bcolors.ENDC
+    return valStr
+
+
+def INFO_STR(val):
+    if type(val) != str:
+        val = toStr(val)
+    valStr = bcolors.OKBLUE + val + bcolors.ENDC
+    return valStr
+
+
+def FAIL_STR(val):
+    if type(val) != str:
+        val = toStr(val)
+    valStr = bcolors.FAIL + val + bcolors.ENDC
+    return valStr

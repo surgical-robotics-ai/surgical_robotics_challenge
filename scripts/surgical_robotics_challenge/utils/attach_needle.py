@@ -44,7 +44,10 @@
 # //==============================================================================
 
 from ambf_client import Client
+import PyKDL
 from PyKDL import Vector, Rotation
+from surgical_robotics_challenge.utils.utilities import cartesian_interpolate_step
+import numpy as np
 import time
 import rospy
 import sys
@@ -54,49 +57,46 @@ else:
     from Tkinter import *
 
 
-def attach_needle(needle, link):
-    error = 1000
+def get_obj_trans(obj):
+    P = Vector(obj.get_pos().x, obj.get_pos().y, obj.get_pos().z)
+    R = Rotation.RPY(obj.get_rpy()[0], obj.get_rpy()[1], obj.get_rpy()[2])
+    return PyKDL.Frame(R, P)
+
+
+class NeedleOffsets:
+    TnINt1 = PyKDL.Frame(Rotation.RPY(-np.pi/2., 0., np.pi),
+                   Vector(-0.10727960616350174, -0.07585766911506653, -0.013998392969369888))
+    TnINt2 = PyKDL.Frame(Rotation.RPY(-np.pi/2., 0., 0.),
+                   Vector(0.09973019361495972, -0.05215135216712952, 0.03237169608473778))
+    TnINt3 = PyKDL.Frame(Rotation.RPY(-np.pi/2., 0., 0.),
+                   Vector(0.10727960616350174, -0.07585766911506653, -0.013998392969369888))
+
+
+def attach_needle(needle, link, T_offset):
+    reached = False
     if link is None:
         print('Not a valid link, returning')
         return
-    while error > 0.1 and not rospy.is_shutdown():
-        P_tINw = Vector(link.get_pos().x,
-                        link.get_pos().y,
-                        link.get_pos().z)
+    T_nINw = get_obj_trans(needle)
+    while not reached and not rospy.is_shutdown():
+        T_tINw = get_obj_trans(link)
+        T_nINw_cmd = T_tINw * T_offset
 
-        # R_tINw = Rotation.Quaternion(tool_yaw_link.get_rot().x,
-        #                              tool_yaw_link.get_rot().y,
-        #                              tool_yaw_link.get_rot().x,
-        #                              tool_yaw_link.get_rot().w)
+        T_delta, error_max = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01)
+        r_delta = T_delta.M.GetRPY()
+        # print(error_max)
+        if error_max < 0.01:
+            reached = True
+            break
 
-        R_tINw = Rotation.RPY(link.get_rpy()[0],
-                              link.get_rpy()[1],
-                              link.get_rpy()[2])
-
-        # we need to move the needle based on the Pose of the toolyawlink.
-        # The yawlink's n direction faces the grasp
-        # position. Therefore, lets add a small offset to the P of yawlink.
-        y_offset = Vector(-0.08, -0.1, 0)
-        P_nINw = P_tINw + R_tINw * y_offset
-
-        # If you want to rotate the needle to a certain relative orientation
-        # add another Rotation and multiply on the R.H.S of R_tINw in the
-        # Equation below.
-        R_nINw = R_tINw * Rotation.RPY(-1.57079, 0, 3.14)
-
-        needle.set_pos(P_nINw[0],
-                       P_nINw[1],
-                       P_nINw[2])
-        needle.set_rot(R_nINw.GetQuaternion())
+        T_cmd = Frame()
+        T_cmd.p = T_nINw.p + T_delta.p
+        T_cmd.M = T_nINw.M * Rotation.RPY(r_delta[0], r_delta[1], r_delta[2])
+        T_nINw = T_cmd
+        needle.set_pos(T_cmd.p[0], T_cmd.p[1], T_cmd.p[2])
+        needle.set_rpy(T_cmd.M.GetRPY()[0], T_cmd.M.GetRPY()[1], T_cmd.M.GetRPY()[2])
         time.sleep(0.001)
-        P_tINw = Vector(link.get_pos().x,
-                        link.get_pos().y,
-                        link.get_pos().z)
-        P_nINw = Vector(needle.get_pos().x,
-                        needle.get_pos().y,
-                        needle.get_pos().z)
-        error = (P_tINw - P_nINw).Norm()
-        print(error)
+        # T_nINw = get_obj_trans(needle)
 
     # Wait for the needle to get there
     time.sleep(3)
@@ -112,15 +112,15 @@ def attach_needle(needle, link):
 
 
 def psm1_btn_cb():
-    attach_needle(needle, link1)
+    attach_needle(needle, link1, NeedleOffsets.TnINt1)
 
 
 def psm2_btn_cb():
-    attach_needle(needle, link2)
+    attach_needle(needle, link2, NeedleOffsets.TnINt2)
 
 
 def psm3_btn_cb():
-    attach_needle(needle, link3)
+    attach_needle(needle, link3, NeedleOffsets.TnINt3)
 
 
 c = Client('attach_needle')

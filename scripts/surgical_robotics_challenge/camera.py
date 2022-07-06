@@ -84,14 +84,13 @@ class Camera:
         self._pose_changed = True
 
     def _update_camera_pose(self):
-        if self._pose_changed is True:
-            p = self.camera_handle.get_pos()
-            q = self.camera_handle.get_rot()
-            P_c_w = Vector(p.x, p.y, p.z)
-            R_c_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
-            self._T_c_w = Frame(R_c_w, P_c_w)
-            self._T_w_c = self._T_c_w.Inverse()
-            self._pose_changed = False
+        p = self.camera_handle.get_pos()
+        q = self.camera_handle.get_rot()
+        P_c_w = Vector(p.x, p.y, p.z)
+        R_c_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
+        self._T_c_w = Frame(R_c_w, P_c_w)
+        self._T_w_c = self._T_c_w.Inverse()
+        self._pose_changed = False
 
     def move_cp(self, T_c_w):
         if type(T_c_w) in [np.matrix, np.array]:

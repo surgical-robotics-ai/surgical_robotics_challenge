@@ -43,16 +43,44 @@
 # */
 # //==============================================================================
 import numpy as np
-import random
+import rospy
+from sensor_msgs.msg import ChannelFloat32
+from random import random
 
 class JointErrorsModel:
-    def __init__(self, num_joints, errors_distribution_deg):
-        self.errors_list_deg = errors_distribution_deg
-        self.joint_erros_rad = []
+    def __init__(self, arm_name, num_joints):
+        self._arm_name = arm_name
         self.num_jnts = num_joints
+        self._joint_errors = [0.] * num_joints
+        # Subscriber to set errors on the fly
+        self._errors_sub = rospy.Subscriber('/ambf/env/' + arm_name + '/errors_model/set_errors',
+                                            ChannelFloat32, self._errors_sub, queue_size=1)
+
+    def _errors_sub(self, msg):
+        errors = msg.values
+        if type(errors) == tuple:
+            errors = list(errors)
+        self.set_errors(errors)
+
+    def generate_random_from_max_value(self, max_errors_list):
+        """
+        # Set each joint error to a random value with a max range provided
+        # by max_errors_list
+        :param max_errors_list:
+        """
         for i in range(self.num_jnts):
-            self.joint_erros_rad.append(np.deg2rad(random.choice(self.errors_list_deg)))
-        print(np.rad2deg(self.joint_erros_rad))
+            rand_val = 2. * random() - 1.
+            self._joint_errors[i] = rand_val * max_errors_list[i]
+        print('Joint Errors: ', self._joint_errors)
+
+    def set_errors(self, errors_list):
+        """
+        # Directly set the joint errors.
+        :param errors_list:
+        """
+        for i in range(len(errors_list)):
+            self._joint_errors[i] = errors_list[i]
+        print('Joint Errors: ', self._joint_errors)
 
     def _size_check(self, q, joint_mask):
         qs_size = len(q)
@@ -75,7 +103,7 @@ class JointErrorsModel:
                 q = list(q)
             for i in range(len(joint_mask)):
                 if joint_mask[i]:
-                    q[i] = q[i] + self.joint_erros_rad[i]
+                    q[i] = q[i] + self._joint_errors[i]
         return q
 
     def remove_from_joints(self, q, joint_mask):
@@ -84,5 +112,5 @@ class JointErrorsModel:
                 q = list(q)
             for i in range(len(joint_mask)):
                 if joint_mask[i]:
-                    q[i] = q[i] - self.joint_erros_rad[i]
+                    q[i] = q[i] - self._joint_errors[i]
         return q
