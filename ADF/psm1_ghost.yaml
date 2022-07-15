@@ -93,7 +93,7 @@ BODY base link:
       b: 0.00785
       g: 0.00785
       r: 0.4687
-    transparency: 1.0
+    transparency: 0.6
 BODY yaw link:
   name: yaw link
   mesh: yaw link.STL
@@ -158,7 +158,7 @@ BODY yaw link:
       b: 0.4
       g: 0.4
       r: 0.3062
-    transparency: 1.0
+    transparency: 0.6
 BODY pitch end link:
   name: pitch end link
   mesh: pitch end link.STL
@@ -255,7 +255,7 @@ BODY pitch end link:
       b: 0.08135
       g: 0.08135
       r: 0.0709
-    transparency: 1.0
+    transparency: 0.6
 BODY main insertion link:
   name: main insertion link
   mesh: main insertion link.STL
@@ -320,7 +320,7 @@ BODY main insertion link:
       b: 0.27845
       g: 0.27845
       r: 0.5
-    transparency: 1.0
+    transparency: 0.6
 BODY tool roll link:
   name: tool roll link
   mesh: tool roll link.STL
@@ -385,7 +385,7 @@ BODY tool roll link:
       b: 0.15
       g: 0.15
       r: 0.15
-    transparency: 1.0
+    transparency: 0.6
 BODY tool pitch link:
   name: tool pitch link
   mesh: tool pitch link.STL
@@ -450,7 +450,7 @@ BODY tool pitch link:
       b: 0.15
       g: 0.15
       r: 0.15
-    transparency: 1.0
+    transparency: 0.6
 BODY tool yaw link:
   name: tool yaw link
   mesh: tool yaw link.STL
@@ -586,7 +586,7 @@ BODY tool gripper1 link:
       b: 0.25
       g: 0.25
       r: 0.25
-    transparency: 1.0
+    transparency: 0.6
 BODY tool gripper2 link:
   name: tool gripper2 link
   mesh: tool gripper2 link.STL
@@ -668,7 +668,7 @@ BODY tool gripper2 link:
       b: 0.25
       g: 0.25
       r: 0.25
-    transparency: 1.0
+    transparency: 0.6
 JOINT base link-yaw link:
   name: base link-yaw link
   parent: BODY base link
