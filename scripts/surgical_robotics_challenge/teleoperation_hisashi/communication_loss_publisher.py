@@ -9,7 +9,7 @@ def publisher():
     flag = False
 
     time_period = 10
-    loss_period = 1
+    loss_period = 1.5
 
     hz = 200
     rate = rospy.Rate(hz) # 200hz
