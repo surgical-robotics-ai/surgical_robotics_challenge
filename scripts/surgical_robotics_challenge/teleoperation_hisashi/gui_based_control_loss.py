@@ -115,14 +115,7 @@ class ECMController:
 
     def update_camera_pose(self):
         self._cam_gui.App.update()
-        self._ecm.servo_jp(self._cam_gui.jnt_cmds)
 
-    def run(self):
-        self.update_camera_pose()
-
-
-if __name__ == "__main__":
-    parser = ArgumentParser()
     parser.add_argument('-c', action='store', dest='client_name', help='Client Name', default='ambf_client')
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
@@ -141,11 +134,6 @@ if __name__ == "__main__":
     c = Client(parsed_args.client_name)
     c.connect()
 
-    time.sleep(0.5)
-    controllers = []
-
-    if parsed_args.run_psm_one is True:
-        arm_name = 'psm1'
         psm = PSM(c, arm_name)
         if psm.base is not None:
             print('LOADING CONTROLLER FOR ', arm_name)

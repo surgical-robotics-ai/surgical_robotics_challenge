@@ -42,6 +42,7 @@
 #     \version   1.0
 # */
 # //==============================================================================
+import sys
 from surgical_robotics_challenge.kinematics.psmIK import *
 from ambf_client import Client
 from surgical_robotics_challenge.psm_arm import PSM
@@ -61,7 +62,6 @@ from pykalman import KalmanFilter
 
 
 dt = 1e-10
-
 
 class KFPredict:
     def __init__(self, observation):
@@ -98,9 +98,7 @@ class KFPredict:
             initial_state_covariance=initial_state_covariance,
             observation_covariance=initial_observation_covariance,
         )
-    
-    def predict(self, state, cov):
-        state = state.reshape([9,])
+    Closin
         mean, covariance = self.kf.filter_update(
             filtered_state_mean=state,
             filtered_state_covariance=cov,
