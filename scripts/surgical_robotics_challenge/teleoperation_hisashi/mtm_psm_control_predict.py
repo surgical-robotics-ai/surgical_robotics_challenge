@@ -50,7 +50,7 @@ from argparse import ArgumentParser
 
 import rospy
 from std_msgs.msg import Bool
-from PyKDL import Frame, Rotation, Vector, Wrench
+from PyKDL import Frame, Rotation, Vector, Wrench, Twist
 from ambf_client import Client
 
 from surgical_robotics_challenge.psm_arm import PSM
@@ -62,7 +62,7 @@ from surgical_robotics_challenge.utils.jnt_control_gui import JointGUI
 from pykalman import KalmanFilter
 
 
-dt = 1e-10 #0.035
+dt = 0.5 #0.035
 
 # PyKDL types <--> Numpy types
 def from_kdl_vector(vector):
@@ -162,9 +162,9 @@ class ControllerInterface:
         self.communication_loss = False
         self.enable_ghost = False
 
-        self.vel_prev = self.leader.measured_cv()
+        self.vel_prev = Twist.Zero()
         self.kf = None
-        self.observation = np.zeros(1,9)
+        self.observation = np.zeros([1,9])
 
 
     def update_T_b_c(self):
@@ -195,16 +195,16 @@ class ControllerInterface:
         twist = self.leader.measured_cv() * 0.035 ## Vel times dt
         self.cmd_xyz = self.psm_arm.T_t_b_home.p
 
+        # acc = Twist.Zero()
         acc = twist - self.vel_prev
         self.vel_prev = twist
         
         # initiate the KF prediciton with current observation.
-        pos = np.array([self.cmd_xyz[0],self.cmd_xyz[1],self.cmd_xyz[2]])
-        vel = from_kdl_twist(twist)
-        acc = from_kdl_twist(acc)
-        observation = np.hstack([pos,vel[:3],acc[:3]])
-        self.kf = KFPredict(observation)
-
+        # pos = np.array([self.cmd_xyz[0],self.cmd_xyz[1],self.cmd_xyz[2]])
+        # vel = from_kdl_twist(twist)
+        # acc_np = from_kdl_twist(acc)
+        # observation = np.hstack([pos,vel[:3],acc_np[:3]])
+        # self.kf = KFPredict(observation)
 
 
         if not self.leader.clutch_button_pressed:
@@ -220,8 +220,9 @@ class ControllerInterface:
 
                 pos = np.array([self.cmd_xyz[0],self.cmd_xyz[1],self.cmd_xyz[2]])
                 vel = from_kdl_twist(twist)
-                acc = from_kdl_twist(acc)
-                self.observation = np.hstack([pos,vel[:3],acc[:3]])
+                acc_np = from_kdl_twist(acc)
+                self.observation = np.hstack([pos,vel[:3],acc_np[:3]])
+                self.kf = KFPredict(self.observation)
 
                 self.psm_arm.servo_cp(self.T_IK)
                 self.psm_ghost_arm.servo_cp(self.T_IK)
@@ -229,8 +230,8 @@ class ControllerInterface:
 
             if (self.communication_loss == True):
                 mean, cov = self.kf.predict(self.observation, 0.01 * np.ones([9, 9]))
-                self.observation = mean.diagnal()
-                self.T_IK_predict = Frame(self.cmd_rpy, Vector(observation[0], observation[1], observation[2]))
+                self.observation = mean
+                self.T_IK_predict = Frame(self.cmd_rpy, Vector(self.observation[0], self.observation[1], self.observation[2]))
 
                 self.psm_ghost_arm.servo_cp(self.T_IK_predict)
 
@@ -256,14 +257,16 @@ class ControllerInterface:
         if not self.leader.clutch_button_pressed:
             delta_t = self._T_c_b.M * twist.vel
             self.cmd_xyz = self.cmd_xyz + delta_t
-            self.active_psm.T_t_b_home.p = self.cmd_xyz
+            self.psm_arm.T_t_b_home.p = self.cmd_xyz
+            self.psm_ghost_arm.T_t_b_home.p = self.cmd_xyz
+
         if self.leader.coag_button_pressed:
             self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
             self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
             
             if (self.communication_loss == False):
-                self.psm_arms.servo_cp(self.T_IK)
-                self.psm_ghost_arms.servo_cp(self.T_IK)
+                self.psm_arm.servo_cp(self.T_IK)
+                self.psm_ghost_arm.servo_cp(self.T_IK)
 
         if (self.communication_loss == False):
             self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
@@ -362,13 +365,16 @@ if __name__ == "__main__":
         if psm.is_present():
             psm_arms.append(psm)
 
+    if len(psm_arms) == 0:
+        print('No Valid PSM Arms Specified')
+        print('Exiting')
 
     else:
+
         leader = MTM(parsed_args.mtm_name)
         leader.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
         controller1 = ControllerInterface(leader, psm_arms, cam)
         controllers.append(controller1)
-        
         rate = rospy.Rate(200)
 
         while not rospy.is_shutdown():
