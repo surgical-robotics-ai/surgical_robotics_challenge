@@ -143,6 +143,7 @@ class MTM:
         gripper_topic_name = name + 'gripper/measured_js'
         clutch_topic_name = '/footpedals/clutch'
         coag_topic_name = '/console/operator_present'
+        ori_abs_topic_name = name + '/body/set_cf_orientation_absolute'
 
         pose_pub_topic_name = name + 'servo_cp'
         wrench_pub_topic_name = name + 'body/servo_cf'
@@ -191,12 +192,17 @@ class MTM:
             pose_pub_topic_name, PoseStamped, queue_size=1)
         self._wrench_pub = rospy.Publisher(
             wrench_pub_topic_name, WrenchStamped, queue_size=1)
+        self._ori_abs_pub = rospy.Publisher(
+            ori_abs_topic_name, Bool, queue_size=1)
         self._effort_pub = rospy.Publisher(
             effort_pub_topic_name, JointState, queue_size=1)
         self._gravity_comp_pub = rospy.Publisher(
             grav_comp_topic_name, Bool, queue_size=1)
 
         print('Creating MTM Device Named: ', name, ' From ROS Topics')
+        true_msg  = Bool()
+        true_msg.data = True
+        self._ori_abs_pub.publish(true_msg)
         self._msg_counter = 0
 
     def set_base_frame(self, frame):
@@ -327,7 +333,7 @@ class MTM:
         self._pos_pub.publish(pose_msg)
 
     def servo_cf(self, wrench):
-        wrench = self._T_baseoffset_inverse * wrench
+        # wrench = self._T_baseoffset_inverse * wrench
         wrench_msg = kdl_wrench_to_wrench_msg(wrench)
         self._wrench_pub.publish(wrench_msg)
 
