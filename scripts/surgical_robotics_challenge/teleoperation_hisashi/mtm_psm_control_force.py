@@ -181,13 +181,13 @@ class ControllerInterface:
         # update camera pose
         self.update_T_b_c()
 
-        if self.leader.coag_button_pressed or self.leader.clutch_button_pressed:
+        if  self.leader.clutch_button_pressed or (self.leader.coag_button_pressed and self.communication_loss == False): 
             # send 0 force and torque meaning keep the MTM in the same position
             f = Wrench()
             self.leader.servo_cf(f)
 
         else:
-            if self.leader.is_active():
+            if self.leader.is_active() and self.communication_loss == False:
                 # Bring back the leader to the previous mtm place
                 self.leader.servo_cp(self.leader.pre_coag_pose_msg)
         
@@ -226,6 +226,10 @@ class ControllerInterface:
 
                 self.psm_arm.servo_cp(self.T_IK)
                 self.psm_ghost_arm.servo_cp(self.T_IK)
+
+                self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
+                self.psm_ghost_arm.set_jaw_angle(self.leader.get_jaw_angle())
+
             
 
             if (self.communication_loss == True):
@@ -234,22 +238,23 @@ class ControllerInterface:
                 self.T_IK_predict = Frame(self.cmd_rpy, Vector(self.observation[0], self.observation[1], self.observation[2]))
                 self.psm_ghost_arm.servo_cp(self.T_IK_predict)
 
+                f_vis = Wrench()
+                f_vis[0] = - 10.0 * self.leader.measured_cv().vel.x()
+                f_vis[1] = - 10.0 * self.leader.measured_cv().vel.y()
+                f_vis[2] = - 10.0 * self.leader.measured_cv().vel.z()
+                self.leader.servo_cf(f_vis)
 
-            # Move the robot jaw links only if there is a communication
-            if (self.communication_loss == False):
-                self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
-                self.psm_ghost_arm.set_jaw_angle(self.leader.get_jaw_angle())
 
 
     def update_arms_pose_withloss(self):
         self.update_T_b_c()
-        if self.leader.coag_button_pressed or self.leader.clutch_button_pressed:
+        if (self.leader.coag_button_pressed or self.leader.clutch_button_pressed) and self.communication_loss == False:
             # self.leader.optimize_wrist_platform()
             f = Wrench()
             self.leader.servo_cf(f)
-        else:
-            if self.leader.is_active():
-                self.leader.servo_cp(self.leader.pre_coag_pose_msg)
+        # else:
+            # if self.leader.is_active():
+                # self.leader.servo_cp(self.leader.pre_coag_pose_msg)
         twist = self.leader.measured_cv() * 0.035
         self.cmd_xyz = self.psm_arm.T_t_b_home.p
 
@@ -266,6 +271,11 @@ class ControllerInterface:
             if (self.communication_loss == False):
                 self.psm_arm.servo_cp(self.T_IK)
                 self.psm_ghost_arm.servo_cp(self.T_IK)
+            
+            else:
+                test_f = Wrench()
+                test_f[0] = 1.0
+                self.leader.servo_cf(test_f)
 
         if (self.communication_loss == False):
             self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
