@@ -143,8 +143,8 @@ class ControllerInterface:
         self.counter = 0
         self.leader = leader
 
-        self.psm_arm = psm_arms[1]
-        self.psm_ghost_arm = psm_arms[0]
+        self.psm_arm = psm_arms[0]
+        self.psm_ghost_arm = psm_arms[1]
 
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
@@ -234,12 +234,6 @@ class ControllerInterface:
                 self.predict_xyz = Vector(self.observation[0], self.observation[1], self.observation[2])
                 self.T_IK_predict = Frame(self.cmd_rpy, self.predict_xyz)
                 self.psm_ghost_arm.servo_cp(self.T_IK_predict)
-
-
-                cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
-                self.T_IK = Frame(cmd_rpy, self.cmd_xyz)
-                self.psm_arm.servo_cp(self.T_IK)
-
 
                 # Set viscosity
                 f_vis = Wrench()

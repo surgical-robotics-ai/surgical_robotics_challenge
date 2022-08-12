@@ -154,7 +154,7 @@ class MTM:
         self.pre_coag_pose_msg = None
 
         self._active = False
-        self._scale = 1.0
+        self._scale = 3.0
         self.pose = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
         self.twist = PyKDL.Twist()
         R_off = Rotation.RPY(0, 0, 0)

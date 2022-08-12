@@ -239,9 +239,9 @@ class ControllerInterface:
                 self.psm_ghost_arm.servo_cp(self.T_IK_predict)
 
                 f_vis = Wrench()
-                f_vis[0] = - 10.0 * self.leader.measured_cv().vel.x()
-                f_vis[1] = - 10.0 * self.leader.measured_cv().vel.y()
-                f_vis[2] = - 10.0 * self.leader.measured_cv().vel.z()
+                f_vis[0] = - 5.0 * self.leader.measured_cv().vel.x()
+                f_vis[1] = - 5.0 * self.leader.measured_cv().vel.y()
+                f_vis[2] = - 5.0 * self.leader.measured_cv().vel.z()
                 self.leader.servo_cf(f_vis)
 
 
