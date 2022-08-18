@@ -1,5 +1,6 @@
 import rospy
 from std_msgs.msg import Bool
+import random
 
 def publisher():
     pub = rospy.Publisher('communication_loss', Bool, queue_size=1)
@@ -8,7 +9,7 @@ def publisher():
     i = 0
     flag = False
 
-    time_period = 10
+    time_period = 5
     loss_period = 1.5
 
     hz = 200
@@ -24,10 +25,19 @@ def publisher():
             flag = True
             pub.publish(flag)
 
-        if (i == time_period * hz):
+        if (i == int(time_period * hz)):
             flag = False
             pub.publish(flag)
             i = 0
+
+            # Added for random generation loss
+            time_period = 10 * random.random()
+            loss_period = random.random() * 5
+            while time_period <  loss_period:
+                time_period = loss_period +1 
+
+            print("TIME_period: " + str(time_period) + " sec")
+            print("LOSS_period: "  + str(loss_period) + " sec")
 
         #pub.publish(flag)
         rate.sleep()

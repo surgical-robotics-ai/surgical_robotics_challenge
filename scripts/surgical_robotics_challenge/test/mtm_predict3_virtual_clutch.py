@@ -139,13 +139,16 @@ class KFPredict:
         return mean, covariance
 
 class ControllerInterface:
-    def __init__(self, leader, psm_arms, camera):
+    def __init__(self, leader, psm_arms, camera, index):
         self.counter = 0
         self.leader = leader
 
-        self.psm_arm = psm_arms[1]
-        self.psm_ghost_arm = psm_arms[2]
-        self.psm_remote_arm = psm_arms[0]
+        if index == 0:
+            self.psm_arm = psm_arms[0]
+        if index == 1:
+            self.psm_ghost_arm = psm_arms[0]
+        if index == 2:
+            self.psm_remote_arm = psm_arms[0]
 
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
@@ -206,17 +209,20 @@ class ControllerInterface:
         if not self.leader.clutch_button_pressed:
             delta_t = self._T_c_b.M * twist.vel
 
-            if self.communication_loss == False and self.recovery == True:
+            if self.recovery == True and self.communication_loss == False:
                     self.cmd_xyz = self.predict_xyz
                     self.recovery = False
             else:
                 self.cmd_xyz = self.cmd_xyz + delta_t
-            self.psm_arm.T_t_b_home.p = self.cmd_xyz
+
+            if self.index == 0:
+                self.psm_arm.T_t_b_home.p = self.cmd_xyz
         
         if self.leader.coag_button_pressed:
             
             if (self.communication_loss == False):
                 self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
+                
                 self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
 
                 pos = np.array([self.cmd_xyz[0],self.cmd_xyz[1],self.cmd_xyz[2]])
@@ -224,15 +230,21 @@ class ControllerInterface:
                 acc_np = from_kdl_twist(acc)
                 self.observation = np.hstack([pos,vel[:3],acc_np[:3]])
                 # self.kf = KFPredict(self.observation)
-
-                self.psm_arm.servo_cp(self.T_IK)
-                self.psm_ghost_arm.servo_cp(self.T_IK)
-                self.psm_remote_arm.servo_cp(self.T_IK)
+                
+                if self.index == 0:
+                    self.psm_arm.servo_cp(self.T_IK)
+                if self.index == 1:
+                    self.psm_ghost_arm.servo_cp(self.T_IK)
+                if self.index == 2:
+                    self.psm_remote_arm.servo_cp(self.T_IK)
             
                 # Move the robot jaw links only if there is a communication
-                self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
-                self.psm_ghost_arm.set_jaw_angle(self.leader.get_jaw_angle())
-                self.psm_remote_arm.set_jaw_angle(self.leader.get_jaw_angle())
+                if self.index == 0:
+                    self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
+                if self.index == 1:
+                    self.psm_ghost_arm.set_jaw_angle(self.leader.get_jaw_angle())
+                if self.index == 2:
+                    self.psm_remote_arm.set_jaw_angle(self.leader.get_jaw_angle())
 
 
                 self.cmd_xyz_old = self.cmd_xyz
@@ -245,12 +257,16 @@ class ControllerInterface:
                     self.observation = mean
                 self.predict_xyz = Vector(self.observation[0], self.observation[1], self.observation[2])
                 self.T_IK_predict = Frame(self.cmd_rpy, self.predict_xyz)
-                self.psm_ghost_arm.servo_cp(self.T_IK_predict)
+
+                if self.index == 1:
+                    self.psm_ghost_arm.servo_cp(self.T_IK_predict)
 
 
                 cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
                 self.T_IK = Frame(cmd_rpy, self.cmd_xyz)
-                self.psm_arm.servo_cp(self.T_IK)
+
+                if self.index == 0:
+                    self.psm_arm.servo_cp(self.T_IK)
 
 
                 # Set viscosity
@@ -329,69 +345,84 @@ if __name__ == "__main__":
     controllers = []
     psm_arms = []
 
+    arm_index = 3
+
     if parsed_args.run_psm_one is True:
         # Initial Target Offset for PSM1
         # init_xyz = [0.1, -0.85, -0.15]
-    
-        arm_name = 'psm1'
-        print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(c, arm_name, add_joint_errors=False)
-        if psm.is_present():
-            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
-            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
-            psm.set_home_pose(T_psmtip_b)
-            psm_arms.append(psm)
 
-        arm_name = 'psm1_ghost'
-        print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(c, arm_name, add_joint_errors=False)
-        if psm.is_present():
-            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
-            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
-            psm.set_home_pose(T_psmtip_b)
-            psm_arms.append(psm)
+        if parsed_args.index == '0':
+            arm_index = 0
+            arm_name = 'psm1'
+            print('LOADING CONTROLLER FOR ', arm_name)
+            psm = PSM(c, arm_name, add_joint_errors=False)
+            if psm.is_present():
+                T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
+                T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+                psm.set_home_pose(T_psmtip_b)
+                psm_arms.append(psm)
 
-        arm_name = 'psm1_remote'
-        print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(c, arm_name, add_joint_errors=False)
-        if psm.is_present():
-            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
-            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
-            psm.set_home_pose(T_psmtip_b)
-            psm_arms.append(psm)
+        if parsed_args.index == '1':
+            arm_index = 1
+            arm_name = 'psm1_ghost'
+            print('LOADING CONTROLLER FOR ', arm_name)
+            psm = PSM(c, arm_name, add_joint_errors=False)
+            if psm.is_present():
+                T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
+                T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+                psm.set_home_pose(T_psmtip_b)
+                psm_arms.append(psm)
+        if parsed_args.index == '2':
+            arm_index = 2
+
+            arm_name = 'psm1_remote'
+            print('LOADING CONTROLLER FOR ', arm_name)
+            psm = PSM(c, arm_name, add_joint_errors=False)
+            if psm.is_present():
+                T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
+                T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+                psm.set_home_pose(T_psmtip_b)
+                psm_arms.append(psm)
         
 
 
     if parsed_args.run_psm_two is True:
         # Initial Target Offset for PSM1
         # init_xyz = [0.1, -0.85, -0.15]
-        arm_name = 'psm2'
-        print('LOADING CONTROLLER FOR ', arm_name)
-        theta_base = -0.7
-        psm = PSM(c, arm_name, add_joint_errors=False)
-        if psm.is_present():
-            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
-            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
-            psm.set_home_pose(T_psmtip_b)
-            psm_arms.append(psm)
         
-        arm_name = 'psm2_ghost'
-        print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(c, arm_name, add_joint_errors=False)
-        if psm.is_present():
-            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
-            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
-            psm.set_home_pose(T_psmtip_b)
-            psm_arms.append(psm)
+        if parsed_args.index == '0':
+            arm_index = 0
+            arm_name = 'psm2'
+            print('LOADING CONTROLLER FOR ', arm_name)
+            theta_base = -0.7
+            psm = PSM(c, arm_name, add_joint_errors=False)
+            if psm.is_present():
+                T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
+                T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+                psm.set_home_pose(T_psmtip_b)
+                psm_arms.append(psm)
 
-        arm_name = 'psm2_remote'
-        print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(c, arm_name, add_joint_errors=False)
-        if psm.is_present():
-            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
-            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
-            psm.set_home_pose(T_psmtip_b)
-            psm_arms.append(psm)
+        if parsed_args.index == '1':
+            arm_index = 1
+            arm_name = 'psm2_ghost'
+            print('LOADING CONTROLLER FOR ', arm_name)
+            psm = PSM(c, arm_name, add_joint_errors=False)
+            if psm.is_present():
+                T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
+                T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+                psm.set_home_pose(T_psmtip_b)
+                psm_arms.append(psm)
+
+        if parsed_args.index == '2':
+            arm_index = 2
+            arm_name = 'psm2_remote'
+            print('LOADING CONTROLLER FOR ', arm_name)
+            psm = PSM(c, arm_name, add_joint_errors=False)
+            if psm.is_present():
+                T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
+                T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+                psm.set_home_pose(T_psmtip_b)
+                psm_arms.append(psm)
 
     if len(psm_arms) == 0:
         print('No Valid PSM Arms Specified')
@@ -401,7 +432,7 @@ if __name__ == "__main__":
 
         leader = MTM(parsed_args.mtm_name)
         leader.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
-        controller1 = ControllerInterface(leader, psm_arms, cam)
+        controller1 = ControllerInterface(leader, psm_arms, cam, arm_index)
         controllers.append(controller1)
         rate = rospy.Rate(200)
 

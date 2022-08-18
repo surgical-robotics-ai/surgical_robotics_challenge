@@ -65,7 +65,7 @@ BODY base link:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 5
   collision shape: CONE
@@ -130,7 +130,7 @@ BODY yaw link:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 5
   collision shape: CONE
@@ -195,7 +195,7 @@ BODY pitch end link:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 6
   compound collision shape:
@@ -292,7 +292,7 @@ BODY main insertion link:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 5
   collision shape: BOX
@@ -357,7 +357,7 @@ BODY tool roll link:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 7
   collision shape: CYLINDER
@@ -422,7 +422,7 @@ BODY tool pitch link:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 8
   collision shape: CAPSULE
@@ -488,7 +488,7 @@ BODY tool yaw link:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 9
   collision shape: CYLINDER

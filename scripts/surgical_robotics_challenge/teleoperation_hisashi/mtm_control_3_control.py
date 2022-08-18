@@ -145,13 +145,14 @@ class ControllerInterface:
 
         self.psm_arm = psm_arms[1]
         self.psm_ghost_arm = psm_arms[0]
+        
 
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
         self.cmd_xyz = self.psm_arm.T_t_b_home.p
         self.cmd_rpy = None
         self.T_IK = None
-        self.T_IK_predict = None
+        self.T_IK_loss = None
         self._camera = camera
 
         self._T_c_b = None
@@ -183,7 +184,10 @@ class ControllerInterface:
          # update camera pose
         self.update_T_b_c()
 
-        if  self.leader.clutch_button_pressed or (self.leader.coag_button_pressed and self.communication_loss == False): 
+        if self.communication_loss:
+            self.leader.servo_cp(self.T_IK_loss)
+
+        elif  self.leader.clutch_button_pressed or (self.leader.coag_button_pressed): 
             # send 0 force and torque meaning keep the MTM in the same position
             f = Wrench()
             self.leader.servo_cf(f)
@@ -194,7 +198,7 @@ class ControllerInterface:
                 self.leader.servo_cp(self.leader.pre_coag_pose_msg)
         
 
-        twist = self.leader.measured_cv() * 0.035 ## Vel times dt
+        twist = self.leader.measured_cv() * 0.1#0.035 ## Vel times dt
         self.cmd_xyz = self.psm_arm.T_t_b_home.p
 
         # acc = Twist.Zero()
@@ -218,19 +222,21 @@ class ControllerInterface:
                 acc_np = from_kdl_twist(acc)
                 self.observation = np.hstack([pos,vel[:3],acc_np[:3]])
 
-                self.psm_arm.servo_cp(self.T_IK)
+                # self.psm_arm.servo_cp(self.T_IK)
                 self.psm_ghost_arm.servo_cp(self.T_IK)
             
                 # Move the robot jaw links only if there is a communication
-                self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
+                # self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
                 self.psm_ghost_arm.set_jaw_angle(self.leader.get_jaw_angle())
+
+                self.T_IK_loss = self.T_IK
             
 
             # Communication Lost
             else:
                 cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
                 self.T_IK = Frame(cmd_rpy, self.cmd_xyz)
-                self.psm_arm.servo_cp(self.T_IK)
+                # self.psm_arm.servo_cp(self.T_IK)
 
 
     def update_arms_pose_withloss(self):
