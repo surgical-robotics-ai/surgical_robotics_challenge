@@ -44,8 +44,7 @@
 # //==============================================================================
 
 import sys
-import time
-import numpy as np
+import timemtm_psm_control_predict3 copy
 from argparse import ArgumentParser
 
 import rospy
@@ -145,6 +144,7 @@ class ControllerInterface:
 
         self.psm_arm = psm_arms[1]
         self.psm_ghost_arm = psm_arms[0]
+        self.psm_remote_arm = psm_arms[2]
 
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
@@ -167,6 +167,8 @@ class ControllerInterface:
         self.observation = np.zeros([1,9])
         self.kf = KFPredict(self.observation)
         self.predict_xyz =self.cmd_xyz
+
+        self.recovery = False
 
 
     def update_T_b_c(self):
@@ -193,10 +195,7 @@ class ControllerInterface:
                 # Bring back the leader to the previous mtm place
                 self.leader.servo_cp(self.leader.pre_coag_pose_msg)
         
-
-        twist = self.leader.measured_cv() * 0.035 ## Vel times dt
-        self.cmd_xyz = self.psm_arm.T_t_b_home.p
-
+mtm_psm_control_predict3 copy
         # acc = Twist.Zero()
         acc = twist - self.vel_prev
         self.vel_prev = twist
@@ -207,10 +206,12 @@ class ControllerInterface:
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.psm_arm.T_t_b_home.p = self.cmd_xyz
         
-        if self.leader.coag_button_pressed:
-
-            if (self.communication_loss == False):
-                self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
+        if self.leader.coag_button_pressed:mtm_psm_control_predict3 copy.measured_cp().M
+                
+                if self.recovery = True:
+                    self.cmd_xyz = self.predict_xyz
+                    self.recovery = False
+                
                 self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
 
                 pos = np.array([self.cmd_xyz[0],self.cmd_xyz[1],self.cmd_xyz[2]])
@@ -221,6 +222,7 @@ class ControllerInterface:
 
                 self.psm_arm.servo_cp(self.T_IK)
                 self.psm_ghost_arm.servo_cp(self.T_IK)
+                self.psm1_remote.servo_cp(self.T_IK)
             
                 # Move the robot jaw links only if there is a communication
                 self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
@@ -260,6 +262,8 @@ class ControllerInterface:
                 f_vis[1] = - eta * twist.vel.y()
                 f_vis[2] = - eta * twist.vel.z()
                 self.leader.servo_cf(f_vis)
+
+                self.recovery = True
 
 
 
@@ -339,6 +343,16 @@ if __name__ == "__main__":
             psm.set_home_pose(T_psmtip_b)
             psm_arms.append(psm)
 
+        arm_name = 'psm1_remote'
+        print('LOADING CONTROLLER FOR ', arm_name)
+        psm = PSM(c, arm_name, add_joint_errors=False)
+        if psm.is_present():
+            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
+            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+            psm.set_home_pose(T_psmtip_b)
+            psm_arms.append(psm)
+        
+
 
     if parsed_args.run_psm_two is True:
         # Initial Target Offset for PSM1
@@ -354,6 +368,15 @@ if __name__ == "__main__":
             psm_arms.append(psm)
         
         arm_name = 'psm2_ghost'
+        print('LOADING CONTROLLER FOR ', arm_name)
+        psm = PSM(c, arm_name, add_joint_errors=False)
+        if psm.is_present():
+            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
+            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+            psm.set_home_pose(T_psmtip_b)
+            psm_arms.append(psm)
+
+        arm_name = 'psm2_remote'
         print('LOADING CONTROLLER FOR ', arm_name)
         psm = PSM(c, arm_name, add_joint_errors=False)
         if psm.is_present():

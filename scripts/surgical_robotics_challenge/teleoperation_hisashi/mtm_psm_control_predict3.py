@@ -145,6 +145,7 @@ class ControllerInterface:
 
         self.psm_arm = psm_arms[1]
         self.psm_ghost_arm = psm_arms[0]
+        self.psm_remote_arm = psm_arms[2]
 
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
@@ -221,6 +222,7 @@ class ControllerInterface:
 
                 self.psm_arm.servo_cp(self.T_IK)
                 self.psm_ghost_arm.servo_cp(self.T_IK)
+                self.psm1_remote.servo_cp(self.T_IK)
             
                 # Move the robot jaw links only if there is a communication
                 self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
@@ -339,6 +341,16 @@ if __name__ == "__main__":
             psm.set_home_pose(T_psmtip_b)
             psm_arms.append(psm)
 
+        arm_name = 'psm1_remote'
+        print('LOADING CONTROLLER FOR ', arm_name)
+        psm = PSM(c, arm_name, add_joint_errors=False)
+        if psm.is_present():
+            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
+            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+            psm.set_home_pose(T_psmtip_b)
+            psm_arms.append(psm)
+        
+
 
     if parsed_args.run_psm_two is True:
         # Initial Target Offset for PSM1
@@ -354,6 +366,15 @@ if __name__ == "__main__":
             psm_arms.append(psm)
         
         arm_name = 'psm2_ghost'
+        print('LOADING CONTROLLER FOR ', arm_name)
+        psm = PSM(c, arm_name, add_joint_errors=False)
+        if psm.is_present():
+            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
+            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+            psm.set_home_pose(T_psmtip_b)
+            psm_arms.append(psm)
+
+        arm_name = 'psm2_remote'
         print('LOADING CONTROLLER FOR ', arm_name)
         psm = PSM(c, arm_name, add_joint_errors=False)
         if psm.is_present():

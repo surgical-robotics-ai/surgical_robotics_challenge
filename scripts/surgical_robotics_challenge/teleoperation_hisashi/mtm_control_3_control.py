@@ -149,7 +149,6 @@ class ControllerInterface:
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
         self.cmd_xyz = self.psm_arm.T_t_b_home.p
-        self.cmd_xyz_old = self.cmd_xyz
         self.cmd_rpy = None
         self.T_IK = None
         self.T_IK_predict = None
@@ -179,8 +178,9 @@ class ControllerInterface:
         self._camera.servo_jp(self.gui.jnt_cmds)
 
 
-    def update_arms_pose_withprediction(self):
-        # update camera pose
+
+    def update_arms_pose_withloss_control(self):
+         # update camera pose
         self.update_T_b_c()
 
         if  self.leader.clutch_button_pressed or (self.leader.coag_button_pressed and self.communication_loss == False): 
@@ -217,7 +217,6 @@ class ControllerInterface:
                 vel = from_kdl_twist(twist)
                 acc_np = from_kdl_twist(acc)
                 self.observation = np.hstack([pos,vel[:3],acc_np[:3]])
-                # self.kf = KFPredict(self.observation)
 
                 self.psm_arm.servo_cp(self.T_IK)
                 self.psm_ghost_arm.servo_cp(self.T_IK)
@@ -225,45 +224,44 @@ class ControllerInterface:
                 # Move the robot jaw links only if there is a communication
                 self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
                 self.psm_ghost_arm.set_jaw_angle(self.leader.get_jaw_angle())
-
-                self.cmd_xyz_old = self.cmd_xyz
             
 
             # Communication Lost
             else:
-                mean, cov = self.kf.predict(self.observation, 0.01 * np.ones([9, 9]))
-                if((self.cmd_xyz_old - self.predict_xyz).Norm() < 0.2):
-                    self.observation = mean
-                self.predict_xyz = Vector(self.observation[0], self.observation[1], self.observation[2])
-                self.T_IK_predict = Frame(self.cmd_rpy, self.predict_xyz)
-                self.psm_ghost_arm.servo_cp(self.T_IK_predict)
-
-
                 cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
                 self.T_IK = Frame(cmd_rpy, self.cmd_xyz)
                 self.psm_arm.servo_cp(self.T_IK)
 
 
-                # Set viscosity
-                f_vis = Wrench()
+    def update_arms_pose_withloss(self):
+        self.update_T_b_c()
+        if self.leader.coag_button_pressed or self.leader.clutch_button_pressed:
+            # self.leader.optimize_wrist_platform()
+            f = Wrench()
+            self.leader.servo_cf(f)
+        else:
+            if self.leader.is_active():
+                self.leader.servo_cp(self.leader.pre_coag_pose_msg)
+        twist = self.leader.measured_cv() * 0.035
+        self.cmd_xyz = self.psm_arm.T_t_b_home.p
 
-                eta = 30.0 * (self.cmd_xyz - self.predict_xyz).Norm()
+        if not self.leader.clutch_button_pressed:
+            delta_t = self._T_c_b.M * twist.vel
+            self.cmd_xyz = self.cmd_xyz + delta_t
+            self.psm_arm.T_t_b_home.p = self.cmd_xyz
+            self.psm_ghost_arm.T_t_b_home.p = self.cmd_xyz
 
-                if (eta > 7.0):
-                    eta = 7.0
-                eta = eta/0.035
-                
-                # f_vis[0] = - eta * self.leader.measured_cv().vel.x()
-                # f_vis[1] = - eta * self.leader.measured_cv().vel.y()
-                # f_vis[2] = - eta * self.leader.measured_cv().vel.z()
-                f_vis[0] = - eta * twist.vel.x()
-                f_vis[1] = - eta * twist.vel.y()
-                f_vis[2] = - eta * twist.vel.z()
-                self.leader.servo_cf(f_vis)
+        if self.leader.coag_button_pressed:
+            self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
+            self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
+            
+            if (self.communication_loss == False):
+                self.psm_arm.servo_cp(self.T_IK)
+                self.psm_ghost_arm.servo_cp(self.T_IK)
 
-
-
-    
+        if (self.communication_loss == False):
+            self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
+            self.psm_ghost_arm.set_jaw_angle(self.leader.get_jaw_angle())
 
     def communication_loss_callback(self, data):
         self.communication_loss = data.data
@@ -274,7 +272,8 @@ class ControllerInterface:
     def run(self):
         
         self.update_camera_pose()
-        self.update_arms_pose_withprediction()
+
+        self.update_arms_pose_withloss_control() # with no assistance
         self.subscribe_communicationLoss()
 
 
@@ -361,6 +360,8 @@ if __name__ == "__main__":
             T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
             psm.set_home_pose(T_psmtip_b)
             psm_arms.append(psm)
+        
+        
 
     if len(psm_arms) == 0:
         print('No Valid PSM Arms Specified')

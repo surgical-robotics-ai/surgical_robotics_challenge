@@ -23,4 +23,6 @@ multibody configs:
   - "ADF/camera_frame.yaml" #16
   - "ADF/psm1_ghost.yaml" #17
   - "ADF/psm2_ghost.yaml" #18
+  - "ADF/psm1_remote.yaml" #19
+  - "ADF/psm2_remote.yaml" #20
 
