@@ -3,6 +3,13 @@
 world config: ADF/world/world_stereo.yaml
 color config: ADF/color/colors.yaml
 input devices config: ADF/input_devices/input_devices.yaml
+plugins: [
+  {
+    name: AUTOCOMPLETE_SIMULATOR,
+    filename: libautocomplete.so,
+    path: build/
+  }
+]
 multibody configs:
   - "ADF/psm1.yaml" #0
   - "ADF/sensors_actuators_psm1.yaml" #1
