@@ -64,7 +64,7 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     cout << "Init Function!!" << endl;
 
     m_rosNode = afROSNode::getNode();
-
+    m_commLossSub = m_rosNode->subscribe<std_msgs::Bool>("/communication_loss", 1, &afAutoCompletePlugin::communication_loss_cb, this);
 
     m_zeroColor = cColorb(0x00, 0x00, 0x00, 0x00);
     m_boneColor = cColorb(255, 249, 219, 255);
@@ -91,14 +91,14 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     cFontPtr font = NEW_CFONTCALIBRI40();
 
     m_drillControlModeText = new cLabel(font);
-    m_drillControlModeText->setLocalPos(m_mainCamera->m_width*0.4, m_mainCamera->m_height*0.85, 0);
+    m_drillControlModeText->setLocalPos(2 * m_mainCamera->m_width*0.4, 2 * m_mainCamera->m_height*0.85, 0);
     m_drillControlModeText->m_fontColor.setRed();
     m_drillControlModeText->setFontScale(0.8);
     m_drillControlModeText->setText("Communication Loss");
     m_mainCamera->getFrontLayer()->addChild(m_drillControlModeText);
 
     m_volumeSmoothingText = new cLabel(font);
-    m_volumeSmoothingText->setLocalPos(m_mainCamera->m_width*0.7, m_mainCamera->m_height*0.85, 0);
+    m_volumeSmoothingText->setLocalPos(2 * m_mainCamera->m_width*0.7, 2 * m_mainCamera->m_height*0.85, 0);
     m_volumeSmoothingText->m_fontColor.setBlue();
     m_volumeSmoothingText->setFontScale(0.8);
     m_volumeSmoothingText->setText("Blue: Prediction of the PSM");
@@ -114,26 +114,26 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     return 1;
 }
 
-// void afAutoCompletePlugin::graphicsUpdate()
-// {
-
-// }
+void afAutoCompletePlugin::graphicsUpdate()
+{
+    m_drillControlModeText->setShowEnabled(m_comloss); 
+}
 
 void afAutoCompletePlugin::communication_loss_cb(const std_msgs::Bool::ConstPtr& comloss)
 {
     m_comloss = comloss->data;
+    cout << "subscribing ..." << endl;
 }
 
 
-void afAutoCompletePlugin::physicsUpdate()
+void afAutoCompletePlugin::physicsUpdate(double dt)
 {       
-        ros::Subscriber sub = m_rosNode->subscribe<std_msgs::Bool>("/communication_loss", 1, &afAutoCompletePlugin::communication_loss_cb, this);
         
-        if(m_comloss == false)
-        {
-            m_drillControlModeText->setShowEnabled(false);  
-        }
-        ros::spin();
+        // if(m_comloss == false)   
+        // {
+        //     m_drillControlModeText->setShowEnabled(m_comloss);  
+        // }
+        
 }
 
 

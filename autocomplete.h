@@ -20,8 +20,8 @@ public:
     // virtual void mouseBtnsUpdate(GLFWwindow *a_window, int a_button, int a_action, int a_modes) override;
     // virtual void mousePosUpdate(GLFWwindow *a_window, double x_pos, double y_pos) override {}
     // virtual void mouseScrollUpdate(GLFWwindow *a_window, double x_pos, double y_pos) override;
-    // virtual void graphicsUpdate() override;
-    virtual void physicsUpdate();
+    virtual void graphicsUpdate() override;
+    virtual void physicsUpdate(double dt) override;
     // virtual void reset() override;
     // virtual bool close() override;
 
@@ -62,6 +62,7 @@ protected:
 private:
     bool m_comloss = false;
     ros::NodeHandle* m_rosNode;
+    ros::Subscriber m_commLossSub;
     // Commented during merge
     // cTransform T_d; // Drills target pose
     // cTransform T_i; // Input device transform

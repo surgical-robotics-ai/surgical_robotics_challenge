@@ -5,3 +5,4 @@
 .idea/
 scripts/surgical_robotics_challenge.egg-info/
 /build
+*.bag
