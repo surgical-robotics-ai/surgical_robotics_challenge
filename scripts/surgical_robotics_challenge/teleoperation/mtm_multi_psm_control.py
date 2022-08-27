@@ -225,7 +225,10 @@ if __name__ == "__main__":
 
         rate = rospy.Rate(200)
 
-        while not rospy.is_shutdown():
-            for cont in controllers:
-                cont.run()
-            rate.sleep()
+        try:
+            while not rospy.is_shutdown():
+                for cont in controllers:
+                    cont.run()
+                rate.sleep()
+        except:
+            print('Exception! Goodbye')

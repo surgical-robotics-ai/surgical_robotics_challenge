@@ -259,6 +259,18 @@ class Task_2_Evaluation_Report():
         # Cross-sectional distance from the entry hole's center
         self.L_ntINentry_lateral = None
 
+        # Cross-sectional distance from the exit hole's center
+        self.P_max_ntINexit_lateral = None
+
+        # Cross-sectional distance from the entry hole's center
+        self.P_max_ntINentry_lateral = None
+
+        # Cross-sectional distance from the exit hole's center
+        self.P_ntINexit_lateral = None
+
+        # Cross-sectional distance from the entry hole's center
+        self.P_ntINentry_lateral = None
+
         self.entry_exit_idx = None
 
         self.completion_time = None
@@ -276,10 +288,18 @@ class Task_2_Evaluation_Report():
             print('\t Completion Time: ', self.completion_time)
             print('\t Targeted Entry/Exit Hole Pair (1 to 4): ', self.entry_exit_idx + 1)
             print('\t Needle Tip Axial Distance From Exit Hole (Recommended 0.05): ', self.L_ntINexit_axial)
+            print('\t Needle Tip P Exit Hole During Insertion (Lower is Better): ',
+                  self.P_ntINexit_lateral)
+            print('\t Needle Tip P From Entry Hole During Insertion (Lower is Better): ',
+                  self.P_ntINentry_lateral)
             print('\t Needle Tip Lateral Distance From Exit Hole During Insertion (Lower is Better): ',
                   self.L_ntINexit_lateral)
             print('\t Needle Tip Lateral Distance From Entry Hole During Insertion (Lower is Better): ',
                   self.L_ntINentry_lateral)
+            print('\t Needle Tip Max Lateral Component From Exit Hole During Insertion (Lower is Better): ',
+                  self.P_max_ntINexit_lateral)
+            print('\t Needle Tip Max Lateral Component From Entry Hole During Insertion (Lower is Better): ',
+                  self.P_max_ntINentry_lateral)
         else:
             print(FAIL_STR('Task Failed: '))
 
@@ -431,6 +451,17 @@ class ContactEventHelper:
         p[2] = 0.
         return p.Norm()
 
+    @staticmethod
+    def compute_max_lateral_component_from_hole(T_ntINhole):
+        """
+
+        :return:
+        """
+        p = T_ntINhole.p
+        px = abs(p[0])
+        py = abs(p[1])
+        return max([px, py])
+
 
 class Task_2_Evaluation():
     def __init__(self, client, team_name):
@@ -558,6 +589,10 @@ class Task_2_Evaluation():
                         self._report.L_ntINexit_axial = ContactEventHelper.compute_axial_distance_from_hole(NCE.T_ntINhole)
                         self._report.L_ntINexit_lateral = ContactEventHelper.compute_lateral_distance_from_hole(event0.T_ntINhole)
                         self._report.L_ntINentry_lateral = ContactEventHelper.compute_lateral_distance_from_hole(event1.T_ntINhole)
+                        self._report.P_max_ntINexit_lateral = ContactEventHelper.compute_max_lateral_component_from_hole(event0.T_ntINhole)
+                        self._report.P_max_ntINentry_lateral = ContactEventHelper.compute_max_lateral_component_from_hole(event1.T_ntINhole)
+                        self._report.P_ntINexit_lateral = event0.T_ntINhole.p
+                        self._report.P_ntINentry_lateral = event1.T_ntINhole.p
                     else:
                         # Failed
                         print('Failed Task, Entry hole type / idx mismatch from closest type / idx')
