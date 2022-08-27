@@ -284,7 +284,7 @@ class ControllerInterface:
 
     def run(self):
         
-        self.update_camera_pose()
+        # self.update_camera_pose()
         self.update_arms_pose_withprediction()
         self.subscribe_communicationLoss()
 
@@ -405,10 +405,21 @@ if __name__ == "__main__":
         controllers.append(controller1)
         rate = rospy.Rate(200)
 
-        while not rospy.is_shutdown():
+        # while not rospy.is_shutdown():
+        #     for cont in controllers:
+        #         cont.run()
+        #     rate.sleep()
+        i_count = 0
+        start = time.time()
+        while i_count < 5000:
             for cont in controllers:
                 cont.run()
             rate.sleep()
+            i_count += 1
+        end = time.time()
+
+        print("time per loop", (end - start)/5000)
+
 
         if rospy.is_shutdown():
             print("shutdowning...")

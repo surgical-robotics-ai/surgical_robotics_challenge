@@ -277,7 +277,7 @@ class ControllerInterface:
 
     def run(self):
         
-        self.update_camera_pose()
+        # self.update_camera_pose()
 
         self.update_arms_pose_withloss_control() # with no assistance
         self.subscribe_communicationLoss()

@@ -66,14 +66,10 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     m_rosNode = afROSNode::getNode();
     m_commLossSub = m_rosNode->subscribe<std_msgs::Bool>("/communication_loss", 1, &afAutoCompletePlugin::communication_loss_cb, this);
 
-    m_zeroColor = cColorb(0x00, 0x00, 0x00, 0x00);
-    m_boneColor = cColorb(255, 249, 219, 255);
-    m_storedColor = cColorb(0x00, 0x00, 0x00, 0x00);
-
     m_worldPtr = a_afWorld;
 
     // Get first camera
-    m_mainCamera = m_worldPtr->getCamera("main_camera");
+    m_mainCamera = m_worldPtr->getCamera("cameraL");
     if (m_mainCamera){
         cerr << "INFO! GOT CAMERA: " << m_mainCamera->getName() << endl;
     }
@@ -90,19 +86,19 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     // create a font
     cFontPtr font = NEW_CFONTCALIBRI40();
 
-    m_drillControlModeText = new cLabel(font);
-    m_drillControlModeText->setLocalPos(2 * m_mainCamera->m_width*0.4, 2 * m_mainCamera->m_height*0.85, 0);
-    m_drillControlModeText->m_fontColor.setRed();
-    m_drillControlModeText->setFontScale(0.8);
-    m_drillControlModeText->setText("Communication Loss");
-    m_mainCamera->getFrontLayer()->addChild(m_drillControlModeText);
+    m_comStatus = new cLabel(font);
+    m_comStatus->setLocalPos(m_mainCamera->m_width*0.4, m_mainCamera->m_height*0.85, 0);
+    m_comStatus->m_fontColor.setRed();
+    m_comStatus->setFontScale(0.8);
+    m_comStatus->setText("Communication Lost");
+    m_mainCamera->getFrontLayer()->addChild(m_comStatus);
 
-    m_volumeSmoothingText = new cLabel(font);
-    m_volumeSmoothingText->setLocalPos(2 * m_mainCamera->m_width*0.7, 2 * m_mainCamera->m_height*0.85, 0);
-    m_volumeSmoothingText->m_fontColor.setBlue();
-    m_volumeSmoothingText->setFontScale(0.8);
-    m_volumeSmoothingText->setText("Blue: Prediction of the PSM");
-    m_mainCamera->getFrontLayer()->addChild(m_volumeSmoothingText);
+    m_legend = new cLabel(font);
+    m_legend->setLocalPos(m_mainCamera->m_width*0.8, m_mainCamera->m_height*0.85, 0);
+    m_legend->m_fontColor.setBlue();
+    m_legend->setFontScale(0.8);
+    m_legend->setText("Blue: Prediction");
+    m_mainCamera->getFrontLayer()->addChild(m_legend);
 
     cBackground *background = new cBackground();
     background->setCornerColors(cColorf(1.0f, 1.0f, 1.0f),
@@ -116,13 +112,14 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
 
 void afAutoCompletePlugin::graphicsUpdate()
 {
-    m_drillControlModeText->setShowEnabled(m_comloss); 
+    m_comStatus->setShowEnabled(m_comloss); 
+    m_comStatus->setLocalPos(m_mainCamera->m_width*0.4, m_mainCamera->m_height*0.85, 0);
+    m_legend->setLocalPos(m_mainCamera->m_width*0.8, m_mainCamera->m_height*0.85, 0);
 }
 
 void afAutoCompletePlugin::communication_loss_cb(const std_msgs::Bool::ConstPtr& comloss)
 {
     m_comloss = comloss->data;
-    cout << "subscribing ..." << endl;
 }
 
 
@@ -131,7 +128,7 @@ void afAutoCompletePlugin::physicsUpdate(double dt)
         
         // if(m_comloss == false)   
         // {
-        //     m_drillControlModeText->setShowEnabled(m_comloss);  
+        //     m_comStatus->setShowEnabled(m_comloss);  
         // }
         
 }
