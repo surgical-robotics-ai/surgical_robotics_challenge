@@ -168,6 +168,9 @@ class ControllerInterface:
         self.kf = KFPredict(self.observation)
         self.predict_xyz =self.cmd_xyz
 
+        self.subscribe_communicationLoss()
+
+
 
     def update_T_b_c(self):
         if self._update_T_c_b or self._camera.has_pose_changed:
@@ -269,6 +272,27 @@ class ControllerInterface:
             self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
             self.psm_ghost_arm.set_jaw_angle(self.leader.get_jaw_angle())
 
+    def update_arm_pose(self):
+        self.update_T_b_c()
+        if self.leader.coag_button_pressed or self.leader.clutch_button_pressed:
+            # self.leader.optimize_wrist_platform()
+            f = Wrench()
+            self.leader.servo_cf(f)
+        else:
+            if self.leader.is_active():
+                self.leader.servo_cp(self.leader.pre_coag_pose_msg)
+        twist = self.leader.measured_cv() * 0.035
+        self.cmd_xyz = self.psm_arm.T_t_b_home.p
+        if not self.leader.clutch_button_pressed:
+            delta_t = self._T_c_b.M * twist.vel
+            self.cmd_xyz = self.cmd_xyz + delta_t
+            self.psm_arm.T_t_b_home.p = self.cmd_xyz
+        if self.leader.coag_button_pressed:
+            self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
+            self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
+            self.psm_arm.servo_cp(self.T_IK)
+        self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
+
     def communication_loss_callback(self, data):
         self.communication_loss = data.data
 
@@ -280,7 +304,8 @@ class ControllerInterface:
         # self.update_camera_pose()
 
         self.update_arms_pose_withloss_control() # with no assistance
-        self.subscribe_communicationLoss()
+        self.update_arm_pose()
+        # self.subscribe_communicationLoss()
 
 
 
@@ -379,7 +404,7 @@ if __name__ == "__main__":
         leader.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
         controller1 = ControllerInterface(leader, psm_arms, cam)
         controllers.append(controller1)
-        rate = rospy.Rate(200)
+        rate = rospy.Rate(500)
 
         while not rospy.is_shutdown():
             for cont in controllers:

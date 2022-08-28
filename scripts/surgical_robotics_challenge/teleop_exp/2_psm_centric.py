@@ -152,6 +152,7 @@ class ControllerInterface:
         self.cmd_xyz = self.psm_arm.T_t_b_home.p
         self.cmd_xyz_old = self.cmd_xyz
         self.cmd_rpy = None
+        self.cmd_rpy_old = None
         self.T_IK = None
         self.T_IK_predict = None
         self._camera = camera
@@ -208,7 +209,10 @@ class ControllerInterface:
 
             if self.communication_loss == False and self.recovery == True:
                     self.cmd_xyz = self.predict_xyz
-                    self.recovery = False
+
+                    rot_error, _ = (self.cmd_rpy * self.cmd_rpy_old.Inverse()).GetRotAngle()
+                    if(rot_error < 0.02):
+                        self.recovery = False
             else:
                 self.cmd_xyz = self.cmd_xyz + delta_t
             self.psm_arm.T_t_b_home.p = self.cmd_xyz
@@ -216,8 +220,14 @@ class ControllerInterface:
         if self.leader.coag_button_pressed:
             
             if (self.communication_loss == False):
+
                 self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
+                if (self.recovery == False):
+                    self.cmd_rpy_old = self.cmd_rpy 
+
                 self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
+                T_IK_old = Frame(self.cmd_rpy, self.cmd_xyz)
+                
 
                 pos = np.array([self.cmd_xyz[0],self.cmd_xyz[1],self.cmd_xyz[2]])
                 vel = from_kdl_twist(twist)
@@ -225,9 +235,9 @@ class ControllerInterface:
                 self.observation = np.hstack([pos,vel[:3],acc_np[:3]])
                 # self.kf = KFPredict(self.observation)
 
-                self.psm_arm.servo_cp(self.T_IK)
+                self.psm_arm.servo_cp(T_IK_old)
                 self.psm_ghost_arm.servo_cp(self.T_IK)
-                self.psm_remote_arm.servo_cp(self.T_IK)
+                self.psm_remote_arm.servo_cp(T_IK_old)
             
                 # Move the robot jaw links only if there is a communication
                 self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
@@ -236,6 +246,7 @@ class ControllerInterface:
 
 
                 self.cmd_xyz_old = self.cmd_xyz
+
             
 
             # Communication Lost
