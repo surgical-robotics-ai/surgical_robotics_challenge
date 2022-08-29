@@ -40,26 +40,7 @@ def com_loss_publisher():
             print("TIME_period: " + str(time_period) + " sec")
             print("LOSS_period: "  + str(loss_period) + " sec")
 
-        #pub.publish(flag)
         rate.sleep()
-
-    # now = rospy.get_time()
-    # flag = False
-    # while not rospy.is_shutdown():
-    #
-    #     if (rospy.get_time() - now > 10):
-    #         flag = True
-    #
-    #     if (rospy.get_time() - now > 12):
-    #         flag = False
-    #         now = rospy.get_time()
-    #
-    #     pub.publish(flag)
-    #     rate.sleep()
-
-
-
-
 
 
 if __name__ == '__main__':

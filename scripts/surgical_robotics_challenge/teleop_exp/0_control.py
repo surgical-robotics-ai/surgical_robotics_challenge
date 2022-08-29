@@ -89,55 +89,6 @@ def from_kdl_twist(twist):
     return array
 
 
-class KFPredict:
-    def __init__(self, observation):
-        
-        self.transition_matrix = [
-            [1, 0, 0, dt, 0, 0, 0.5 * dt * dt, 0, 0],
-            [0, 1, 0, 0, dt, 0, 0, 0.5 * dt * dt, 0],
-            [0, 0, 1, 0, 0, dt, 0, 0, 0.5 * dt * dt],
-            [0, 0, 0, 1, 0, 0, dt, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, dt, 0],
-            [0, 0, 0, 0, 0, 1, 0, 0, dt],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1],
-        ]
-        observation_matrix = [
-            [1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1],
-        ]
-        initial_state_covariance = 0.01 * np.ones([9, 9])
-        initial_observation_covariance = 0.01 * np.ones([9, 9])
-
-        self.kf = KalmanFilter(
-            transition_matrices=self.transition_matrix,
-            observation_matrices=observation_matrix,
-            initial_state_mean=observation,
-            initial_state_covariance=initial_state_covariance,
-            observation_covariance=initial_observation_covariance,
-        )
-    
-    def predict(self, state, cov):
-        state = state.reshape([9,])
-        mean, covariance = self.kf.filter_update(
-            filtered_state_mean=state,
-            filtered_state_covariance=cov,
-            observation=self.transition_matrix @ state, 
-        )
-        test_observation_covariance = 0.1 * np.ones([9,9])
-        #covariance = covariance + (1.0 - np.exp(-(t - t_change) / 10.0)) * test_observation_covariance
-        covariance = covariance + (1.0 - np.exp(-(2.0) / 10.0)) * test_observation_covariance
-
-        return mean, covariance
-
 class ControllerInterface:
     def __init__(self, leader, psm_arms, camera):
         self.counter = 0
@@ -163,10 +114,6 @@ class ControllerInterface:
         self.communication_loss = False
         self.enable_ghost = False
 
-        self.vel_prev = Twist.Zero()
-        self.observation = np.zeros([1,9])
-        self.kf = KFPredict(self.observation)
-        self.predict_xyz =self.cmd_xyz
 
         self.subscribe_communicationLoss()
 
@@ -202,12 +149,7 @@ class ControllerInterface:
         
 
         twist = self.leader.measured_cv() * 0.1#0.035 ## Vel times dt
-        self.cmd_xyz = self.psm_arm.T_t_b_home.p
-
-        # acc = Twist.Zero()
-        acc = twist - self.vel_prev
-        self.vel_prev = twist
-        
+        self.cmd_xyz = self.psm_arm.T_t_b_home.p        
 
         if not self.leader.clutch_button_pressed:
             delta_t = self._T_c_b.M * twist.vel
@@ -219,11 +161,6 @@ class ControllerInterface:
             if (self.communication_loss == False):
                 self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
                 self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
-
-                pos = np.array([self.cmd_xyz[0],self.cmd_xyz[1],self.cmd_xyz[2]])
-                vel = from_kdl_twist(twist)
-                acc_np = from_kdl_twist(acc)
-                self.observation = np.hstack([pos,vel[:3],acc_np[:3]])
 
                 # self.psm_arm.servo_cp(self.T_IK)
                 self.psm_ghost_arm.servo_cp(self.T_IK)
@@ -302,18 +239,13 @@ class ControllerInterface:
     def run(self):
         
         # self.update_camera_pose()
-
         self.update_arms_pose_withloss_control() # with no assistance
-        self.update_arm_pose()
-        # self.subscribe_communicationLoss()
+        # self.update_arm_pose()
 
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('-c', action='store', dest='client_name', help='Client Name', default='ambf_client')
-    parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
-    parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--mtm', action='store', dest='mtm_name', help='Name of MTM to Bind', default='/dvrk/MTMR/')
 
     parsed_args = parser.parse_args()
@@ -328,18 +260,20 @@ if __name__ == "__main__":
         print('ERROR! --mtm argument should be one of the following', mtm_valid_list)
         raise ValueError
 
-    if parsed_args.run_psm_one in ['True', 'true', '1']:
-        parsed_args.run_psm_one = True
-    elif parsed_args.run_psm_one in ['False', 'false', '0']:
-        parsed_args.run_psm_one = False
+    run_psm_one = False
+    run_psm_two = False
 
-    if parsed_args.run_psm_two in ['True', 'true', '1']:
-        parsed_args.run_psm_two = True
-    elif parsed_args.run_psm_two in ['False', 'false', '0']:
-        parsed_args.run_psm_two = False
+    if (parsed_args.mtm_name == '/MTMR/' or '/dvrk/MTMR'):
+        c = Client('mtmr')
+        c.connect()
+        run_psm_one = False
+        run_psm_two = True
 
-    c = Client(parsed_args.client_name)
-    c.connect()
+    if (parsed_args.mtm_name == '/MTML/' or '/dvrk/MTML')
+        c = Client('mtml')
+        c.connect()
+        run_psm_one = True
+        run_psm_two = False
 
     cam = ECM(c, 'CameraFrame')
     time.sleep(0.5)
@@ -347,7 +281,7 @@ if __name__ == "__main__":
     controllers = []
     psm_arms = []
 
-    if parsed_args.run_psm_one is True:
+    if run_psm_one is True:
         # Initial Target Offset for PSM1
         # init_xyz = [0.1, -0.85, -0.15]
 
@@ -370,7 +304,7 @@ if __name__ == "__main__":
             psm_arms.append(psm)
 
 
-    if parsed_args.run_psm_two is True:
+    if run_psm_two is True:
         # Initial Target Offset for PSM1
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm2'

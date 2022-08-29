@@ -125,7 +125,7 @@ class KFPredict:
             observation_covariance=initial_observation_covariance,
         )
     
-    def predict(self, state, cov):
+    def predict(self, state, cov, time_loss):
         state = state.reshape([9,])
         mean, covariance = self.kf.filter_update(
             filtered_state_mean=state,
@@ -134,7 +134,8 @@ class KFPredict:
         )
         test_observation_covariance = 0.1 * np.ones([9,9])
         #covariance = covariance + (1.0 - np.exp(-(t - t_change) / 10.0)) * test_observation_covariance
-        covariance = covariance + (1.0 - np.exp(-(2.0) / 10.0)) * test_observation_covariance
+        covariance = covariance + (1.0 - np.exp(-(time.time(), time_loss).Norm())) * np.ones([9, 9])
+        # covariance = covariance + (1.0 - np.exp(-(2.0) / 10.0)) * test_observation_covariance
 
         return mean, covariance
 
@@ -170,6 +171,7 @@ class ControllerInterface:
         self.predict_xyz =self.cmd_xyz
 
         self.recovery = False
+        self.time_loss = 0
 
 
     def update_T_b_c(self):
@@ -247,7 +249,7 @@ class ControllerInterface:
 
             # Communication Lost
             else:
-                mean, cov = self.kf.predict(self.observation, (1.0 - np.exp(-(self.cmd_xyz_old - self.predict_xyz).Norm())) * np.ones([9, 9]))
+                mean, cov = self.kf.predict(self.observation, 0.01 * np.ones([9, 9]))
                 if((self.cmd_xyz_old - self.predict_xyz).Norm() < 0.3):
                     self.observation = mean
                     self.cov = np.sqrt(cov[0,0]**2 + cov[1,1]**2 + cov[2,2]**2)
@@ -285,6 +287,8 @@ class ControllerInterface:
     
 
     def communication_loss_callback(self, data):
+        if(self.communication_loss == False and data.data == True):
+            self.time_loss = time.time()
         self.communication_loss = data.data
 
     def subscribe_communicationLoss(self):
@@ -300,9 +304,6 @@ class ControllerInterface:
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('-c', action='store', dest='client_name', help='Client Name', default='ambf_client')
-    parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
-    parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--mtm', action='store', dest='mtm_name', help='Name of MTM to Bind', default='/dvrk/MTMR/')
     parser.add_argument('--index', action='store', dest='index', help='0;robot, 1; ghost, 2: remote', default='0')
 
@@ -317,27 +318,28 @@ if __name__ == "__main__":
     else:
         print('ERROR! --mtm argument should be one of the following', mtm_valid_list)
         raise ValueError
+    
+    run_psm_one = False
+    run_psm_two = False
 
-    if parsed_args.run_psm_one in ['True', 'true', '1']:
-        parsed_args.run_psm_one = True
-    elif parsed_args.run_psm_one in ['False', 'false', '0']:
-        parsed_args.run_psm_one = False
+    if (parsed_args.mtm_name == '/MTMR/' or '/dvrk/MTMR'):
+        c = Client('mtmr')
+        c.connect()
+        run_psm_one = False
+        run_psm_two = True
 
-    if parsed_args.run_psm_two in ['True', 'true', '1']:
-        parsed_args.run_psm_two = True
-    elif parsed_args.run_psm_two in ['False', 'false', '0']:
-        parsed_args.run_psm_two = False
-
-    c = Client(parsed_args.client_name)
-    c.connect()
-
+    if (parsed_args.mtm_name == '/MTML/' or '/dvrk/MTML')
+        c = Client('mtml')
+        c.connect()
+        run_psm_one = True
+        run_psm_two = False
     cam = ECM(c, 'CameraFrame')
     time.sleep(0.5)
 
     controllers = []
     psm_arms = []
 
-    if parsed_args.run_psm_one is True:
+    if run_psm_one is True:
         # Initial Target Offset for PSM1
         # init_xyz = [0.1, -0.85, -0.15]
     
@@ -370,7 +372,7 @@ if __name__ == "__main__":
         
 
 
-    if parsed_args.run_psm_two is True:
+    if run_psm_two is True:
         # Initial Target Offset for PSM1
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm2'

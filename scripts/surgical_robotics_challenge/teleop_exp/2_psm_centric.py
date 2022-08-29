@@ -125,7 +125,7 @@ class KFPredict:
             observation_covariance=initial_observation_covariance,
         )
     
-    def predict(self, state, cov):
+    def predict(self, state, cov, t_loss):
         state = state.reshape([9,])
         mean, covariance = self.kf.filter_update(
             filtered_state_mean=state,
@@ -133,7 +133,7 @@ class KFPredict:
             observation=self.transition_matrix @ state, 
         )
         test_observation_covariance = 0.1 * np.ones([9,9])
-        #covariance = covariance + (1.0 - np.exp(-(t - t_change) / 10.0)) * test_observation_covariance
+        #covariance = covariance + (1.0 - np.exp(-(time.time() - t_loss) / 10.0)) * test_observation_covariance
         covariance = covariance + (1.0 - np.exp(-(2.0) / 10.0)) * test_observation_covariance
 
         return mean, covariance
@@ -171,17 +171,16 @@ class ControllerInterface:
         self.predict_xyz =self.cmd_xyz
 
         self.recovery = False
+        self.subscribe_communicationLoss()
+
+        self.time_loss = 0
+
 
 
     def update_T_b_c(self):
         if self._update_T_c_b or self._camera.has_pose_changed:
             self._T_c_b = self.psm_arm.get_T_w_b() * self._camera.get_T_c_w()
             self._update_T_c_b = False
-
-    def update_camera_pose(self):
-        self.gui.App.update()
-        self._camera.servo_jp(self.gui.jnt_cmds)
-
 
     def update_arms_pose_withprediction(self):
         # update camera pose
@@ -235,8 +234,8 @@ class ControllerInterface:
                 self.observation = np.hstack([pos,vel[:3],acc_np[:3]])
                 # self.kf = KFPredict(self.observation)
 
-                self.psm_arm.servo_cp(T_IK_old)
-                self.psm_ghost_arm.servo_cp(self.T_IK)
+                self.psm_arm.servo_cp(self.T_IK)
+                self.psm_ghost_arm.servo_cp(T_IK_old)
                 self.psm_remote_arm.servo_cp(T_IK_old)
             
                 # Move the robot jaw links only if there is a communication
@@ -272,40 +271,33 @@ class ControllerInterface:
                 if (eta > 7.0):
                     eta = 7.0
                 eta = eta/0.035
-                
-                # f_vis[0] = - eta * self.leader.measured_cv().vel.x()
-                # f_vis[1] = - eta * self.leader.measured_cv().vel.y()
-                # f_vis[2] = - eta * self.leader.measured_cv().vel.z()
+
                 f_vis[0] = - eta * twist.vel.x()
                 f_vis[1] = - eta * twist.vel.y()
                 f_vis[2] = - eta * twist.vel.z()
                 self.leader.servo_cf(f_vis)
 
-                self.recovery = True
-
-
-
-    
 
     def communication_loss_callback(self, data):
+
+        if(self.communication_loss == False and data.data == True):
+            self.time_loss = time.time()
+
+        else if (self.communication_loss == True and data.data == False):
+            self.recovery = True
+
         self.communication_loss = data.data
 
     def subscribe_communicationLoss(self):
         rospy.Subscriber("communication_loss", Bool, self.communication_loss_callback)
 
     def run(self):
-        
-        # self.update_camera_pose()
         self.update_arms_pose_withprediction()
-        self.subscribe_communicationLoss()
 
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('-c', action='store', dest='client_name', help='Client Name', default='ambf_client')
-    parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
-    parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--mtm', action='store', dest='mtm_name', help='Name of MTM to Bind', default='/dvrk/MTMR/')
     parser.add_argument('--index', action='store', dest='index', help='0;robot, 1; ghost, 2: remote', default='0')
 
@@ -320,19 +312,21 @@ if __name__ == "__main__":
     else:
         print('ERROR! --mtm argument should be one of the following', mtm_valid_list)
         raise ValueError
+    
+    run_psm_one = False
+    run_psm_two = False
 
-    if parsed_args.run_psm_one in ['True', 'true', '1']:
-        parsed_args.run_psm_one = True
-    elif parsed_args.run_psm_one in ['False', 'false', '0']:
-        parsed_args.run_psm_one = False
+    if (parsed_args.mtm_name == '/MTMR/' or '/dvrk/MTMR'):
+        c = Client('mtmr')
+        c.connect()
+        run_psm_one = False
+        run_psm_two = True
 
-    if parsed_args.run_psm_two in ['True', 'true', '1']:
-        parsed_args.run_psm_two = True
-    elif parsed_args.run_psm_two in ['False', 'false', '0']:
-        parsed_args.run_psm_two = False
-
-    c = Client(parsed_args.client_name)
-    c.connect()
+    if (parsed_args.mtm_name == '/MTML/' or '/dvrk/MTML')
+        c = Client('mtml')
+        c.connect()
+        run_psm_one = True
+        run_psm_two = False
 
     cam = ECM(c, 'CameraFrame')
     time.sleep(0.5)
@@ -340,7 +334,7 @@ if __name__ == "__main__":
     controllers = []
     psm_arms = []
 
-    if parsed_args.run_psm_one is True:
+    if run_psm_one is True:
         # Initial Target Offset for PSM1
         # init_xyz = [0.1, -0.85, -0.15]
     
@@ -373,7 +367,7 @@ if __name__ == "__main__":
         
 
 
-    if parsed_args.run_psm_two is True:
+    if run_psm_two is True:
         # Initial Target Offset for PSM1
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm2'
