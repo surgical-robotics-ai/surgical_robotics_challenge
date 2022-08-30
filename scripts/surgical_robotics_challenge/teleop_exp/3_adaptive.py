@@ -134,7 +134,7 @@ class KFPredict:
         )
         test_observation_covariance = 0.1 * np.ones([9,9])
         #covariance = covariance + (1.0 - np.exp(-(t - t_change) / 10.0)) * test_observation_covariance
-        covariance = covariance + (1.0 - np.exp(-(time.time(), time_loss).Norm())) * np.ones([9, 9])
+        covariance = covariance + (1.0 - np.exp(-(time.time() - time_loss))) * np.ones([9, 9])
         # covariance = covariance + (1.0 - np.exp(-(2.0) / 10.0)) * test_observation_covariance
 
         return mean, covariance
@@ -161,7 +161,7 @@ class ControllerInterface:
         self._update_T_c_b = True
 
         self.leader.enable_gravity_comp()
-        self.;eader.enable_orientation_abs()
+        self.leader.enable_orientation_abs()
 
         self.communication_loss = False
         self.enable_ghost = False
@@ -250,7 +250,7 @@ class ControllerInterface:
 
             # Communication Lost
             else:
-                mean, cov = self.kf.predict(self.observation, 0.01 * np.ones([9, 9]))
+                mean, cov = self.kf.predict(self.observation, 0.01 * np.ones([9, 9]), self.time_loss)
                 if((self.cmd_xyz_old - self.predict_xyz).Norm() < 0.3):
                     self.observation = mean
                     self.cov = np.sqrt(cov[0,0]**2 + cov[1,1]**2 + cov[2,2]**2)
@@ -323,13 +323,13 @@ if __name__ == "__main__":
     run_psm_one = False
     run_psm_two = False
 
-    if (parsed_args.mtm_name == '/MTMR/' or '/dvrk/MTMR'):
+    if (parsed_args.mtm_name == '/MTMR/' or parsed_args.mtm_name == '/dvrk/MTMR'):
         c = Client('mtmr')
         c.connect()
         run_psm_one = False
         run_psm_two = True
 
-    if (parsed_args.mtm_name == '/MTML/' or '/dvrk/MTML'):
+    if (parsed_args.mtm_name == '/MTML/' or parsed_args.mtm_name == '/dvrk/MTML'):
         c = Client('mtml')
         c.connect()
         run_psm_one = True

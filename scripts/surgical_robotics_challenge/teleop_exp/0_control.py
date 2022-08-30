@@ -49,7 +49,7 @@ import numpy as np
 from argparse import ArgumentParser
 
 import rospy
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Empty
 from PyKDL import Frame, Rotation, Vector, Wrench, Twist
 from ambf_client import Client
 
@@ -63,6 +63,7 @@ from pykalman import KalmanFilter
 
 
 dt = 0.5 #0.035
+motion_scale = 0.04#0.035
 
 # PyKDL types <--> Numpy types
 def from_kdl_vector(vector):
@@ -149,7 +150,7 @@ class ControllerInterface:
                 self.leader.servo_cp(self.leader.pre_coag_pose_msg)
         
 
-        twist = self.leader.measured_cv() * 0.1#0.035 ## Vel times dt
+        twist = self.leader.measured_cv() * motion_scale#0.007#0.035 ## Vel times dt
         self.cmd_xyz = self.psm_arm.T_t_b_home.p        
 
         if not self.leader.clutch_button_pressed:
@@ -189,7 +190,7 @@ class ControllerInterface:
         else:
             if self.leader.is_active():
                 self.leader.servo_cp(self.leader.pre_coag_pose_msg)
-        twist = self.leader.measured_cv() * 0.035
+        twist = self.leader.measured_cv() * 0.0035
         self.cmd_xyz = self.psm_arm.T_t_b_home.p
 
         if not self.leader.clutch_button_pressed:
@@ -219,7 +220,7 @@ class ControllerInterface:
         else:
             if self.leader.is_active():
                 self.leader.servo_cp(self.leader.pre_coag_pose_msg)
-        twist = self.leader.measured_cv() * 0.035
+        twist = self.leader.measured_cv() * 0.0035
         self.cmd_xyz = self.psm_arm.T_t_b_home.p
         if not self.leader.clutch_button_pressed:
             delta_t = self._T_c_b.M * twist.vel
@@ -264,13 +265,17 @@ if __name__ == "__main__":
     run_psm_one = False
     run_psm_two = False
 
-    if (parsed_args.mtm_name == '/MTMR/' or '/dvrk/MTMR'):
+    print(parsed_args.mtm_name)
+
+    if (parsed_args.mtm_name == '/MTMR/' or parsed_args.mtm_name =='/dvrk/MTMR'):
+        print("Loading the mtmr....")
         c = Client('mtmr')
         c.connect()
         run_psm_one = False
         run_psm_two = True
 
-    if (parsed_args.mtm_name == '/MTML/' or '/dvrk/MTML'):
+    if (parsed_args.mtm_name == '/MTML/' or parsed_args.mtm_name =='/dvrk/MTML'):
+        print("Loading the mtml....")
         c = Client('mtml')
         c.connect()
         run_psm_one = True
@@ -339,11 +344,13 @@ if __name__ == "__main__":
         leader.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
         controller1 = ControllerInterface(leader, psm_arms, cam)
         controllers.append(controller1)
-        rate = rospy.Rate(500)
+        rate = rospy.Rate(120)
 
+        tick_pub = rospy.Publisher(parsed_args.mtm_name + 'tick', Empty, queue_size=1)
         while not rospy.is_shutdown():
             for cont in controllers:
                 cont.run()
+            tick_pub.publish(Empty())
             rate.sleep()
         # i_count = 0
         # start = time.time()
