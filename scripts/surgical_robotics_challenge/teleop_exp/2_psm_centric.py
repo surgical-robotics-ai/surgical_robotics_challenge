@@ -322,7 +322,7 @@ if __name__ == "__main__":
         run_psm_one = False
         run_psm_two = True
 
-    if (parsed_args.mtm_name == '/MTML/' or '/dvrk/MTML')
+    if (parsed_args.mtm_name == '/MTML/' or '/dvrk/MTML'):
         c = Client('mtml')
         c.connect()
         run_psm_one = True

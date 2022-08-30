@@ -33,3 +33,4 @@ multibody configs:
   - "ADF/psm1_remote.yaml" #19
   - "ADF/psm2_remote.yaml" #20
 
+  - "ADF/test_puzzle.yaml" #21

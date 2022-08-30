@@ -160,6 +160,8 @@ class ControllerInterface:
         self._update_T_c_b = True
 
         self.leader.enable_gravity_comp()
+        self.leader.enable_orientation_abs()
+
 
         self.communication_loss = False
         self.enable_ghost = False
@@ -306,7 +308,7 @@ if __name__ == "__main__":
         run_psm_one = False
         run_psm_two = True
 
-    if (parsed_args.mtm_name == '/MTML/' or '/dvrk/MTML')
+    if (parsed_args.mtm_name == '/MTML/' or '/dvrk/MTML'):
         c = Client('mtml')
         c.connect()
         run_psm_one = True

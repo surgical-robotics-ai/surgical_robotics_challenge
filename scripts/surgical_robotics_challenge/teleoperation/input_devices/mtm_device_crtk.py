@@ -361,6 +361,9 @@ class MTM:
 
     def disable_gravity_comp(self):
         self._gravity_comp_pub.publish(False)
+    
+    def enable_orientation_abs(self):
+        self._ori_abs_pub.publish(True)
 
 
 def test():
