@@ -69,14 +69,14 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     m_worldPtr = a_afWorld;
 
     // Get first camera
-    m_mainCamera = m_worldPtr->getCamera("cameraL");
-    if (m_mainCamera){
-        cerr << "INFO! GOT CAMERA: " << m_mainCamera->getName() << endl;
-    }
-    else{
-        cerr << "WARNING! COULD NOT FIND main_camera" << endl;
-        m_mainCamera = m_worldPtr->getCameras()[0];
-    }
+    // m_mainCamera = m_worldPtr->getCamera("cameraL");
+    // if (m_mainCamera){
+    //     cerr << "INFO! GOT CAMERA: " << m_mainCamera->getName() << endl;
+    // }
+    // else{
+    //     cerr << "WARNING! COULD NOT FIND main_camera" << endl;
+    //     m_mainCamera = m_worldPtr->getCameras()[0];
+    // }
 
     // Get camera
     m_stereoCameraL = m_worldPtr->getCamera("cameraL");
@@ -87,25 +87,25 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     cFontPtr font = NEW_CFONTCALIBRI40();
 
     m_comStatus = new cLabel(font);
-    m_comStatus->setLocalPos(m_mainCamera->m_width*0.4, m_mainCamera->m_height*0.85, 0);
+    m_comStatus->setLocalPos(m_stereoCameraL->m_width*0.4, m_stereoCameraL->m_height*0.85, 0);
     m_comStatus->m_fontColor.setRed();
     m_comStatus->setFontScale(0.8);
     m_comStatus->setText("Communication Lost");
-    m_mainCamera->getFrontLayer()->addChild(m_comStatus);
+    m_stereoCameraL->getFrontLayer()->addChild(m_comStatus);
 
     m_legend = new cLabel(font);
-    m_legend->setLocalPos(m_mainCamera->m_width*0.8, m_mainCamera->m_height*0.85, 0);
+    m_legend->setLocalPos(m_stereoCameraL->m_width*0.8, m_stereoCameraL->m_height*0.85, 0);
     m_legend->m_fontColor.setBlue();
     m_legend->setFontScale(0.8);
     m_legend->setText("Blue: Prediction");
-    m_mainCamera->getFrontLayer()->addChild(m_legend);
+    m_stereoCameraL->getFrontLayer()->addChild(m_legend);
 
     cBackground *background = new cBackground();
     background->setCornerColors(cColorf(1.0f, 1.0f, 1.0f),
                                 cColorf(1.0f, 1.0f, 1.0f),
                                 cColorf(0.6f, 0.6f, 0.6f),
                                 cColorf(0.6f, 0.6f, 0.6f));
-    m_mainCamera->getBackLayer()->addChild(background);
+    m_stereoCameraL->getBackLayer()->addChild(background);
 
     return 1;
 }
@@ -114,8 +114,8 @@ void afAutoCompletePlugin::graphicsUpdate()
 {
     m_comStatus->setShowEnabled(m_comloss); 
     m_legend->setShowEnabled(m_comloss);
-    m_comStatus->setLocalPos(m_mainCamera->m_width*0.4, m_mainCamera->m_height*0.85, 0);
-    m_legend->setLocalPos(m_mainCamera->m_width*0.8, m_mainCamera->m_height*0.85, 0);
+    m_comStatus->setLocalPos(m_stereoCameraL->m_width*0.4, m_stereoCameraL->m_height*0.85, 0);
+    m_legend->setLocalPos(m_stereoCameraL->m_width*0.8, m_stereoCameraL->m_height*0.85, 0);
 }
 
 void afAutoCompletePlugin::communication_loss_cb(const std_msgs::Bool::ConstPtr& comloss)
@@ -134,29 +134,24 @@ void afAutoCompletePlugin::physicsUpdate(double dt)
         
 }
 
+void afAutoCompletePlugin::keyboardUpdate(GLFWwindow *a_window, int a_key, int a_scancode, int a_action, int a_mods)
+{
+    if (a_key == GLFW_KEY_1){
+        if (m_stereoCameraL){
+            m_stereoCameraL->setLocalPos(m_stereoCameraL->getLocalPos() - cVector3d(0.001, 0., 0.));
+        }
+        if (m_stereoCameraR){
+            m_stereoCameraR->setLocalPos(m_stereoCameraR->getLocalPos() + cVector3d(0.001, 0., 0.));
+        }
+    }
+    else if (a_key == GLFW_KEY_2){
+        if (m_stereoCameraL){
+            m_stereoCameraL->setLocalPos(m_stereoCameraL->getLocalPos() + cVector3d(0.001, 0., 0.));
+        }
+        if (m_stereoCameraR){
+            m_stereoCameraR->setLocalPos(m_stereoCameraR->getLocalPos() - cVector3d(0.001, 0., 0.));
+        }
+    }
+}
 
-// void afAutoCompletePlugin::keyboardUpdate(GLFWwindow *a_window, int a_key, int a_scancode, int a_action, int a_mods)
-// {
-    
-// }
 
-// void afAutoCompletePlugin::mouseBtnsUpdate(GLFWwindow *a_window, int a_button, int a_action, int a_modes)
-// {
-// }
-
-// void afAutoCompletePlugin::mouseScrollUpdate(GLFWwindow *a_window, double x_pos, double y_pos)
-// {
-// }
-
-// void afAutoCompletePlugin::reset()
-// {
-//     cerr << "INFO! PLUGIN RESET CALLED" << endl;
-//     // resetDrill();
-// }
-
-// bool afAutoCompletePlugin::close()
-// {
-//     delete m_deviceHandler;
-
-//     return true;
-// }
