@@ -2903,14 +2903,14 @@ JOINT Base-Cylinder:
 JOINT Base-Cylinder_001:
   name: Base-Cylinder_001
   parent: BODY Base
-  child: BODY Cylinder_001
+  child: BODY Cylinder_001_001
   parent axis:
     x: 0.0
     y: 0.0
     z: 1.0
   parent pivot:
-    x: 0.1577
-    y: -0.35906
+    x: -0.1577
+    y: -0.0592
     z: 0.15332
   child axis:
     x: 0.0
