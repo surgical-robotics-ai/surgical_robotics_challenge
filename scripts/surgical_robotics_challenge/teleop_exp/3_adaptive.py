@@ -63,6 +63,7 @@ from pykalman import KalmanFilter
 
 
 dt = 0.5 #0.035
+motion_scale = 0.04#0.035
 
 # PyKDL types <--> Numpy types
 def from_kdl_vector(vector):
@@ -153,6 +154,8 @@ class ControllerInterface:
         self.cmd_xyz = self.psm_arm.T_t_b_home.p
         self.cmd_xyz_old = self.cmd_xyz
         self.cmd_rpy = None
+        self.cmd_rpy_old = None
+
         self.T_IK = None
         self.T_IK_predict = None
         self._camera = camera
@@ -199,7 +202,7 @@ class ControllerInterface:
                 # Bring back the leader to the previous mtm place
                 self.leader.servo_cp(self.leader.pre_coag_pose_msg)
         
-        twist = self.leader.measured_cv() * 0.1#0.035 ## Vel times dt
+        twist = self.leader.measured_cv() * motion_scale #0.1#0.035 ## Vel times dt
         self.cmd_xyz = self.psm_arm.T_t_b_home.p
         # acc = Twist.Zero()
         acc = twist - self.vel_prev
@@ -227,6 +230,9 @@ class ControllerInterface:
             
             if (self.communication_loss == False):
                 self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
+                if (self.recovery == False):
+                    self.cmd_rpy_old = self.cmd_rpy 
+
                 self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
 
                 pos = np.array([self.cmd_xyz[0],self.cmd_xyz[1],self.cmd_xyz[2]])
@@ -255,12 +261,12 @@ class ControllerInterface:
                     self.observation = mean
                     self.cov = np.sqrt(cov[0,0]**2 + cov[1,1]**2 + cov[2,2]**2)
                 self.predict_xyz = Vector(self.observation[0], self.observation[1], self.observation[2])
-                self.T_IK_predict = Frame(self.cmd_rpy, self.predict_xyz)
+                self.T_IK_predict = Frame(self.cmd_rpy_old, self.predict_xyz)
                 self.psm_ghost_arm.servo_cp(self.T_IK_predict)
 
 
-                cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
-                self.T_IK = Frame(cmd_rpy, self.cmd_xyz)
+                self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
+                self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
                 self.psm_arm.servo_cp(self.T_IK)
 
 

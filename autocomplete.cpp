@@ -113,6 +113,7 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
 void afAutoCompletePlugin::graphicsUpdate()
 {
     m_comStatus->setShowEnabled(m_comloss); 
+    m_legend->setShowEnabled(m_comloss);
     m_comStatus->setLocalPos(m_mainCamera->m_width*0.4, m_mainCamera->m_height*0.85, 0);
     m_legend->setLocalPos(m_mainCamera->m_width*0.8, m_mainCamera->m_height*0.85, 0);
 }

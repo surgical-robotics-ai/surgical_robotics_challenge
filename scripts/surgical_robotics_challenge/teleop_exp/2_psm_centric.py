@@ -63,6 +63,7 @@ from pykalman import KalmanFilter
 
 
 dt = 0.5 #0.035
+motion_scale = 0.04#0.035
 
 # PyKDL types <--> Numpy types
 def from_kdl_vector(vector):
@@ -133,8 +134,8 @@ class KFPredict:
             observation=self.transition_matrix @ state, 
         )
         test_observation_covariance = 0.1 * np.ones([9,9])
-        #covariance = covariance + (1.0 - np.exp(-(time.time() - t_loss) / 10.0)) * test_observation_covariance
-        covariance = covariance + (1.0 - np.exp(-(2.0) / 10.0)) * test_observation_covariance
+        covariance = covariance + (1.0 - np.exp(-(time.time() - t_loss) / 10.0)) * test_observation_covariance
+        # covariance = covariance + (1.0 - np.exp(-(2.0) / 10.0)) * test_observation_covariance
 
         return mean, covariance
 
@@ -196,7 +197,7 @@ class ControllerInterface:
                 # Bring back the leader to the previous mtm place
                 self.leader.servo_cp(self.leader.pre_coag_pose_msg)
         
-        twist = self.leader.measured_cv() * 0.1#0.035 ## Vel times dt
+        twist = self.leader.measured_cv() * motion_scale #0.1#0.035 ## Vel times dt
         self.cmd_xyz = self.psm_arm.T_t_b_home.p
         # acc = Twist.Zero()
         acc = twist - self.vel_prev
@@ -210,7 +211,8 @@ class ControllerInterface:
                     self.cmd_xyz = self.predict_xyz
 
                     rot_error, _ = (self.cmd_rpy * self.cmd_rpy_old.Inverse()).GetRotAngle()
-                    if(rot_error < 0.02):
+                    print(rot_error)
+                    if(rot_error < 0.4):
                         self.recovery = False
             else:
                 self.cmd_xyz = self.cmd_xyz + delta_t
@@ -225,7 +227,7 @@ class ControllerInterface:
                     self.cmd_rpy_old = self.cmd_rpy 
 
                 self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
-                T_IK_old = Frame(self.cmd_rpy, self.cmd_xyz)
+                T_IK_old = Frame(self.cmd_rpy_old, self.cmd_xyz)
                 
 
                 pos = np.array([self.cmd_xyz[0],self.cmd_xyz[1],self.cmd_xyz[2]])
@@ -250,16 +252,16 @@ class ControllerInterface:
 
             # Communication Lost
             else:
-                mean, cov = self.kf.predict(self.observation, 0.01 * np.ones([9, 9]))
+                mean, cov = self.kf.predict(self.observation, 0.01 * np.ones([9, 9]), self.time_loss)
                 if((self.cmd_xyz_old - self.predict_xyz).Norm() < 0.3):
                     self.observation = mean
                 self.predict_xyz = Vector(self.observation[0], self.observation[1], self.observation[2])
-                self.T_IK_predict = Frame(self.cmd_rpy, self.predict_xyz)
+                self.T_IK_predict = Frame(self.cmd_rpy_old, self.predict_xyz)
                 self.psm_ghost_arm.servo_cp(self.T_IK_predict)
 
 
-                cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
-                self.T_IK = Frame(cmd_rpy, self.cmd_xyz)
+                self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
+                self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
                 self.psm_arm.servo_cp(self.T_IK)
 
 

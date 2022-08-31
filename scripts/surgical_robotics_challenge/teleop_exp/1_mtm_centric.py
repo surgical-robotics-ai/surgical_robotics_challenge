@@ -63,6 +63,7 @@ from pykalman import KalmanFilter
 
 
 dt = 0.5 #0.035
+motion_scale = 0.04#0.035
 
 # PyKDL types <--> Numpy types
 def from_kdl_vector(vector):
@@ -125,7 +126,7 @@ class KFPredict:
             observation_covariance=initial_observation_covariance,
         )
     
-    def predict(self, state, cov):
+    def predict(self, state, cov, t_loss):
         state = state.reshape([9,])
         mean, covariance = self.kf.filter_update(
             filtered_state_mean=state,
@@ -133,8 +134,8 @@ class KFPredict:
             observation=self.transition_matrix @ state, 
         )
         test_observation_covariance = 0.1 * np.ones([9,9])
-        #covariance = covariance + (1.0 - np.exp(-(t - t_change) / 10.0)) * test_observation_covariance
-        covariance = covariance + (1.0 - np.exp(-(2.0) / 10.0)) * test_observation_covariance
+        covariance = covariance + (1.0 - np.exp(-(time.time() - t_loss) / 10.0)) * test_observation_covariance
+        # covariance = covariance + (1.0 - np.exp(-(2.0) / 10.0)) * test_observation_covariance
 
         return mean, covariance
 
@@ -171,7 +172,10 @@ class ControllerInterface:
         self.kf = KFPredict(self.observation)
         self.predict_xyz =self.cmd_xyz
 
+        self.time_loss = 0
+
         self.subscribe_communicationLoss()
+        self.recovery = False
 
 
     def update_T_b_c(self):
@@ -199,7 +203,7 @@ class ControllerInterface:
                 self.leader.servo_cp(self.leader.pre_coag_pose_msg)
         
 
-        twist = self.leader.measured_cv() * 0.1#0.035 ## Vel times dt
+        twist = self.leader.measured_cv() * motion_scale#0.1#0.035 ## Vel times dt
         self.cmd_xyz = self.psm_arm.T_t_b_home.p
 
         # acc = Twist.Zero()
@@ -238,7 +242,7 @@ class ControllerInterface:
 
             # Communication Lost
             else:
-                mean, cov = self.kf.predict(self.observation, 0.01 * np.ones([9, 9]))
+                mean, cov = self.kf.predict(self.observation, 0.01 * np.ones([9, 9]), self.time_loss)
                 if((self.cmd_xyz_old - self.predict_xyz).Norm() < 0.4):
                     self.observation = mean
                 self.predict_xyz = Vector(self.observation[0], self.observation[1], self.observation[2])
@@ -273,6 +277,12 @@ class ControllerInterface:
     
 
     def communication_loss_callback(self, data):
+        if(self.communication_loss == False and data.data == True):
+            self.time_loss = time.time()
+
+        elif (self.communication_loss == True and data.data == False):
+            self.recovery = True
+
         self.communication_loss = data.data
 
     def subscribe_communicationLoss(self):

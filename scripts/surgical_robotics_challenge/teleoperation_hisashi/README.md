@@ -34,3 +34,7 @@ Playing the bag file with Puzzle condition
 rosbag play ~/Downloads/2022-08-11-22-10-12.bag PuzzleRed1/State:=PuzzleRed1/Command PuzzleRed2/State:=PuzzleRed2/Command PuzzleRed3/State:=PuzzleRed3/Command PuzzleRed4/State:=PuzzleRed4/Command PuzzleRed5/State:=PuzzleRed5/Command
 
 ```
+
+rosrun dvrk_robot dvrk_console_json -j console-MTML-MTMR.json -p 0.001
+
+ambf_simulator --launch_file launch.yaml -l 0,1,3,4,16,17,18,19,20,21 --override_max_comm_freq 120 -p 120 -t 1

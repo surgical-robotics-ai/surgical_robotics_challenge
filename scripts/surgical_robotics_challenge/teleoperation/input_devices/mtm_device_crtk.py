@@ -143,7 +143,7 @@ class MTM:
         gripper_topic_name = name + 'gripper/measured_js'
         clutch_topic_name = '/footpedals/clutch'
         coag_topic_name = '/console/operator_present'
-        ori_abs_topic_name = name + '/body/set_cf_orientation_absolute'
+        ori_abs_topic_name = name + 'body/set_cf_orientation_absolute'
 
         pose_pub_topic_name = name + 'servo_cp'
         wrench_pub_topic_name = name + 'body/servo_cf'
