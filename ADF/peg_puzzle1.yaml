@@ -676,17 +676,29 @@ BODY Cylinder_005:
       r: 0.0
       p: 0.0
       y: 0.0
+  # color components:
+  #   ambient:
+  #     level: 1.0
+  #   diffuse:
+  #     b: 0.8
+  #     g: 0.02754
+  #     r: 0.05448
+  #   specular:
+  #     b: 0.02754
+  #     g: 0.02754
+  #     r: 0.05448
+  #   transparency: 1.0
   color components:
     ambient:
       level: 1.0
     diffuse:
       b: 0.8
-      g: 0.02754
-      r: 0.05448
+      g: 0.0427
+      r: 0.44118
     specular:
-      b: 0.02754
-      g: 0.02754
-      r: 0.05448
+      b: 0.0427
+      g: 0.0427
+      r: 0.44118
     transparency: 1.0
 BODY Cylinder_006:
   name: Cylinder_006
@@ -877,17 +889,29 @@ BODY Cylinder_008:
       r: 0.0
       p: 0.0
       y: 0.0
+  # color components:
+  #   ambient:
+  #     level: 1.0
+  #   diffuse:
+  #     b: 0.8
+  #     g: 0.02754
+  #     r: 0.05448
+  #   specular:
+  #     b: 0.02754
+  #     g: 0.02754
+  #     r: 0.05448
+  #   transparency: 1.0
   color components:
     ambient:
       level: 1.0
     diffuse:
       b: 0.8
-      g: 0.02754
-      r: 0.05448
+      g: 0.0427
+      r: 0.44118
     specular:
-      b: 0.02754
-      g: 0.02754
-      r: 0.05448
+      b: 0.0427
+      g: 0.0427
+      r: 0.44118
     transparency: 1.0
 BODY Cylinder_009:
   name: Cylinder_009
@@ -1125,7 +1149,7 @@ BODY Five1:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -1192,7 +1216,7 @@ BODY Five2:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -1259,7 +1283,7 @@ BODY Five3:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -1326,7 +1350,7 @@ BODY Four2:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -1393,7 +1417,7 @@ BODY Four3:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -1460,7 +1484,7 @@ BODY One1:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -1527,7 +1551,7 @@ BODY One2:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -1594,7 +1618,7 @@ BODY One3:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -1661,7 +1685,7 @@ BODY PuzzleRed1:
   damping:
     angular: 0.1
     linear: 0.5
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -1760,7 +1784,7 @@ BODY PuzzleRed2:
   damping:
     angular: 0.1
     linear: 0.5
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -1859,7 +1883,7 @@ BODY PuzzleRed3:
   damping:
     angular: 0.1
     linear: 0.5
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -1958,7 +1982,7 @@ BODY PuzzleRed4:
   damping:
     angular: 0.1
     linear: 0.5
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -2057,7 +2081,7 @@ BODY PuzzleRed5:
   damping:
     angular: 0.1
     linear: 0.5
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -2156,7 +2180,7 @@ BODY PuzzleYellow:
   damping:
     angular: 0.1
     linear: 0.5
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -2255,7 +2279,7 @@ BODY Six1:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -2322,7 +2346,7 @@ BODY Six2:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -2389,7 +2413,7 @@ BODY Six3:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -2456,7 +2480,7 @@ BODY Three1:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -2523,7 +2547,7 @@ BODY Three2:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   collision shape: BOX
@@ -2587,7 +2611,7 @@ BODY Three3:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   collision shape: BOX
@@ -2651,7 +2675,7 @@ BODY Two1:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -2718,7 +2742,7 @@ BODY Two2:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4
@@ -2785,7 +2809,7 @@ BODY Two3:
   damping:
     angular: 0.1
     linear: 0.04
-  visible: true
+  visible: false
   collision groups:
   - 0
   - 4

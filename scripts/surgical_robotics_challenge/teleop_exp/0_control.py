@@ -89,6 +89,36 @@ def from_kdl_twist(twist):
     array[3:] = from_kdl_vector(twist.rot)
     return array
 
+def move_shadow_peg(c):
+    peg1 = c.get_obj_handle("PuzzleRed1")
+    peg2 = c.get_obj_handle("PuzzleRed2")
+    peg3 = c.get_obj_handle("PuzzleRed3")
+    peg4 = c.get_obj_handle("PuzzleRed4")
+    peg5 = c.get_obj_handle("PuzzleRed5")
+    peg6 = c.get_obj_handle("PuzzleYellow")
+
+    shadow1 = c.get_obj_handle("One_shadow")
+    shadow2 = c.get_obj_handle("Two_shadow")
+    shadow3 = c.get_obj_handle("Three_shadow")
+    shadow4 = c.get_obj_handle("Four_shadow")
+    shadow5 = c.get_obj_handle("Five_shadow")
+    shadow6 = c.get_obj_handle("Six_shadow")
+    
+    shadow1.set_pos(peg1.get_pos().x,peg1.get_pos().y, peg1.get_pos().z) 
+    shadow2.set_pos(peg2.get_pos().x,peg2.get_pos().y, peg2.get_pos().z) 
+    shadow3.set_pos(peg3.get_pos().x,peg3.get_pos().y, peg3.get_pos().z) 
+    shadow4.set_pos(peg4.get_pos().x,peg4.get_pos().y, peg4.get_pos().z) 
+    shadow5.set_pos(peg5.get_pos().x,peg5.get_pos().y, peg5.get_pos().z) 
+    shadow6.set_pos(peg6.get_pos().x,peg6.get_pos().y, peg6.get_pos().z) 
+
+    # shadow1.set_pose((peg1.get_pose(), peg1.get_rot())) 
+    # shadow2.set_pose((peg2.get_pose())) 
+    # shadow3.set_pose((peg3.get_pose())) 
+    # shadow4.set_pose((peg4.get_pose())) 
+    # shadow5.set_pose((peg5.get_pose())) 
+    # shadow6.set_pose((peg6.get_pose())) 
+
+
 
 class ControllerInterface:
     def __init__(self, leader, psm_arms, camera):
@@ -118,6 +148,9 @@ class ControllerInterface:
 
 
         self.subscribe_communicationLoss()
+
+        self.c = Client()
+        self.c.connect()
 
 
 
@@ -242,6 +275,7 @@ class ControllerInterface:
         
         # self.update_camera_pose()
         self.update_arms_pose_withloss_control() # with no assistance
+        move_shadow_peg(self.c)
         # self.update_arm_pose()
 
 
@@ -345,6 +379,7 @@ if __name__ == "__main__":
         controller1 = ControllerInterface(leader, psm_arms, cam)
         controllers.append(controller1)
         rate = rospy.Rate(120)
+
 
         tick_pub = rospy.Publisher(parsed_args.mtm_name + 'tick', Empty, queue_size=1)
         while not rospy.is_shutdown():
