@@ -50,6 +50,7 @@ from argparse import ArgumentParser
 
 import rospy
 from std_msgs.msg import Bool, Empty
+from geometry_msgs.msg import Pose
 from PyKDL import Frame, Rotation, Vector, Wrench, Twist
 from ambf_client import Client
 
@@ -89,34 +90,11 @@ def from_kdl_twist(twist):
     array[3:] = from_kdl_vector(twist.rot)
     return array
 
-def move_shadow_peg(c):
-    peg1 = c.get_obj_handle("PuzzleRed1")
-    peg2 = c.get_obj_handle("PuzzleRed2")
-    peg3 = c.get_obj_handle("PuzzleRed3")
-    peg4 = c.get_obj_handle("PuzzleRed4")
-    peg5 = c.get_obj_handle("PuzzleRed5")
-    peg6 = c.get_obj_handle("PuzzleYellow")
-
-    shadow1 = c.get_obj_handle("One_shadow")
-    shadow2 = c.get_obj_handle("Two_shadow")
-    shadow3 = c.get_obj_handle("Three_shadow")
-    shadow4 = c.get_obj_handle("Four_shadow")
-    shadow5 = c.get_obj_handle("Five_shadow")
-    shadow6 = c.get_obj_handle("Six_shadow")
+def move_shadow_peg(c, peg_list, shadow_list, comloss):
     
-    shadow1.set_pos(peg1.get_pos().x,peg1.get_pos().y, peg1.get_pos().z) 
-    shadow2.set_pos(peg2.get_pos().x,peg2.get_pos().y, peg2.get_pos().z) 
-    shadow3.set_pos(peg3.get_pos().x,peg3.get_pos().y, peg3.get_pos().z) 
-    shadow4.set_pos(peg4.get_pos().x,peg4.get_pos().y, peg4.get_pos().z) 
-    shadow5.set_pos(peg5.get_pos().x,peg5.get_pos().y, peg5.get_pos().z) 
-    shadow6.set_pos(peg6.get_pos().x,peg6.get_pos().y, peg6.get_pos().z) 
-
-    # shadow1.set_pose((peg1.get_pose(), peg1.get_rot())) 
-    # shadow2.set_pose((peg2.get_pose())) 
-    # shadow3.set_pose((peg3.get_pose())) 
-    # shadow4.set_pose((peg4.get_pose())) 
-    # shadow5.set_pose((peg5.get_pose())) 
-    # shadow6.set_pose((peg6.get_pose())) 
+    for i in range(6):
+        if (not comloss):
+            shadow_list[i].set_pose(Pose(peg_list[i].get_pos(), peg_list[i].get_rot()))
 
 
 
@@ -149,8 +127,27 @@ class ControllerInterface:
 
         self.subscribe_communicationLoss()
 
+        # Inititalize your peg
         self.c = Client()
         self.c.connect()
+        time.sleep(1.0)
+        peg1 = c.get_obj_handle("PuzzleRed1")
+        peg2 = c.get_obj_handle("PuzzleRed2")
+        peg3 = c.get_obj_handle("PuzzleRed3")
+        peg4 = c.get_obj_handle("PuzzleRed4")
+        peg5 = c.get_obj_handle("PuzzleRed5")
+        peg6 = c.get_obj_handle("PuzzleYellow")
+
+        shadow1 = c.get_obj_handle("One_shadow")
+        shadow2 = c.get_obj_handle("Two_shadow")
+        shadow3 = c.get_obj_handle("Three_shadow")
+        shadow4 = c.get_obj_handle("Four_shadow")
+        shadow5 = c.get_obj_handle("Five_shadow")
+        shadow6 = c.get_obj_handle("Six_shadow")
+
+        self.peg_list = [peg1, peg2, peg3, peg4, peg5, peg6]
+        self.shadow_list = [shadow1, shadow2, shadow3, shadow4, shadow5, shadow6]
+        move_shadow_peg(self.c, self.peg_list, self.shadow_list, False)
 
 
 
@@ -275,7 +272,7 @@ class ControllerInterface:
         
         # self.update_camera_pose()
         self.update_arms_pose_withloss_control() # with no assistance
-        move_shadow_peg(self.c)
+        move_shadow_peg(self.c, self.peg_list, self.shadow_list, self.communication_loss)
         # self.update_arm_pose()
 
 

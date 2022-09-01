@@ -36,3 +36,4 @@ multibody configs:
   - "ADF/test_puzzle.yaml" #21
   - "ADF/peg_puzzle0.yaml" #22
   - "ADF/peg_puzzle1.yaml" #23
+  - "ADF/test_shadow_final.yaml" #24

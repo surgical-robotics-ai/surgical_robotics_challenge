@@ -89,6 +89,11 @@ def from_kdl_twist(twist):
     array[3:] = from_kdl_vector(twist.rot)
     return array
 
+def move_shadow_peg(c, peg_list, shadow_list, comloss):
+    
+    for i in range(6):
+        if (not comloss):
+            shadow_list[i].set_pose(Pose(peg_list[i].get_pos(), peg_list[i].get_rot()))
 
 class KFPredict:
     def __init__(self, observation):
@@ -175,6 +180,28 @@ class ControllerInterface:
         self.subscribe_communicationLoss()
 
         self.time_loss = 0
+
+        # Inititalize your peg
+        self.c = Client()
+        self.c.connect()
+        time.sleep(1.0)
+        peg1 = c.get_obj_handle("PuzzleRed1")
+        peg2 = c.get_obj_handle("PuzzleRed2")
+        peg3 = c.get_obj_handle("PuzzleRed3")
+        peg4 = c.get_obj_handle("PuzzleRed4")
+        peg5 = c.get_obj_handle("PuzzleRed5")
+        peg6 = c.get_obj_handle("PuzzleYellow")
+
+        shadow1 = c.get_obj_handle("One_shadow")
+        shadow2 = c.get_obj_handle("Two_shadow")
+        shadow3 = c.get_obj_handle("Three_shadow")
+        shadow4 = c.get_obj_handle("Four_shadow")
+        shadow5 = c.get_obj_handle("Five_shadow")
+        shadow6 = c.get_obj_handle("Six_shadow")
+
+        self.peg_list = [peg1, peg2, peg3, peg4, peg5, peg6]
+        self.shadow_list = [shadow1, shadow2, shadow3, shadow4, shadow5, shadow6]
+        move_shadow_peg(self.c, self.peg_list, self.shadow_list, False)
 
 
 
@@ -298,6 +325,8 @@ class ControllerInterface:
 
     def run(self):
         self.update_arms_pose_withprediction()
+        move_shadow_peg(self.c, self.peg_list, self.shadow_list, self.communication_loss)
+
 
 
 
