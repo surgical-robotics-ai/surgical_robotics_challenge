@@ -33,11 +33,23 @@ protected:
 
 private:
     bool m_comloss = false;
+    bool m_comloss_text = false;
     ros::NodeHandle* m_rosNode;
     ros::Subscriber m_commLossSub;
 
     // camera to render the world
     afCameraPtr m_mainCamera, m_stereoCameraL, m_stereoCameraR;
+
+    afRigidBodyPtr m_PSM1Tool, m_PSM2Tool;
+    afRigidBodyPtr m_PSM1pitch, m_PSM2pitch;
+    afRigidBodyPtr m_PSM1yaw, m_PSM2yaw;
+    afRigidBodyPtr m_PSM1gripper1, m_PSM2gripper1;
+    afRigidBodyPtr m_PSM1gripper2, m_PSM2gripper2;
+    afRigidBodyPtr m_PSM1_ghost_Tool, m_PSM2_ghost_Tool;
+    afRigidBodyPtr m_PSM1_ghost_pitch, m_PSM2_ghost_pitch;
+    afRigidBodyPtr m_PSM1_ghost_yaw, m_PSM2_ghost_yaw;
+    afRigidBodyPtr m_PSM1_ghost_gripper1, m_PSM2_ghost_gripper1;
+    afRigidBodyPtr m_PSM1_ghost_gripper2, m_PSM2_ghost_gripper2;
 
     //For text
     cLabel *m_comStatus;

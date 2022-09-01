@@ -63,7 +63,7 @@ from pykalman import KalmanFilter
 
 
 dt = 0.5 #0.035
-motion_scale = 0.04#0.035
+motion_scale = 0.02#0.035
 
 # PyKDL types <--> Numpy types
 def from_kdl_vector(vector):

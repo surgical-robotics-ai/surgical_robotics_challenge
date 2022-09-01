@@ -82,6 +82,55 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     m_stereoCameraL = m_worldPtr->getCamera("cameraL");
     m_stereoCameraR = m_worldPtr->getCamera("cameraR");
 
+    m_PSM1Tool = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool roll link");
+    m_PSM2Tool = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool roll link");
+
+    m_PSM1pitch = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool pitch link");
+    m_PSM2pitch = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool pitch link");
+    
+    m_PSM1yaw = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool yaw link");
+    m_PSM2yaw = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool yaw link");
+    
+    m_PSM1gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool gripper1 link");
+    m_PSM2gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool gripper1 link");
+    
+    m_PSM1gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool gripper2 link");
+    m_PSM2gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool gripper2 link");
+
+    m_PSM1_ghost_Tool = m_worldPtr->getRigidBody("/ambf/env/psm1_ghost/BODY tool roll link");
+    m_PSM2_ghost_Tool = m_worldPtr->getRigidBody("/ambf/env/psm2_ghost/BODY tool roll link");
+
+    m_PSM1_ghost_pitch = m_worldPtr->getRigidBody("/ambf/env/psm1_ghost/BODY tool pitch link");
+    m_PSM2_ghost_pitch = m_worldPtr->getRigidBody("/ambf/env/psm2_ghost/BODY tool pitch link");
+
+    m_PSM1_ghost_yaw = m_worldPtr->getRigidBody("/ambf/env/psm1_ghost/BODY tool yaw link");
+    m_PSM2_ghost_yaw = m_worldPtr->getRigidBody("/ambf/env/psm2_ghost/BODY tool yaw link");    
+    
+    m_PSM1_ghost_gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm1_ghost/BODY tool gripper1 link");
+    m_PSM2_ghost_gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm2_ghost/BODY tool gripper1 link");
+
+    m_PSM1_ghost_gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm1_ghost/BODY tool gripper2 link");
+    m_PSM2_ghost_gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm2_ghost/BODY tool gripper2 link");
+    
+
+
+    if(m_PSM1Tool)
+    {
+        cerr << "INFO! GOT TOOL:" << m_PSM1Tool->getName() << endl;
+    }
+
+    else{
+        cerr << "WARNING! COULD NOT FIND Tool" << endl;
+    }
+    if(m_PSM2Tool)
+    {
+        cerr << "INFO! GOT TOOL:" << m_PSM2Tool->getName() << endl;
+    }
+
+    else{
+        cerr << "WARNING! COULD NOT FIND Tool" << endl;
+    }
+
 
     // create a font
     cFontPtr font = NEW_CFONTCALIBRI40();
@@ -112,15 +161,40 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
 
 void afAutoCompletePlugin::graphicsUpdate()
 {
-    m_comStatus->setShowEnabled(m_comloss); 
-    m_legend->setShowEnabled(m_comloss);
+    m_comStatus->setShowEnabled(m_comloss_text); 
+    m_legend->setShowEnabled(m_comloss_text);
     m_comStatus->setLocalPos(m_mainCamera->m_width*0.4, m_mainCamera->m_height*0.85, 0);
     m_legend->setLocalPos(m_mainCamera->m_width*0.8, m_mainCamera->m_height*0.85, 0);
+
+    m_PSM1Tool->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM2Tool->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM1pitch->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM2pitch->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM1yaw->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM2yaw->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM1gripper1->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM2gripper1->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM1gripper2->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM2gripper2->m_visualMesh->setShowEnabled(m_comloss);
+
+    m_PSM1_ghost_Tool->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM2_ghost_Tool->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM1_ghost_pitch->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM2_ghost_pitch->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM1_ghost_yaw->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM2_ghost_yaw->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM1_ghost_gripper1->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM2_ghost_gripper1->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM1_ghost_gripper2->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM2_ghost_gripper2->m_visualMesh->setShowEnabled(m_comloss);
 }
 
 void afAutoCompletePlugin::communication_loss_cb(const std_msgs::Bool::ConstPtr& comloss)
 {
-    m_comloss = comloss->data;
+    m_comloss_text = comloss->data;
+    if(m_comloss_text ==false && m_comloss==true)
+        sleep(0.5);
+    m_comloss = m_comloss_text;
 }
 
 

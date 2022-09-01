@@ -211,7 +211,7 @@ class ControllerInterface:
                     self.cmd_xyz = self.predict_xyz
 
                     rot_error, _ = (self.cmd_rpy * self.cmd_rpy_old.Inverse()).GetRotAngle()
-                    print(rot_error)
+                    
                     if(rot_error < 0.4):
                         self.recovery = False
             else:
@@ -233,7 +233,10 @@ class ControllerInterface:
                 pos = np.array([self.cmd_xyz[0],self.cmd_xyz[1],self.cmd_xyz[2]])
                 vel = from_kdl_twist(twist)
                 acc_np = from_kdl_twist(acc)
-                self.observation = np.hstack([pos,vel[:3],acc_np[:3]])
+                if self.recovery:
+                    self.observation = np.hstack([pos, np.zeros([3]), np.zeros([3])])
+                else:
+                    self.observation = np.hstack([pos,vel[:3],acc_np[:3]])
                 # self.kf = KFPredict(self.observation)
 
                 self.psm_arm.servo_cp(self.T_IK)
