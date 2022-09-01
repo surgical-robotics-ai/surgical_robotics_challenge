@@ -83,7 +83,7 @@ class PSM:
         self.sensor = self.client.get_obj_handle(name + '/Sensor0')
         self.actuators = []
         self.actuators.append(self.client.get_obj_handle(name + '/Actuator0'))
-        time.sleep(0.5)
+        time.sleep(1.0)
         self.grasped = [False, False, False]
         self.graspable_objs_prefix = ["Needle", "Thread", "Puzzle"]
 

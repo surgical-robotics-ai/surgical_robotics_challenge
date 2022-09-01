@@ -33,7 +33,7 @@ def com_loss_publisher():
 
             # Added for random generation loss
             time_period = 10 * random.random()
-            loss_period = 5 * random.random()
+            loss_period = 3 * random.random()
             while time_period <  loss_period:
                 time_period = loss_period +1 
 
