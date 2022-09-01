@@ -82,20 +82,20 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     m_stereoCameraL = m_worldPtr->getCamera("cameraL");
     m_stereoCameraR = m_worldPtr->getCamera("cameraR");
 
-    m_PSM1Tool = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool roll link");
-    m_PSM2Tool = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool roll link");
+    m_PSM1Tool = m_worldPtr->getRigidBody("/ambf/env/psm1/BODY tool roll link");
+    m_PSM2Tool = m_worldPtr->getRigidBody("/ambf/env/psm2/BODY tool roll link");
 
-    m_PSM1pitch = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool pitch link");
-    m_PSM2pitch = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool pitch link");
+    m_PSM1pitch = m_worldPtr->getRigidBody("/ambf/env/psm1/BODY tool pitch link");
+    m_PSM2pitch = m_worldPtr->getRigidBody("/ambf/env/psm2/BODY tool pitch link");
     
-    m_PSM1yaw = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool yaw link");
-    m_PSM2yaw = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool yaw link");
+    m_PSM1yaw = m_worldPtr->getRigidBody("/ambf/env/psm1/BODY tool yaw link");
+    m_PSM2yaw = m_worldPtr->getRigidBody("/ambf/env/psm2/BODY tool yaw link");
     
-    m_PSM1gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool gripper1 link");
-    m_PSM2gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool gripper1 link");
+    m_PSM1gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm1/BODY tool gripper1 link");
+    m_PSM2gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm2/BODY tool gripper1 link");
     
-    m_PSM1gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool gripper2 link");
-    m_PSM2gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool gripper2 link");
+    m_PSM1gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm1/BODY tool gripper2 link");
+    m_PSM2gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm2/BODY tool gripper2 link");
 
     m_PSM1_ghost_Tool = m_worldPtr->getRigidBody("/ambf/env/psm1_ghost/BODY tool roll link");
     m_PSM2_ghost_Tool = m_worldPtr->getRigidBody("/ambf/env/psm2_ghost/BODY tool roll link");
@@ -146,7 +146,7 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     m_legend->setLocalPos(m_stereoCameraL->m_width*0.8, m_stereoCameraL->m_height*0.85, 0);
     m_legend->m_fontColor.setBlue();
     m_legend->setFontScale(0.8);
-    m_legend->setText("Blue: Prediction");
+    m_legend->setText("Blue: Remote-side robot");
     m_stereoCameraL->getFrontLayer()->addChild(m_legend);
 
     cBackground *background = new cBackground();
@@ -163,8 +163,8 @@ void afAutoCompletePlugin::graphicsUpdate()
 {
     m_comStatus->setShowEnabled(m_comloss_text); 
     m_legend->setShowEnabled(m_comloss_text);
-    m_comStatus->setLocalPos(m_mainCamera->m_width*0.4, m_mainCamera->m_height*0.85, 0);
-    m_legend->setLocalPos(m_mainCamera->m_width*0.8, m_mainCamera->m_height*0.85, 0);
+    m_comStatus->setLocalPos(m_stereoCameraL->m_width*0.4, m_stereoCameraL->m_height*0.85, 0);
+    m_legend->setLocalPos(m_stereoCameraL->m_width*0.8, m_stereoCameraL->m_height*0.85, 0);
 
     m_PSM1Tool->m_visualMesh->setShowEnabled(m_comloss);
     m_PSM2Tool->m_visualMesh->setShowEnabled(m_comloss);
@@ -177,12 +177,12 @@ void afAutoCompletePlugin::graphicsUpdate()
     m_PSM1gripper2->m_visualMesh->setShowEnabled(m_comloss);
     m_PSM2gripper2->m_visualMesh->setShowEnabled(m_comloss);
 
-    m_PSM1_ghost_Tool->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM2_ghost_Tool->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM1_ghost_pitch->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM2_ghost_pitch->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM1_ghost_yaw->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM2_ghost_yaw->m_visualMesh->setShowEnabled(m_comloss);
+    // m_PSM1_ghost_Tool->m_visualMesh->setShowEnabled(m_comloss);
+    // m_PSM2_ghost_Tool->m_visualMesh->setShowEnabled(m_comloss);
+    // m_PSM1_ghost_pitch->m_visualMesh->setShowEnabled(m_comloss);
+    // m_PSM2_ghost_pitch->m_visualMesh->setShowEnabled(m_comloss);
+    // m_PSM1_ghost_yaw->m_visualMesh->setShowEnabled(m_comloss);
+    // m_PSM2_ghost_yaw->m_visualMesh->setShowEnabled(m_comloss);
     m_PSM1_ghost_gripper1->m_visualMesh->setShowEnabled(m_comloss);
     m_PSM2_ghost_gripper1->m_visualMesh->setShowEnabled(m_comloss);
     m_PSM1_ghost_gripper2->m_visualMesh->setShowEnabled(m_comloss);

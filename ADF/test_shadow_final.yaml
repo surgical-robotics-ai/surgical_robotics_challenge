@@ -55,7 +55,7 @@ BODY Five_shadow:
     linear: 0.5
   visible: true
   collision groups:
-  - 19
+  - 20
   compound collision shape:
   - name: '1'
     shape: BOX
@@ -155,7 +155,7 @@ BODY Four_shadow:
     linear: 0.5
   visible: true
   collision groups:
-  - 19
+  - 20
   compound collision shape:
   - name: '1'
     shape: BOX
@@ -255,7 +255,7 @@ BODY One_shadow:
     linear: 0.5
   visible: true
   collision groups:
-  - 19
+  - 20
   compound collision shape:
   - name: '1'
     shape: BOX
@@ -355,7 +355,7 @@ BODY Six_shadow:
     linear: 0.5
   visible: true
   collision groups:
-  - 19
+  - 20
   compound collision shape:
   - name: '1'
     shape: BOX
@@ -455,7 +455,7 @@ BODY Three_shadow:
     linear: 0.5
   visible: true
   collision groups:
-  - 19
+  - 20
   compound collision shape:
   - name: '1'
     shape: BOX
@@ -555,7 +555,7 @@ BODY Two_shadow:
     linear: 0.5
   visible: true
   collision groups:
-  - 19
+  - 20
   compound collision shape:
   - name: '1'
     shape: BOX

@@ -50,6 +50,7 @@ from argparse import ArgumentParser
 
 import rospy
 from std_msgs.msg import Bool
+from geometry_msgs.msg import Pose
 from PyKDL import Frame, Rotation, Vector, Wrench, Twist
 from ambf_client import Client
 
@@ -63,7 +64,7 @@ from pykalman import KalmanFilter
 
 
 dt = 0.5 #0.035
-motion_scale = 0.02#0.035
+motion_scale = 0.04#0.035
 
 # PyKDL types <--> Numpy types
 def from_kdl_vector(vector):
@@ -145,13 +146,13 @@ class KFPredict:
         return mean, covariance
 
 class ControllerInterface:
-    def __init__(self, leader, psm_arms, camera):
+    def __init__(self, leader, psm_arms, camera, peg_flag=True):
         self.counter = 0
         self.leader = leader
 
         self.psm_arm = psm_arms[1]
-        self.psm_ghost_arm = psm_arms[2]
-        self.psm_remote_arm = psm_arms[0]
+        self.psm_ghost_arm = psm_arms[0]
+        self.psm_remote_arm = psm_arms[2]
 
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
@@ -202,7 +203,9 @@ class ControllerInterface:
 
         self.peg_list = [peg1, peg2, peg3, peg4, peg5, peg6]
         self.shadow_list = [shadow1, shadow2, shadow3, shadow4, shadow5, shadow6]
-        move_shadow_peg(self.c, self.peg_list, self.shadow_list, False)
+        # move_shadow_peg(self.c, self.peg_list, self.shadow_list, False)
+
+        self.peg_flag = peg_flag
 
 
     def update_T_b_c(self):
@@ -317,7 +320,9 @@ class ControllerInterface:
 
     def run(self):        
         self.update_arms_pose_withprediction()
-        move_shadow_peg(self.c, self.peg_list, self.shadow_list, self.communication_loss)
+        
+        if self.peg_flag:
+            move_shadow_peg(self.c, self.peg_list, self.shadow_list, self.communication_loss)
 
 
 
@@ -433,7 +438,7 @@ if __name__ == "__main__":
 
         leader = MTM(parsed_args.mtm_name)
         leader.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
-        controller1 = ControllerInterface(leader, psm_arms, cam)
+        controller1 = ControllerInterface(leader, psm_arms, cam, run_psm_one)
         controllers.append(controller1)
         rate = rospy.Rate(200)
 
