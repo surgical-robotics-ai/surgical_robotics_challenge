@@ -183,6 +183,7 @@ class ControllerInterface:
         self.time_loss = 0
 
         self.subscribe_communicationLoss()
+        self.recovery_pub = rospy.Publisher("/recovery", Bool, queue_size=1)
 
         # Inititalize your peg
         self.c = Client()
@@ -250,6 +251,7 @@ class ControllerInterface:
                     self.cmd_xyz = error/self.cov*self.cmd_xyz + (1- error/self.cov)*self.predict_xyz
 
                 self.recovery = False
+                self.recovery_pub.publish(self.recovery)
             
             else:
                 self.cmd_xyz = self.cmd_xyz + delta_t
@@ -316,16 +318,22 @@ class ControllerInterface:
                 f_vis[2] = - eta * twist.vel.z()
                 self.leader.servo_cf(f_vis)
 
-                self.recovery = True
 
 
 
     
 
     def communication_loss_callback(self, data):
+
         if(self.communication_loss == False and data.data == True):
             self.time_loss = time.time()
+
+        elif (self.communication_loss == True and data.data == False):
+            self.recovery = True
+            self.recovery_pub.publish(self.recovery)
+
         self.communication_loss = data.data
+
 
     def subscribe_communicationLoss(self):
         rospy.Subscriber("communication_loss", Bool, self.communication_loss_callback)

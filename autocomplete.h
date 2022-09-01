@@ -29,13 +29,16 @@ public:
 protected:
     // Subscribe communication loss topic
     void communication_loss_cb(const std_msgs::Bool::ConstPtr& comloss);
+    void recovery_cb(const std_msgs::Bool::ConstPtr& recovery);
 
 
 private:
     bool m_comloss = false;
+    bool m_recovery = false;
     bool m_comloss_text = false;
     ros::NodeHandle* m_rosNode;
     ros::Subscriber m_commLossSub;
+    ros::Subscriber m_recoverySub;
 
     // camera to render the world
     afCameraPtr m_mainCamera;
@@ -56,6 +59,7 @@ private:
     //For text
     cLabel *m_comStatus;
     cLabel *m_legend;
+    cLabel *m_ori_recovery;
 
 };
 
