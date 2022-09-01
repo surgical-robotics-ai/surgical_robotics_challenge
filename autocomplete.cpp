@@ -66,6 +66,8 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     m_rosNode = afROSNode::getNode();
     m_commLossSub = m_rosNode->subscribe<std_msgs::Bool>("/communication_loss", 1, &afAutoCompletePlugin::communication_loss_cb, this);
 
+    m_recoverySub = m_rosNode->subscribe<std_msgs::Bool>("/recovery", 1 , &afAutoCompletePlugin::recovery_cb, this);
+
     m_worldPtr = a_afWorld;
 
     // Get first camera
@@ -149,6 +151,13 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     m_legend->setText("Blue: Remote-side robot");
     m_stereoCameraL->getFrontLayer()->addChild(m_legend);
 
+    m_ori_recovery = new cLabel(font);
+    m_ori_recovery->setLocalPos(m_stereoCameraL->m_width*0.35, m_stereoCameraL->m_height*0.85, 0);
+    m_ori_recovery->m_fontColor.setRed();
+    m_ori_recovery->setFontScale(1.2);
+    m_ori_recovery->setText("Orientation Misaligned");
+    m_stereoCameraL->getFrontLayer()->addChild(m_ori_recovery);
+
     cBackground *background = new cBackground();
     background->setCornerColors(cColorf(1.0f, 1.0f, 1.0f),
                                 cColorf(1.0f, 1.0f, 1.0f),
@@ -163,8 +172,11 @@ void afAutoCompletePlugin::graphicsUpdate()
 {
     m_comStatus->setShowEnabled(m_comloss_text); 
     m_legend->setShowEnabled(m_comloss_text);
-    m_comStatus->setLocalPos(m_stereoCameraL->m_width*0.4, m_stereoCameraL->m_height*0.85, 0);
-    m_legend->setLocalPos(m_stereoCameraL->m_width*0.8, m_stereoCameraL->m_height*0.85, 0);
+    m_ori_recovery->setShowEnabled(m_recovery);
+    m_comStatus->setLocalPos(m_mainCamera->m_width*0.4, m_mainCamera->m_height*0.85, 0);
+    m_legend->setLocalPos(m_mainCamera->m_width*0.8, m_mainCamera->m_height*0.85, 0);
+    m_ori_recovery->setLocalPos(m_stereoCameraL->m_width*0.35, m_stereoCameraL->m_height*0.85, 0);
+
 
     m_PSM1Tool->m_visualMesh->setShowEnabled(m_comloss);
     m_PSM2Tool->m_visualMesh->setShowEnabled(m_comloss);
@@ -195,6 +207,11 @@ void afAutoCompletePlugin::communication_loss_cb(const std_msgs::Bool::ConstPtr&
     if(m_comloss_text ==false && m_comloss==true)
         sleep(0.5);
     m_comloss = m_comloss_text;
+}
+
+void afAutoCompletePlugin::recovery_cb(const std_msgs::Bool::ConstPtr& recovery)
+{
+    m_recovery = recovery->data;
 }
 
 
