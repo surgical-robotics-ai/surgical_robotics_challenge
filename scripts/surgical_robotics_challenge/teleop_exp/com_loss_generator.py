@@ -33,9 +33,9 @@ def com_loss_publisher():
 
             # Added for random generation loss
             time_period = 10 * random.random()
-            loss_period = 3 * random.random()
+            loss_period = 5 * random.random()
             while time_period <  loss_period:
-                time_period = loss_period +1 
+                time_period = loss_period + 3 
 
             print("TIME_period: " + str(time_period) + " sec")
             print("LOSS_period: "  + str(loss_period) + " sec")

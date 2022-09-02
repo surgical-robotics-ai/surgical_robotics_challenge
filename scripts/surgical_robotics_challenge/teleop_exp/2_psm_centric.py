@@ -50,6 +50,7 @@ from argparse import ArgumentParser
 
 import rospy
 from std_msgs.msg import Bool
+from geometry_msgs.msg import Pose
 from PyKDL import Frame, Rotation, Vector, Wrench, Twist
 from ambf_client import Client
 
@@ -145,13 +146,13 @@ class KFPredict:
         return mean, covariance
 
 class ControllerInterface:
-    def __init__(self, leader, psm_arms, camera):
+    def __init__(self, leader, psm_arms, camera, peg_flag=True):
         self.counter = 0
         self.leader = leader
 
         self.psm_arm = psm_arms[1]
-        self.psm_ghost_arm = psm_arms[2]
-        self.psm_remote_arm = psm_arms[0]
+        self.psm_ghost_arm = psm_arms[0]
+        self.psm_remote_arm = psm_arms[2]
 
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
@@ -201,9 +202,11 @@ class ControllerInterface:
 
         self.peg_list = [peg1, peg2, peg3, peg4, peg5, peg6]
         self.shadow_list = [shadow1, shadow2, shadow3, shadow4, shadow5, shadow6]
-        move_shadow_peg(self.c, self.peg_list, self.shadow_list, False)
+        #move_shadow_peg(self.c, self.peg_list, self.shadow_list, False)
 
-
+        self.recovery_pub = rospy.Publisher("/" + self.psm_ghost_arm.name + "/recovery", Bool, queue_size=1)
+        self.jaw_old = None
+        self.peg_flag = peg_flag
 
     def update_T_b_c(self):
         if self._update_T_c_b or self._camera.has_pose_changed:
@@ -239,8 +242,9 @@ class ControllerInterface:
 
                     rot_error, _ = (self.cmd_rpy * self.cmd_rpy_old.Inverse()).GetRotAngle()
                     
-                    if(rot_error < 0.4):
+                    if(rot_error < 0.5):
                         self.recovery = False
+                        self.recovery_pub.publish(self.recovery)
             else:
                 self.cmd_xyz = self.cmd_xyz + delta_t
             self.psm_arm.T_t_b_home.p = self.cmd_xyz
@@ -251,7 +255,8 @@ class ControllerInterface:
 
                 self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
                 if (self.recovery == False):
-                    self.cmd_rpy_old = self.cmd_rpy 
+                    self.cmd_rpy_old = self.cmd_rpy
+                    self.jaw_old = self.leader.get_jaw_angle()
 
                 self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
                 T_IK_old = Frame(self.cmd_rpy_old, self.cmd_xyz)
@@ -272,8 +277,8 @@ class ControllerInterface:
             
                 # Move the robot jaw links only if there is a communication
                 self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
-                self.psm_ghost_arm.set_jaw_angle(self.leader.get_jaw_angle())
-                self.psm_remote_arm.set_jaw_angle(self.leader.get_jaw_angle())
+                self.psm_ghost_arm.set_jaw_angle(self.jaw_old)
+                self.psm_remote_arm.set_jaw_angle(self.jaw_old)
 
 
                 self.cmd_xyz_old = self.cmd_xyz
@@ -317,6 +322,7 @@ class ControllerInterface:
 
         elif (self.communication_loss == True and data.data == False):
             self.recovery = True
+            self.recovery_pub.publish(self.recovery)
 
         self.communication_loss = data.data
 
@@ -325,7 +331,8 @@ class ControllerInterface:
 
     def run(self):
         self.update_arms_pose_withprediction()
-        move_shadow_peg(self.c, self.peg_list, self.shadow_list, self.communication_loss)
+        if self.peg_flag:
+            move_shadow_peg(self.c, self.peg_list, self.shadow_list, self.communication_loss)
 
 
 
@@ -440,7 +447,7 @@ if __name__ == "__main__":
 
         leader = MTM(parsed_args.mtm_name)
         leader.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
-        controller1 = ControllerInterface(leader, psm_arms, cam)
+        controller1 = ControllerInterface(leader, psm_arms, cam, run_psm_one)
         controllers.append(controller1)
         rate = rospy.Rate(200)
 

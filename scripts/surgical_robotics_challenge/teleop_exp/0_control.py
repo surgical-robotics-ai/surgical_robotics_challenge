@@ -99,12 +99,13 @@ def move_shadow_peg(c, peg_list, shadow_list, comloss):
 
 
 class ControllerInterface:
-    def __init__(self, leader, psm_arms, camera):
+    def __init__(self, leader, psm_arms, camera, peg_flag=True):
         self.counter = 0
         self.leader = leader
 
         self.psm_arm = psm_arms[1]
         self.psm_ghost_arm = psm_arms[0]
+        self.psm_remote_arm = psm_arms[2]
         
 
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
@@ -147,7 +148,8 @@ class ControllerInterface:
 
         self.peg_list = [peg1, peg2, peg3, peg4, peg5, peg6]
         self.shadow_list = [shadow1, shadow2, shadow3, shadow4, shadow5, shadow6]
-        move_shadow_peg(self.c, self.peg_list, self.shadow_list, False)
+        #move_shadow_peg(self.c, self.peg_list, self.shadow_list, False)
+        self.peg_flag = peg_flag
 
 
 
@@ -194,12 +196,15 @@ class ControllerInterface:
                 self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
                 self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
 
-                # self.psm_arm.servo_cp(self.T_IK)
+                self.psm_arm.servo_cp(self.T_IK)
                 self.psm_ghost_arm.servo_cp(self.T_IK)
+                # self.psm_remote_arm.servo_cp(self.T_IK)
             
                 # Move the robot jaw links only if there is a communication
-                # self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
+                self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
                 self.psm_ghost_arm.set_jaw_angle(self.leader.get_jaw_angle())
+                self.psm_remote_arm.set_jaw_angle(self.leader.get_jaw_angle())
+
 
                 self.T_IK_loss = self.T_IK
             
@@ -272,7 +277,8 @@ class ControllerInterface:
         
         # self.update_camera_pose()
         self.update_arms_pose_withloss_control() # with no assistance
-        move_shadow_peg(self.c, self.peg_list, self.shadow_list, self.communication_loss)
+        if self.peg_flag:
+            move_shadow_peg(self.c, self.peg_list, self.shadow_list, self.communication_loss)
         # self.update_arm_pose()
 
 
@@ -339,6 +345,15 @@ if __name__ == "__main__":
             T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
             psm.set_home_pose(T_psmtip_b)
             psm_arms.append(psm)
+        
+        arm_name = 'psm1_remote'
+        print('LOADING CONTROLLER FOR ', arm_name)
+        psm = PSM(c, arm_name, add_joint_errors=False)
+        if psm.is_present():
+            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(-0.2, 0.0, -1.0))
+            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+            psm.set_home_pose(T_psmtip_b)
+            psm_arms.append(psm)
 
 
     if run_psm_two is True:
@@ -363,6 +378,15 @@ if __name__ == "__main__":
             psm.set_home_pose(T_psmtip_b)
             psm_arms.append(psm)
         
+        arm_name = 'psm2_remote'
+        print('LOADING CONTROLLER FOR ', arm_name)
+        psm = PSM(c, arm_name, add_joint_errors=False)
+        if psm.is_present():
+            T_psmtip_c = Frame(Rotation.RPY(3.14, 0.0, -1.57079), Vector(0.2, 0.0, -1.0))
+            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+            psm.set_home_pose(T_psmtip_b)
+            psm_arms.append(psm)
+        
         
 
     if len(psm_arms) == 0:
@@ -373,7 +397,7 @@ if __name__ == "__main__":
 
         leader = MTM(parsed_args.mtm_name)
         leader.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
-        controller1 = ControllerInterface(leader, psm_arms, cam)
+        controller1 = ControllerInterface(leader, psm_arms, cam, run_psm_one)
         controllers.append(controller1)
         rate = rospy.Rate(120)
 

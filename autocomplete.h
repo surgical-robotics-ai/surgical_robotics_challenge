@@ -29,16 +29,19 @@ public:
 protected:
     // Subscribe communication loss topic
     void communication_loss_cb(const std_msgs::Bool::ConstPtr& comloss);
-    void recovery_cb(const std_msgs::Bool::ConstPtr& recovery);
+    void psm1_recovery_cb(const std_msgs::Bool::ConstPtr& recovery);
+    void psm2_recovery_cb(const std_msgs::Bool::ConstPtr& recovery);
 
 
 private:
     bool m_comloss = false;
-    bool m_recovery = false;
+    bool m_psm1_recovery = false;
+    bool m_psm2_recovery = false;
     bool m_comloss_text = false;
     ros::NodeHandle* m_rosNode;
     ros::Subscriber m_commLossSub;
-    ros::Subscriber m_recoverySub;
+    ros::Subscriber m_psm1_recoverySub;
+    ros::Subscriber m_psm2_recoverySub;
 
     // camera to render the world
     afCameraPtr m_mainCamera;
@@ -55,6 +58,11 @@ private:
     afRigidBodyPtr m_PSM1_ghost_yaw, m_PSM2_ghost_yaw;
     afRigidBodyPtr m_PSM1_ghost_gripper1, m_PSM2_ghost_gripper1;
     afRigidBodyPtr m_PSM1_ghost_gripper2, m_PSM2_ghost_gripper2;
+    afRigidBodyPtr m_PSM1_remote_Tool, m_PSM2_remote_Tool;
+    afRigidBodyPtr m_PSM1_remote_pitch, m_PSM2_remote_pitch;
+    afRigidBodyPtr m_PSM1_remote_yaw, m_PSM2_remote_yaw;
+    afRigidBodyPtr m_PSM1_remote_gripper1, m_PSM2_remote_gripper1;
+    afRigidBodyPtr m_PSM1_remote_gripper2, m_PSM2_remote_gripper2;
 
     //For text
     cLabel *m_comStatus;

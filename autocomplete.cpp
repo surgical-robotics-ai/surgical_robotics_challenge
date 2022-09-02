@@ -66,7 +66,8 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     m_rosNode = afROSNode::getNode();
     m_commLossSub = m_rosNode->subscribe<std_msgs::Bool>("/communication_loss", 1, &afAutoCompletePlugin::communication_loss_cb, this);
 
-    m_recoverySub = m_rosNode->subscribe<std_msgs::Bool>("/recovery", 1 , &afAutoCompletePlugin::recovery_cb, this);
+    m_psm1_recoverySub = m_rosNode->subscribe<std_msgs::Bool>("/psm1/recovery", 1 , &afAutoCompletePlugin::psm1_recovery_cb, this);
+    m_psm2_recoverySub = m_rosNode->subscribe<std_msgs::Bool>("/psm2/recovery", 1 , &afAutoCompletePlugin::psm2_recovery_cb, this);
 
     m_worldPtr = a_afWorld;
 
@@ -86,33 +87,36 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
 
     m_PSM1Tool = m_worldPtr->getRigidBody("/ambf/env/psm1/BODY tool roll link");
     m_PSM2Tool = m_worldPtr->getRigidBody("/ambf/env/psm2/BODY tool roll link");
-
     m_PSM1pitch = m_worldPtr->getRigidBody("/ambf/env/psm1/BODY tool pitch link");
     m_PSM2pitch = m_worldPtr->getRigidBody("/ambf/env/psm2/BODY tool pitch link");
-    
     m_PSM1yaw = m_worldPtr->getRigidBody("/ambf/env/psm1/BODY tool yaw link");
     m_PSM2yaw = m_worldPtr->getRigidBody("/ambf/env/psm2/BODY tool yaw link");
-    
     m_PSM1gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm1/BODY tool gripper1 link");
     m_PSM2gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm2/BODY tool gripper1 link");
-    
     m_PSM1gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm1/BODY tool gripper2 link");
     m_PSM2gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm2/BODY tool gripper2 link");
 
     m_PSM1_ghost_Tool = m_worldPtr->getRigidBody("/ambf/env/psm1_ghost/BODY tool roll link");
     m_PSM2_ghost_Tool = m_worldPtr->getRigidBody("/ambf/env/psm2_ghost/BODY tool roll link");
-
     m_PSM1_ghost_pitch = m_worldPtr->getRigidBody("/ambf/env/psm1_ghost/BODY tool pitch link");
     m_PSM2_ghost_pitch = m_worldPtr->getRigidBody("/ambf/env/psm2_ghost/BODY tool pitch link");
-
     m_PSM1_ghost_yaw = m_worldPtr->getRigidBody("/ambf/env/psm1_ghost/BODY tool yaw link");
     m_PSM2_ghost_yaw = m_worldPtr->getRigidBody("/ambf/env/psm2_ghost/BODY tool yaw link");    
-    
     m_PSM1_ghost_gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm1_ghost/BODY tool gripper1 link");
     m_PSM2_ghost_gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm2_ghost/BODY tool gripper1 link");
-
     m_PSM1_ghost_gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm1_ghost/BODY tool gripper2 link");
     m_PSM2_ghost_gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm2_ghost/BODY tool gripper2 link");
+
+    m_PSM1_remote_Tool = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool roll link");
+    m_PSM2_remote_Tool = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool roll link");
+    m_PSM1_remote_pitch = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool pitch link");
+    m_PSM2_remote_pitch = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool pitch link");
+    m_PSM1_remote_yaw = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool yaw link");
+    m_PSM2_remote_yaw = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool yaw link");    
+    m_PSM1_remote_gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool gripper1 link");
+    m_PSM2_remote_gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool gripper1 link");
+    m_PSM1_remote_gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool gripper2 link");
+    m_PSM2_remote_gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool gripper2 link");
     
 
 
@@ -143,19 +147,20 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     m_comStatus->setFontScale(0.8);
     m_comStatus->setText("Communication Lost");
     m_stereoCameraL->getFrontLayer()->addChild(m_comStatus);
+    m_comStatus->setShowEnabled(false); 
 
     m_legend = new cLabel(font);
-    m_legend->setLocalPos(m_stereoCameraL->m_width*0.8, m_stereoCameraL->m_height*0.85, 0);
+    m_legend->setLocalPos(m_stereoCameraL->m_width*0.7, m_stereoCameraL->m_height*0.85, 0);
     m_legend->m_fontColor.setBlue();
     m_legend->setFontScale(0.8);
     m_legend->setText("Blue: Remote-side robot");
     m_stereoCameraL->getFrontLayer()->addChild(m_legend);
+    m_legend->setShowEnabled(false);
 
     m_ori_recovery = new cLabel(font);
-    m_ori_recovery->setLocalPos(m_stereoCameraL->m_width*0.35, m_stereoCameraL->m_height*0.85, 0);
+    m_ori_recovery->setLocalPos(m_stereoCameraL->m_width*0.35, m_stereoCameraL->m_height*0.15, 0);
     m_ori_recovery->m_fontColor.setRed();
     m_ori_recovery->setFontScale(1.2);
-    m_ori_recovery->setText("Orientation Misaligned");
     m_stereoCameraL->getFrontLayer()->addChild(m_ori_recovery);
 
     cBackground *background = new cBackground();
@@ -172,12 +177,18 @@ void afAutoCompletePlugin::graphicsUpdate()
 {
     m_comStatus->setShowEnabled(m_comloss_text); 
     m_legend->setShowEnabled(m_comloss_text);
-    m_ori_recovery->setShowEnabled(m_recovery);
-    m_comStatus->setLocalPos(m_mainCamera->m_width*0.4, m_mainCamera->m_height*0.85, 0);
-    m_legend->setLocalPos(m_mainCamera->m_width*0.8, m_mainCamera->m_height*0.85, 0);
-    m_ori_recovery->setLocalPos(m_stereoCameraL->m_width*0.35, m_stereoCameraL->m_height*0.85, 0);
+    if (m_psm1_recovery){
+        m_ori_recovery->setText("PSM1 Orientation Misaligned");
+    }
+    if (m_psm2_recovery){
+        m_ori_recovery->setText("PSM2 Orientation Misaligned");
+    }
+    m_ori_recovery->setShowEnabled(m_psm1_recovery || m_psm2_recovery);
+    m_comStatus->setLocalPos(m_stereoCameraL->m_width*0.4, m_stereoCameraL->m_height*0.85, 0);
+    m_legend->setLocalPos(m_stereoCameraL->m_width*0.7, m_stereoCameraL->m_height*0.85, 0);
+    m_ori_recovery->setLocalPos(m_stereoCameraL->m_width*0.35, m_stereoCameraL->m_height*0.15, 0);
 
-
+    //Comment out here for control method:
     m_PSM1Tool->m_visualMesh->setShowEnabled(m_comloss);
     m_PSM2Tool->m_visualMesh->setShowEnabled(m_comloss);
     m_PSM1pitch->m_visualMesh->setShowEnabled(m_comloss);
@@ -189,29 +200,34 @@ void afAutoCompletePlugin::graphicsUpdate()
     m_PSM1gripper2->m_visualMesh->setShowEnabled(m_comloss);
     m_PSM2gripper2->m_visualMesh->setShowEnabled(m_comloss);
 
+
     // m_PSM1_ghost_Tool->m_visualMesh->setShowEnabled(m_comloss);
     // m_PSM2_ghost_Tool->m_visualMesh->setShowEnabled(m_comloss);
     // m_PSM1_ghost_pitch->m_visualMesh->setShowEnabled(m_comloss);
     // m_PSM2_ghost_pitch->m_visualMesh->setShowEnabled(m_comloss);
-    // m_PSM1_ghost_yaw->m_visualMesh->setShowEnabled(m_comloss);
-    // m_PSM2_ghost_yaw->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM1_ghost_gripper1->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM2_ghost_gripper1->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM1_ghost_gripper2->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM2_ghost_gripper2->m_visualMesh->setShowEnabled(m_comloss);
+    m_PSM1_ghost_yaw->m_visualMesh->setShowEnabled((m_comloss || m_psm1_recovery));
+    m_PSM2_ghost_yaw->m_visualMesh->setShowEnabled((m_comloss || m_psm2_recovery));
+    m_PSM1_ghost_gripper1->m_visualMesh->setShowEnabled((m_comloss || m_psm1_recovery));
+    m_PSM2_ghost_gripper1->m_visualMesh->setShowEnabled((m_comloss || m_psm2_recovery));
+    m_PSM1_ghost_gripper2->m_visualMesh->setShowEnabled((m_comloss || m_psm1_recovery));
+    m_PSM2_ghost_gripper2->m_visualMesh->setShowEnabled((m_comloss || m_psm2_recovery));
 }
-
 void afAutoCompletePlugin::communication_loss_cb(const std_msgs::Bool::ConstPtr& comloss)
 {
     m_comloss_text = comloss->data;
     if(m_comloss_text ==false && m_comloss==true)
-        sleep(0.5);
+        sleep(1.0);
     m_comloss = m_comloss_text;
 }
 
-void afAutoCompletePlugin::recovery_cb(const std_msgs::Bool::ConstPtr& recovery)
+void afAutoCompletePlugin::psm1_recovery_cb(const std_msgs::Bool::ConstPtr& recovery)
 {
-    m_recovery = recovery->data;
+    m_psm1_recovery = recovery->data;
+}
+
+void afAutoCompletePlugin::psm2_recovery_cb(const std_msgs::Bool::ConstPtr& recovery)
+{
+    m_psm2_recovery = recovery->data;
 }
 
 
