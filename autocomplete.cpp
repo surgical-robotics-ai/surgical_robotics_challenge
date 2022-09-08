@@ -118,7 +118,12 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     m_PSM1_remote_gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool gripper2 link");
     m_PSM2_remote_gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool gripper2 link");
     
+    m_tool_flag = true;
+    m_ghost_flag = true;
+    m_remote_flag = true;
 
+    m_visualize_flag = false;
+    m_control_flag = false;
 
     if(m_PSM1Tool)
     {
@@ -189,28 +194,34 @@ void afAutoCompletePlugin::graphicsUpdate()
     m_ori_recovery->setLocalPos(m_stereoCameraL->m_width*0.35, m_stereoCameraL->m_height*0.15, 0);
 
     //Comment out here for control method:
-    m_PSM1Tool->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM2Tool->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM1pitch->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM2pitch->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM1yaw->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM2yaw->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM1gripper1->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM2gripper1->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM1gripper2->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM2gripper2->m_visualMesh->setShowEnabled(m_comloss);
+
+    if(!m_visualize_flag){
+
+        if (!m_control_flag){
+            m_PSM1Tool->m_visualMesh->setShowEnabled(m_comloss);
+            m_PSM2Tool->m_visualMesh->setShowEnabled(m_comloss);
+            m_PSM1pitch->m_visualMesh->setShowEnabled(m_comloss);
+            m_PSM2pitch->m_visualMesh->setShowEnabled(m_comloss);
+            m_PSM1yaw->m_visualMesh->setShowEnabled(m_comloss);
+            m_PSM2yaw->m_visualMesh->setShowEnabled(m_comloss);
+            m_PSM1gripper1->m_visualMesh->setShowEnabled(m_comloss);
+            m_PSM2gripper1->m_visualMesh->setShowEnabled(m_comloss);
+            m_PSM1gripper2->m_visualMesh->setShowEnabled(m_comloss);
+            m_PSM2gripper2->m_visualMesh->setShowEnabled(m_comloss);
+        }
 
 
-    // m_PSM1_ghost_Tool->m_visualMesh->setShowEnabled(m_comloss);
-    // m_PSM2_ghost_Tool->m_visualMesh->setShowEnabled(m_comloss);
-    // m_PSM1_ghost_pitch->m_visualMesh->setShowEnabled(m_comloss);
-    // m_PSM2_ghost_pitch->m_visualMesh->setShowEnabled(m_comloss);
-    m_PSM1_ghost_yaw->m_visualMesh->setShowEnabled((m_comloss || m_psm1_recovery));
-    m_PSM2_ghost_yaw->m_visualMesh->setShowEnabled((m_comloss || m_psm2_recovery));
-    m_PSM1_ghost_gripper1->m_visualMesh->setShowEnabled((m_comloss || m_psm1_recovery));
-    m_PSM2_ghost_gripper1->m_visualMesh->setShowEnabled((m_comloss || m_psm2_recovery));
-    m_PSM1_ghost_gripper2->m_visualMesh->setShowEnabled((m_comloss || m_psm1_recovery));
-    m_PSM2_ghost_gripper2->m_visualMesh->setShowEnabled((m_comloss || m_psm2_recovery));
+        // m_PSM1_ghost_Tool->m_visualMesh->setShowEnabled(m_comloss);
+        // m_PSM2_ghost_Tool->m_visualMesh->setShowEnabled(m_comloss);
+        // m_PSM1_ghost_pitch->m_visualMesh->setShowEnabled(m_comloss);
+        // m_PSM2_ghost_pitch->m_visualMesh->setShowEnabled(m_comloss);
+        m_PSM1_ghost_yaw->m_visualMesh->setShowEnabled((m_comloss || m_psm1_recovery));
+        m_PSM2_ghost_yaw->m_visualMesh->setShowEnabled((m_comloss || m_psm2_recovery));
+        m_PSM1_ghost_gripper1->m_visualMesh->setShowEnabled((m_comloss || m_psm1_recovery));
+        m_PSM2_ghost_gripper1->m_visualMesh->setShowEnabled((m_comloss || m_psm2_recovery));
+        m_PSM1_ghost_gripper2->m_visualMesh->setShowEnabled((m_comloss || m_psm1_recovery));
+        m_PSM2_ghost_gripper2->m_visualMesh->setShowEnabled((m_comloss || m_psm2_recovery));
+    }
 }
 void afAutoCompletePlugin::communication_loss_cb(const std_msgs::Bool::ConstPtr& comloss)
 {
@@ -243,20 +254,83 @@ void afAutoCompletePlugin::physicsUpdate(double dt)
 
 void afAutoCompletePlugin::keyboardUpdate(GLFWwindow *a_window, int a_key, int a_scancode, int a_action, int a_mods)
 {
-    if (a_key == GLFW_KEY_1){
-        if (m_stereoCameraL){
-            m_stereoCameraL->setLocalPos(m_stereoCameraL->getLocalPos() - cVector3d(0.001, 0., 0.));
+    if (a_mods == GLFW_MOD_CONTROL){
+        if (a_key == GLFW_KEY_1){
+            if (m_stereoCameraL){
+                m_stereoCameraL->setLocalPos(m_stereoCameraL->getLocalPos() - cVector3d(0.001, 0., 0.));
+            }
+            if (m_stereoCameraR){
+                m_stereoCameraR->setLocalPos(m_stereoCameraR->getLocalPos() + cVector3d(0.001, 0., 0.));
+            }
         }
-        if (m_stereoCameraR){
-            m_stereoCameraR->setLocalPos(m_stereoCameraR->getLocalPos() + cVector3d(0.001, 0., 0.));
+        else if (a_key == GLFW_KEY_2){
+            if (m_stereoCameraL){
+                m_stereoCameraL->setLocalPos(m_stereoCameraL->getLocalPos() + cVector3d(0.001, 0., 0.));
+            }
+            if (m_stereoCameraR){
+                m_stereoCameraR->setLocalPos(m_stereoCameraR->getLocalPos() - cVector3d(0.001, 0., 0.));
+            }
         }
-    }
-    else if (a_key == GLFW_KEY_2){
-        if (m_stereoCameraL){
-            m_stereoCameraL->setLocalPos(m_stereoCameraL->getLocalPos() + cVector3d(0.001, 0., 0.));
+
+        else if (a_key == GLFW_KEY_3){
+            cout << "Toggling the tool visibility" << endl;
+
+            m_PSM1Tool->m_visualMesh->setShowEnabled(!m_tool_flag);
+            m_PSM2Tool->m_visualMesh->setShowEnabled(!m_tool_flag);
+            m_PSM1pitch->m_visualMesh->setShowEnabled(!m_tool_flag);
+            m_PSM2pitch->m_visualMesh->setShowEnabled(!m_tool_flag);
+            m_PSM1yaw->m_visualMesh->setShowEnabled(!m_tool_flag);
+            m_PSM2yaw->m_visualMesh->setShowEnabled(!m_tool_flag);
+            m_PSM1gripper1->m_visualMesh->setShowEnabled(!m_tool_flag);
+            m_PSM2gripper1->m_visualMesh->setShowEnabled(!m_tool_flag);
+            m_PSM1gripper2->m_visualMesh->setShowEnabled(!m_tool_flag);
+            m_PSM2gripper2->m_visualMesh->setShowEnabled(!m_tool_flag);
+
+            m_tool_flag = !m_tool_flag;
         }
-        if (m_stereoCameraR){
-            m_stereoCameraR->setLocalPos(m_stereoCameraR->getLocalPos() - cVector3d(0.001, 0., 0.));
+
+        else if (a_key == GLFW_KEY_4){
+            cout << "Toggling the ghost tool visibility" << endl;
+            
+            m_PSM1_ghost_yaw->m_visualMesh->setShowEnabled(!m_ghost_flag);
+            m_PSM2_ghost_yaw->m_visualMesh->setShowEnabled(!m_ghost_flag);
+            m_PSM1_ghost_gripper1->m_visualMesh->setShowEnabled(!m_ghost_flag);
+            m_PSM2_ghost_gripper1->m_visualMesh->setShowEnabled(!m_ghost_flag);
+            m_PSM1_ghost_gripper2->m_visualMesh->setShowEnabled(!m_ghost_flag);
+            m_PSM2_ghost_gripper2->m_visualMesh->setShowEnabled(!m_ghost_flag);
+
+            m_ghost_flag = !m_ghost_flag;
+
+        }
+
+        else if (a_key == GLFW_KEY_5){
+            cout << "Toggling the remote rool visibility" << endl;
+            
+            m_PSM1_remote_Tool->m_visualMesh->setShowEnabled(!m_remote_flag);
+            m_PSM2_remote_Tool->m_visualMesh->setShowEnabled(!m_remote_flag);
+            m_PSM1_remote_pitch->m_visualMesh->setShowEnabled(!m_remote_flag);
+            m_PSM2_remote_pitch->m_visualMesh->setShowEnabled(!m_remote_flag);
+            m_PSM1_remote_yaw->m_visualMesh->setShowEnabled(!m_remote_flag);
+            m_PSM2_remote_yaw->m_visualMesh->setShowEnabled(!m_remote_flag);
+            m_PSM1_remote_gripper1->m_visualMesh->setShowEnabled(!m_remote_flag);
+            m_PSM2_remote_gripper1->m_visualMesh->setShowEnabled(!m_remote_flag);
+            m_PSM1_remote_gripper2->m_visualMesh->setShowEnabled(!m_remote_flag);
+            m_PSM2_remote_gripper2->m_visualMesh->setShowEnabled(!m_remote_flag);
+
+            m_remote_flag = !m_remote_flag;
+
+        }
+
+        else if (a_key == GLFW_KEY_0){
+            cout << "Changing the mode for control to:" << !m_control_flag << endl;
+            
+            m_control_flag = !m_control_flag;
+        }
+
+        else if (a_key == GLFW_KEY_F){
+            cout << "Changing the visualization mode to:" << !m_visualize_flag << endl;
+            
+            m_visualize_flag = !m_visualize_flag;
         }
     }
 }

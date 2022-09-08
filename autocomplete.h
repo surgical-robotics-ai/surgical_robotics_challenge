@@ -69,6 +69,12 @@ private:
     cLabel *m_legend;
     cLabel *m_ori_recovery;
 
+    bool m_tool_flag;
+    bool m_ghost_flag;
+    bool m_remote_flag;
+    bool m_visualize_flag;
+    bool m_control_flag;
+
 };
 
 AF_REGISTER_SIMULATOR_PLUGIN(afAutoCompletePlugin)
