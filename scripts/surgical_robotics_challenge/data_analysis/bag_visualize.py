@@ -4,8 +4,8 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 file_name = "/home/ishida/Downloads/pilot1_3.bag"
+print("Loading the data from ", file_name)
 bag = rosbag.Bag(file_name)
-
 
 # topics = bag.get_type_and_topic_info()[1].keys()
 # print(topics)
@@ -16,6 +16,10 @@ bag = rosbag.Bag(file_name)
 #     #print(msg.pose.position)
 #     mtmr_pos = np.concatenate([mtmr_pos, np.array([msg.pose.position.x, msg.pose.position.y, msg.pose.position.z])])
 
+
+############################################################
+# Loading the psm1 and psm2 yawlink state and position
+############################################################
 psm1_ghost_pos = []
 psm1_ghost_vel = []
 psm1_ghost_time = []
@@ -54,6 +58,9 @@ psm2_ghost_vel = psm2_ghost_vel.reshape([-1,3])
 # print(com_loss_time[0])
 # print(com_loss_time[-1])
 
+############################################################
+# Loading the psm1(2) com status
+############################################################
 
 psm1_status = []
 psm2_status = []
@@ -93,48 +100,104 @@ psm2_loss_vel = psm2_loss_vel.reshape([-1,3])
 psm2_live_vel = psm2_live_vel.reshape([-1,3])
 
 
-t_start = int(0.1 * len(psm1_status))
-t_end   = int(0.8 * len(psm1_status))
-psm_ghost_pos = np.concatenate([psm1_ghost_pos, psm2_ghost_pos], axis=0)
-psm_status = np.concatenate([psm1_status, psm2_status], axis=0)
-# ax.scatter3D(mtmr_pos[:, 0], mtmr_pos[:, 1], mtmr_pos[:, 2])
+#################################################
+# Visualize the psm1(2) trajectory
+#################################################
 
-ax = plt.axes(projection="3d")
-# ax = plt.gcf().add_subplot(1, 2, 1, projection="3d")
+visulalize_traj = True
+if visulalize_traj:
 
-sctt = ax.scatter3D(psm1_ghost_pos[t_start:t_end, 0], psm1_ghost_pos[t_start:t_end, 1], psm1_ghost_pos[t_start:t_end, 2], c=psm1_status[t_start:t_end])
-ax.plot([psm1_ghost_pos[t_start,0]],[psm1_ghost_pos[t_start,1]],[psm1_ghost_pos[t_start,2]],"X")
-ax.set_title("psm1")
+    # Define the time period that you are visualizing 
+    t_start = int(0.6 * len(psm1_status))
+    t_end   = int(0.8 * len(psm1_status))
+
+
+    psm_ghost_pos = np.concatenate([psm1_ghost_pos, psm2_ghost_pos], axis=0)
+    psm_status = np.concatenate([psm1_status, psm2_status], axis=0)
+    # ax.scatter3D(mtmr_pos[:, 0], mtmr_pos[:, 1], mtmr_pos[:, 2])
+
+    ax = plt.axes(projection="3d")
+    # ax = plt.gcf().add_subplot(1, 2, 1, projection="3d")
+
+    sctt = ax.scatter3D(psm1_ghost_pos[t_start:t_end, 0], psm1_ghost_pos[t_start:t_end, 1], psm1_ghost_pos[t_start:t_end, 2], c=psm1_status[t_start:t_end])
+    ax.plot([psm1_ghost_pos[t_start,0]],[psm1_ghost_pos[t_start,1]],[psm1_ghost_pos[t_start,2]],"X")
+    ax.set_title("psm1")
+    # plt.show()
+
+    ax = plt.axes(projection="3d")
+    # ax = plt.gcf().add_subplot(1, 2, 1, projection="3d")
+    # Position
+    sctt1 =ax.scatter3D(psm2_ghost_pos[t_start:t_end, 0], psm2_ghost_pos[t_start:t_end, 1], psm2_ghost_pos[t_start:t_end, 2], c=psm2_status[t_start:t_end])
+    ax.plot([psm2_ghost_pos[t_start,0]],[psm2_ghost_pos[t_start,1]],[psm2_ghost_pos[t_start,2]],"X")
+
+
+    # Velocity
+    # sctt1 =ax.scatter3D(psm2_ghost_vel[t_start:t_end, 0], psm2_ghost_vel[t_start:t_end, 1], psm2_ghost_vel[t_start:t_end, 2], c=psm2_status[t_start:t_end])
+    # ax.plot([psm1_ghost_vel[t_start,0]],[psm1_ghost_vel[t_start,1]],[psm1_ghost_vel[t_start,2]],"X")
+
+    ax.set_title("psm2")
+
+
+    # Plot all together
+    # sctt =ax.scatter3D(psm_ghost_pos[:, 0], psm_ghost_pos[:, 1], psm_ghost_pos[:, 2], c=psm_status)
+    # plt.colorbar(sctt, ax = ax, shrink = 0.5, aspect = 5)
+
+    plt.show()
+
+
+    # Get plot for the velocity norm
+    plt.plot(np.arange(0, len(psm2_status[t_start:t_end])), np.linalg.norm(psm2_ghost_vel[t_start:t_end,:],axis=1))
+    plt.plot(np.arange(0, len(psm2_status[t_start:t_end])), psm2_status[t_start:t_end])
+
+    print("Vel average at loss", np.mean(psm2_loss_vel))
+    print("Vel average at live",np.mean(psm2_live_vel))
+
+
+    plt.show()
+
+##################################
+# Compare a average velocity
+##################################
+
+velocity_flag = False
+if(velocity_flag):
+
+    vel_normal = []
+    vel_loss = []
+
+    status_ = 0
+
+
+    i = 0
+    while i < (len(psm2_status))-1:
+        tmp = []
+
+        while (psm2_status[i] == status_ and i < len(psm2_status)-1):
+            tmp.append(np.linalg.norm(psm2_ghost_vel[i]))
+            i=i+1
+        
+        if status_ == 0:
+            vel_normal.append(np.mean(tmp))
+            status_ = 1
+        else:
+            vel_loss.append(np.mean(tmp))
+            status_ = 0
+
+    print("Normal velocity")
+    print(vel_normal)
+    print("Loss velocity")
+    print(vel_loss)
+
+    plt.plot(np.arange(0, len(vel_normal)), vel_normal)
+    plt.plot(np.arange(0, len(vel_loss)), vel_loss)
+    plt.legend(["Normal", "loss"])
+
+    plt.show()
+
+    import scipy.stats as stats
+    print("Vel average at loss", np.mean(vel_normal))
+    print("Vel average at live",np.mean(vel_loss))
+    print(stats.ttest_ind(a=vel_normal,b=vel_loss,equal_var=False))
+
+# plt.plot(np.arange(0, len(vel_normal)), np.array(vel_normal)/np.array(vel_loss[0:len(vel_normal)))
 # plt.show()
-
-ax = plt.axes(projection="3d")
-# ax = plt.gcf().add_subplot(1, 2, 1, projection="3d")
-# Position
-# sctt1 =ax.scatter3D(psm2_ghost_pos[t_start:t_end, 0], psm2_ghost_pos[t_start:t_end, 1], psm2_ghost_pos[t_start:t_end, 2], c=psm2_status[t_start:t_end])
-# ax.plot([psm1_ghost_pos[t_start,0]],[psm1_ghost_pos[t_start,1]],[psm1_ghost_pos[t_start,2]],"X")
-
-
-# Velocity
-# sctt1 =ax.scatter3D(psm2_ghost_vel[t_start:t_end, 0], psm2_ghost_vel[t_start:t_end, 1], psm2_ghost_vel[t_start:t_end, 2], c=psm2_status[t_start:t_end])
-# ax.plot([psm1_ghost_vel[t_start,0]],[psm1_ghost_vel[t_start,1]],[psm1_ghost_vel[t_start,2]],"X")
-
-ax.set_title("psm2")
-
-
-# Plot all together
-# sctt =ax.scatter3D(psm_ghost_pos[:, 0], psm_ghost_pos[:, 1], psm_ghost_pos[:, 2], c=psm_status)
-# plt.colorbar(sctt, ax = ax, shrink = 0.5, aspect = 5)
-
-plt.show()
-
-
-# Get plot for the velocity norm
-plt.plot(np.arange(0, len(psm2_status[t_start:t_end])), np.linalg.norm(psm2_ghost_vel[t_start:t_end,:],axis=1))
-plt.plot(np.arange(0, len(psm2_status[t_start:t_end])), psm2_status[t_start:t_end])
-
-print("Vel average at loss", np.mean(psm2_loss_vel))
-print("Vel average at live",np.mean(psm2_live_vel))
-
-
-plt.show()
-
