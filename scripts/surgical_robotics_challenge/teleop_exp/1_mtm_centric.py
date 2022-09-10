@@ -63,7 +63,7 @@ from surgical_robotics_challenge.utils.jnt_control_gui import JointGUI
 from pykalman import KalmanFilter
 
 
-dt = 0.5 #0.035
+dt = 0.25 #0.035
 motion_scale = 0.04#0.035
 
 # PyKDL types <--> Numpy types
@@ -263,7 +263,7 @@ class ControllerInterface:
                 self.psm_remote_arm.servo_cp(self.T_IK)
             
                 # Move the robot jaw links only if there is a communication
-                self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
+                self.psm_arm.set_jaw_angle(self.psm_arm.get_jaw_angle())
                 self.psm_ghost_arm.set_jaw_angle(self.leader.get_jaw_angle())
                 self.psm_remote_arm.set_jaw_angle(self.leader.get_jaw_angle())
 
@@ -273,7 +273,7 @@ class ControllerInterface:
             # Communication Lost
             else:
                 mean, cov = self.kf.predict(self.observation, 0.01 * np.ones([9, 9]), self.time_loss)
-                if((self.cmd_xyz_old - self.predict_xyz).Norm() < 0.4):
+                if((self.cmd_xyz_old - self.predict_xyz).Norm() < 0.2):
                     self.observation = mean
                 self.predict_xyz = Vector(self.observation[0], self.observation[1], self.observation[2])
                 self.T_IK_predict = Frame(self.cmd_rpy, self.predict_xyz)
@@ -321,8 +321,8 @@ class ControllerInterface:
     def run(self):        
         self.update_arms_pose_withprediction()
         
-        if self.peg_flag:
-            move_shadow_peg(self.c, self.peg_list, self.shadow_list, self.communication_loss)
+        # if self.peg_flag:
+        #     move_shadow_peg(self.c, self.peg_list, self.shadow_list, self.communication_loss)
 
 
 

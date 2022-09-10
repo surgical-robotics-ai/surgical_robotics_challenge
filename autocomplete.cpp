@@ -117,7 +117,24 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     m_PSM2_remote_gripper1 = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool gripper1 link");
     m_PSM1_remote_gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm1_remote/BODY tool gripper2 link");
     m_PSM2_remote_gripper2 = m_worldPtr->getRigidBody("/ambf/env/psm2_remote/BODY tool gripper2 link");
-    
+
+
+    m_peg1 = m_worldPtr->getRigidBody("/ambf/icl/BODY PuzzleRed1");
+    m_peg2 = m_worldPtr->getRigidBody("/ambf/icl/BODY PuzzleRed2");
+    m_peg3 = m_worldPtr->getRigidBody("/ambf/icl/BODY PuzzleRed3");
+    m_peg4 = m_worldPtr->getRigidBody("/ambf/icl/BODY PuzzleRed4");
+    m_peg5 = m_worldPtr->getRigidBody("/ambf/icl/BODY PuzzleRed5");
+    m_peg6 = m_worldPtr->getRigidBody("/ambf/icl/BODY PuzzleYellow");
+
+    m_shadow1 = m_worldPtr->getRigidBody("/ambf/icl/BODY One_shadow");
+    m_shadow2 = m_worldPtr->getRigidBody("/ambf/icl/BODY Two_shadow");
+    m_shadow3 = m_worldPtr->getRigidBody("/ambf/icl/BODY Three_shadow");
+    m_shadow4 = m_worldPtr->getRigidBody("/ambf/icl/BODY Four_shadow");
+    m_shadow5 = m_worldPtr->getRigidBody("/ambf/icl/BODY Five_shadow");
+    m_shadow6 = m_worldPtr->getRigidBody("/ambf/icl/BODY Six_shadow");
+
+
+
     m_tool_flag = true;
     m_ghost_flag = true;
     m_remote_flag = true;
@@ -193,7 +210,37 @@ void afAutoCompletePlugin::graphicsUpdate()
     m_legend->setLocalPos(m_stereoCameraL->m_width*0.7, m_stereoCameraL->m_height*0.85, 0);
     m_ori_recovery->setLocalPos(m_stereoCameraL->m_width*0.35, m_stereoCameraL->m_height*0.15, 0);
 
-    //Comment out here for control method:
+    
+    
+    if(!m_comloss){
+
+        m_T_1 = m_peg1->getLocalTransform();
+        m_T_2 = m_peg2->getLocalTransform();
+        m_T_3 = m_peg3->getLocalTransform();
+        m_T_4 = m_peg4->getLocalTransform();
+        m_T_5 = m_peg5->getLocalTransform();
+        m_T_6 = m_peg6->getLocalTransform();
+    
+        V_i.set(0,0,0.098);
+        m_T_1.setLocalPos(m_T_1.getLocalPos() +  m_T_1.getLocalRot() * V_i);
+        m_T_2.setLocalPos(m_T_2.getLocalPos() +  m_T_2.getLocalRot() * V_i);
+        m_T_3.setLocalPos(m_T_3.getLocalPos() +  m_T_3.getLocalRot() * V_i);
+        m_T_4.setLocalPos(m_T_4.getLocalPos() +  m_T_4.getLocalRot() * V_i);
+        m_T_5.setLocalPos(m_T_5.getLocalPos() +  m_T_5.getLocalRot() * V_i);
+        m_T_6.setLocalPos(m_T_6.getLocalPos() +  m_T_6.getLocalRot() * V_i);
+        m_shadow1->setLocalTransform(m_T_1);
+        m_shadow2->setLocalTransform(m_T_2);
+        m_shadow3->setLocalTransform(m_T_3);
+        m_shadow4->setLocalTransform(m_T_4);
+        m_shadow5->setLocalTransform(m_T_5);
+        m_shadow6->setLocalTransform(m_T_6);
+        // m_shadow2->setLocalTransform(m_peg2->getLocalTransform());
+        // m_shadow3->setLocalTransform(m_peg3->getLocalTransform());
+        // m_shadow4->setLocalTransform(m_peg4->getLocalTransform());
+        // m_shadow5->setLocalTransform(m_peg5->getLocalTransform());
+        // m_shadow6->setLocalTransform(m_peg6->getLocalTransform());
+    }
+
 
     if(!m_visualize_flag){
 
@@ -208,6 +255,10 @@ void afAutoCompletePlugin::graphicsUpdate()
             m_PSM2gripper1->m_visualMesh->setShowEnabled(m_comloss);
             m_PSM1gripper2->m_visualMesh->setShowEnabled(m_comloss);
             m_PSM2gripper2->m_visualMesh->setShowEnabled(m_comloss);
+
+            // m_PSM1_remote_Tool->m_visualMesh->setColor(cColorf(0, 1, 1));
+            // m_PSM2_remote_Tool->m_visualMesh->setVertexColor(cColorf(0, 1, 1));
+            
         }
 
 
@@ -221,13 +272,32 @@ void afAutoCompletePlugin::graphicsUpdate()
         m_PSM2_ghost_gripper1->m_visualMesh->setShowEnabled((m_comloss || m_psm2_recovery));
         m_PSM1_ghost_gripper2->m_visualMesh->setShowEnabled((m_comloss || m_psm1_recovery));
         m_PSM2_ghost_gripper2->m_visualMesh->setShowEnabled((m_comloss || m_psm2_recovery));
+
+        if(m_control_flag){
+            m_PSM1Tool->m_visualMesh->setShowEnabled(true);
+            m_PSM2Tool->m_visualMesh->setShowEnabled(true);
+            m_PSM1pitch->m_visualMesh->setShowEnabled(true);
+            m_PSM2pitch->m_visualMesh->setShowEnabled(true);
+            m_PSM1yaw->m_visualMesh->setShowEnabled(true);
+            m_PSM2yaw->m_visualMesh->setShowEnabled(true);
+            m_PSM1gripper1->m_visualMesh->setShowEnabled(true);
+            m_PSM2gripper1->m_visualMesh->setShowEnabled(true);
+            m_PSM1gripper2->m_visualMesh->setShowEnabled(true);
+            m_PSM2gripper2->m_visualMesh->setShowEnabled(true);
+            m_PSM1_ghost_yaw->m_visualMesh->setShowEnabled(false);
+            m_PSM2_ghost_yaw->m_visualMesh->setShowEnabled(false);
+            m_PSM1_ghost_gripper1->m_visualMesh->setShowEnabled(false);
+            m_PSM2_ghost_gripper1->m_visualMesh->setShowEnabled(false);
+            m_PSM1_ghost_gripper2->m_visualMesh->setShowEnabled(false);
+            m_PSM2_ghost_gripper2->m_visualMesh->setShowEnabled(false);
+        }
     }
 }
 void afAutoCompletePlugin::communication_loss_cb(const std_msgs::Bool::ConstPtr& comloss)
 {
     m_comloss_text = comloss->data;
-    if(m_comloss_text ==false && m_comloss==true)
-        sleep(1.0);
+    // if(m_comloss_text ==false && m_comloss==true)
+    //     sleep(1.0);
     m_comloss = m_comloss_text;
 }
 

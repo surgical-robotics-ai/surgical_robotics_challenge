@@ -64,6 +64,18 @@ private:
     afRigidBodyPtr m_PSM1_remote_gripper1, m_PSM2_remote_gripper1;
     afRigidBodyPtr m_PSM1_remote_gripper2, m_PSM2_remote_gripper2;
 
+    afRigidBodyPtr m_peg1, m_peg2, m_peg3, m_peg4, m_peg5, m_peg6;
+    afRigidBodyPtr m_shadow1, m_shadow2, m_shadow3, m_shadow4, m_shadow5, m_shadow6;
+
+    cTransform m_T_1;
+    cTransform m_T_2;
+    cTransform m_T_3;
+    cTransform m_T_4;
+    cTransform m_T_5;
+    cTransform m_T_6;
+    cVector3d V_i;
+ 
+
     //For text
     cLabel *m_comStatus;
     cLabel *m_legend;

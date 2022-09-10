@@ -200,6 +200,9 @@ class PSM:
         self.base.set_joint_pos('toolyawlink-toolgripper2link', jaw_angle)
         self.run_grasp_logic(jaw_angle)
 
+    def get_jaw_angle(self):
+        return self.base.get_joint_pos('toolyawlink-toolgripper1link')
+
     def measured_cp(self):
         jp = self.measured_jp()
         jp.append(0.0)
