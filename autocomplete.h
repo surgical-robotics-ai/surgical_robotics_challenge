@@ -87,6 +87,8 @@ private:
     bool m_visualize_flag;
     bool m_control_flag;
 
+    bool m_peg_flag;
+
 };
 
 AF_REGISTER_SIMULATOR_PLUGIN(afAutoCompletePlugin)

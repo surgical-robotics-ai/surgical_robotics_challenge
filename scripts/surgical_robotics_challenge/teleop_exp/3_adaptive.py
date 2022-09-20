@@ -279,8 +279,8 @@ class ControllerInterface:
                 self.psm_remote_arm.servo_cp(self.T_IK)
             
                 # Move the robot jaw links only if there is a communication
-                self.psm_arm.set_jaw_angle(self.psm_arm.get_jaw_angle())
-                self.psm_ghost_arm.set_jaw_angle(self.leader.get_jaw_angle())
+                self.psm_arm.set_jaw_angle(self.leader.get_jaw_angle())
+                self.psm_ghost_arm.set_jaw_angle(self.psm_remote_arm.get_jaw_angle())
                 self.psm_remote_arm.set_jaw_angle(self.leader.get_jaw_angle())
 
 
@@ -290,7 +290,7 @@ class ControllerInterface:
             # Communication Lost
             else:
                 mean, cov = self.kf.predict(self.observation, 0.01 * np.ones([9, 9]), self.time_loss)
-                if((self.cmd_xyz_old - self.predict_xyz).Norm() < 0.2):
+                if((self.cmd_xyz_old - self.predict_xyz).Norm() < 0.3):
                     self.observation = mean
                     self.cov = np.sqrt(cov[0,0]**2 + cov[1,1]**2 + cov[2,2]**2)
                     print(self.cov)

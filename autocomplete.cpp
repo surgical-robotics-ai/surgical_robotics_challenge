@@ -132,8 +132,12 @@ int afAutoCompletePlugin::init(int argc, char **argv, const afWorldPtr a_afWorld
     m_shadow4 = m_worldPtr->getRigidBody("/ambf/icl/BODY Four_shadow");
     m_shadow5 = m_worldPtr->getRigidBody("/ambf/icl/BODY Five_shadow");
     m_shadow6 = m_worldPtr->getRigidBody("/ambf/icl/BODY Six_shadow");
+    
+    // m_shadow4->m_visualMesh->setShowEnabled(false);
 
 
+    if(m_peg1) m_peg_flag = true;
+    else m_peg_flag = false;
 
     m_tool_flag = true;
     m_ghost_flag = true;
@@ -214,31 +218,36 @@ void afAutoCompletePlugin::graphicsUpdate()
     
     if(!m_comloss){
 
-        m_T_1 = m_peg1->getLocalTransform();
-        m_T_2 = m_peg2->getLocalTransform();
-        m_T_3 = m_peg3->getLocalTransform();
-        m_T_4 = m_peg4->getLocalTransform();
-        m_T_5 = m_peg5->getLocalTransform();
-        m_T_6 = m_peg6->getLocalTransform();
-    
-        V_i.set(0,0,0.098);
-        m_T_1.setLocalPos(m_T_1.getLocalPos() +  m_T_1.getLocalRot() * V_i);
-        m_T_2.setLocalPos(m_T_2.getLocalPos() +  m_T_2.getLocalRot() * V_i);
-        m_T_3.setLocalPos(m_T_3.getLocalPos() +  m_T_3.getLocalRot() * V_i);
-        m_T_4.setLocalPos(m_T_4.getLocalPos() +  m_T_4.getLocalRot() * V_i);
-        m_T_5.setLocalPos(m_T_5.getLocalPos() +  m_T_5.getLocalRot() * V_i);
-        m_T_6.setLocalPos(m_T_6.getLocalPos() +  m_T_6.getLocalRot() * V_i);
-        m_shadow1->setLocalTransform(m_T_1);
-        m_shadow2->setLocalTransform(m_T_2);
-        m_shadow3->setLocalTransform(m_T_3);
-        m_shadow4->setLocalTransform(m_T_4);
-        m_shadow5->setLocalTransform(m_T_5);
-        m_shadow6->setLocalTransform(m_T_6);
-        // m_shadow2->setLocalTransform(m_peg2->getLocalTransform());
-        // m_shadow3->setLocalTransform(m_peg3->getLocalTransform());
-        // m_shadow4->setLocalTransform(m_peg4->getLocalTransform());
-        // m_shadow5->setLocalTransform(m_peg5->getLocalTransform());
-        // m_shadow6->setLocalTransform(m_peg6->getLocalTransform());
+        if (m_peg_flag){
+
+
+            m_T_1 = m_peg1->getLocalTransform();
+            m_T_2 = m_peg2->getLocalTransform();
+            m_T_3 = m_peg3->getLocalTransform();
+            m_T_4 = m_peg4->getLocalTransform();
+            m_T_5 = m_peg5->getLocalTransform();
+            m_T_6 = m_peg6->getLocalTransform();
+
+            V_i.set(0,0,0.098);
+            m_T_1.setLocalPos(m_T_1.getLocalPos() +  m_T_1.getLocalRot() * V_i);
+            m_T_2.setLocalPos(m_T_2.getLocalPos() +  m_T_2.getLocalRot() * V_i);
+            m_T_3.setLocalPos(m_T_3.getLocalPos() +  m_T_3.getLocalRot() * V_i);
+            m_T_4.setLocalPos(m_T_4.getLocalPos() +  m_T_4.getLocalRot() * V_i);
+            m_T_5.setLocalPos(m_T_5.getLocalPos() +  m_T_5.getLocalRot() * V_i);
+            m_T_6.setLocalPos(m_T_6.getLocalPos() +  m_T_6.getLocalRot() * V_i);
+            m_shadow1->setLocalTransform(m_T_1);
+            m_shadow2->setLocalTransform(m_T_2);
+            m_shadow3->setLocalTransform(m_T_3);
+            m_shadow4->setLocalTransform(m_T_4);
+            m_shadow5->setLocalTransform(m_T_5);
+            m_shadow6->setLocalTransform(m_T_6);
+            // m_shadow2->setLocalTransform(m_peg2->getLocalTransform());
+            // m_shadow3->setLocalTransform(m_peg3->getLocalTransform());
+            // m_shadow4->setLocalTransform(m_peg4->getLocalTransform());
+            // m_shadow5->setLocalTransform(m_peg5->getLocalTransform());
+            // m_shadow6->setLocalTransform(m_peg6->getLocalTransform());
+        }
+        
     }
 
 

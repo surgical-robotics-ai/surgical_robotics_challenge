@@ -62,4 +62,4 @@ BODY Plane:
       b: 1.0
       g: 1.0
       r: 1.0
-    transparency: 1.0
+    transparency: 0.2
