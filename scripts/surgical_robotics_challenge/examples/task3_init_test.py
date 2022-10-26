@@ -2,32 +2,29 @@ import time
 
 from surgical_robotics_challenge.utils.task3_init import NeedleInitialization
 from surgical_robotics_challenge.psm_arm import PSM
-from ambf_client import Client
+from surgical_robotics_challenge.simulation_manager import SimulationManager
 
-c = Client('task_3_setup_test')
-c.connect()
+simulation_manager = SimulationManager('task_3_setup_test')
 time.sleep(0.5)
-w = c.get_world_handle()
+w = simulation_manager.get_world_handle()
 time.sleep(0.2)
 w.reset_bodies()
 time.sleep(0.2)
-psm2 = PSM(c, 'psm2')
+psm2 = PSM(simulation_manager, 'psm2')
 time.sleep(0.5)
 # First we shall move the PSM to its initial pose using joint commands OR pose command
-psm2.servo_jp([-0.4, -0.22, 1.39, -1.64, -0.37, -0.11])
+psm2.servo_jp([-0.4, -0.22, 0.139, -1.64, -0.37, -0.11])
 # Open the Jaws
 psm2.set_jaw_angle(0.8)
 # Sleep to achieve the target pose and jaw angle
 time.sleep(1.0)
 # Instantiate the needle initialization class
-needle = NeedleInitialization()
+needle = NeedleInitialization(simulation_manager)
+psm2_tip = simulation_manager.get_obj_handle('psm2/toolyawlink')
 # Sanity sleep
 time.sleep(0.5)
 # This method will automatically start moving the needle to be with the PSM2's jaws
-needle.lock_at_tip()
-# Wait for the needle to reach the target
-while not needle.is_reached():
-   time.sleep(0.1)
+needle.move_to(psm2_tip)
 time.sleep(0.5)
 for i in range(30):
    # Close the jaws to grasp the needle

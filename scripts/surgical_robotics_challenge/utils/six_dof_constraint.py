@@ -1,4 +1,4 @@
-from ambf_client import Client
+from surgical_robotics_challenge.simulation_manager import SimulationManager
 from PyKDL import Frame, Vector, Rotation
 import numpy as np
 import rospy
@@ -68,16 +68,6 @@ def compute_ang_error(set_point, cur_pos):
     return dr
 
 
-def get_box_pos():
-    bp = box.get_pos()
-    return Vector(bp.x, bp.y, bp.z)
-
-
-def get_box_rot():
-    br = box.get_rot()
-    return Rotation.Quaternion(br.x, br.y, br.z, br.w)
-
-
 tk = Tkinter.Tk()
 tk.title("Constraint")
 tk.geometry("250x250")
@@ -85,10 +75,9 @@ activate_button_lin = Tkinter.Button(tk, text="Activate", command=activate_cb_li
 
 activate_button_lin.pack()
 
-c = Client('six_dof_constraint_test')
-c.connect()
+simulation_manager = SimulationManager('six_dof_constraint_test')
 
-box = c.get_obj_handle('Cube')
+box = simulation_manager.get_obj_handle('Cube')
 time.sleep(0.5)
 
 # Linear
@@ -117,7 +106,7 @@ rate = rospy.Rate(1000)
 
 while not rospy.is_shutdown():
     # Linear
-    box_pos = get_box_pos()
+    box_pos = box.get_pos()
     last_lin_error = lin_error
     lin_error = compute_lin_error(constraint_lin_pos, box_pos)
 
@@ -132,7 +121,7 @@ while not rospy.is_shutdown():
         # print(constraint_lin_pos, lin_over_thresh)
 
     # Angular
-    box_rot = get_box_rot()
+    box_rot = box.get_rotation()
     last_ang_error = ang_error
     ang_error = compute_ang_error(constraint_ang_pos, box_rot)
 

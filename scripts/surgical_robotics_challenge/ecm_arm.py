@@ -51,10 +51,10 @@ from threading import Thread
 
 
 class ECM:
-    def __init__(self, client, name):
-        self.client = client
+    def __init__(self, simulation_manager, name):
+        self.simulation_manager = simulation_manager
         self.name = name
-        self.camera_handle = self.client.get_obj_handle(name)
+        self.camera_handle = self.simulation_manager.get_obj_handle(name)
         time.sleep(0.1)
 
         # Transform of Camera in World
@@ -89,8 +89,7 @@ class ECM:
                 self._T_cmd.p = self._measured_cp.p + T_step.p
                 self._T_cmd.M = self._measured_cp.M * Rotation.RPY(r_cmd[0], r_cmd[1], r_cmd[2])
                 self._measured_cp = self._T_cmd
-                self.camera_handle.set_pos(self._T_cmd.p[0], self._T_cmd.p[1], self._T_cmd.p[2])
-                self.camera_handle.set_rpy(self._T_cmd.M.GetRPY()[0], self._T_cmd.M.GetRPY()[1], self._T_cmd.M.GetRPY()[2])
+                self.camera_handle.set_pose(self._T_cmd)
 
                 if done:
                     pos_goal_reached = True
@@ -125,11 +124,7 @@ class ECM:
         self._pose_changed = True
 
     def _update_camera_pose(self):
-        p = self.camera_handle.get_pos()
-        q = self.camera_handle.get_rot()
-        P_c_w = Vector(p.x, p.y, p.z)
-        R_c_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
-        self._T_c_w = Frame(R_c_w, P_c_w)
+        self._T_c_w = self.camera_handle.get_pose()
         self._T_w_c = self._T_c_w.Inverse()
         self._pose_changed = False
 

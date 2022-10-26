@@ -100,7 +100,7 @@ def enforce_limits(j_raw):
     # Min to Max Limits
     j1_lims = [np.deg2rad(-91.96), np.deg2rad(91.96)]
     j2_lims = [np.deg2rad(-60), np.deg2rad(60)]
-    j3_lims = [0.0, 2.40]
+    j3_lims = [0.0, 0.240]
     j4_lims = [np.deg2rad(-175), np.deg2rad(175)]
     j5_lims = [np.deg2rad(-90), np.deg2rad(90)]
     j6_lims = [np.deg2rad(-85), np.deg2rad(85)]

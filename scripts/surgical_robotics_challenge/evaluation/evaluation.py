@@ -11,6 +11,7 @@ from collections import deque
 from enum import Enum
 from ambf_client import Client
 from argparse import ArgumentParser
+import surgical_robotics_challenge.units_conversion
 
 
 def frame_to_pose_stamped_msg(frame):
@@ -58,23 +59,6 @@ def pose_msg_to_frame(msg):
                             msg.orientation.w)
 
     return Frame(R, p)
-
-
-def ambf_obj_pose_to_frame(obj):
-    """
-
-    :param obj:
-    :return:
-    """
-    p = Vector(obj.get_pos().x,
-               obj.get_pos().y,
-               obj.get_pos().z)
-    R = Rotation.Quaternion(obj.get_rot().x,
-                            obj.get_rot().y,
-                            obj.get_rot().z,
-                            obj.get_rot().w)
-    return Frame(R, p)
-
 
 class GlobalParams:
     hole_count = 4
@@ -511,7 +495,7 @@ class Task_2_Evaluation():
 
         for hole_type in HoleType:
             for i in range(GlobalParams.hole_count):
-                SKF.T_holesINw[hole_type][i] = ambf_obj_pose_to_frame(self._hole_objs[hole_type][i])
+                SKF.T_holesINw[hole_type][i] = units_conversion.get_pose(self._hole_objs[hole_type][i])
 
         self._scene_trajectories.append(SKF)
         return SKF
@@ -700,7 +684,7 @@ class Task_3_Evaluation():
 
         for hole_type in HoleType:
             for i in range(GlobalParams.hole_count):
-                SKF.T_holesINw[hole_type][i] = ambf_obj_pose_to_frame(self._hole_objs[hole_type][i])
+                SKF.T_holesINw[hole_type][i] = units_conversion.get_pose(self._hole_objs[hole_type][i])
 
         self._scene_trajectories.append(SKF)
         return SKF

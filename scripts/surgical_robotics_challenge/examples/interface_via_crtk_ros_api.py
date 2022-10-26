@@ -205,27 +205,27 @@ add_break(3.0)
 
 # The PSMs can be controlled either in joint space or cartesian space. For the
 # latter, the `servo_cp` command sets the end-effector pose w.r.t its Base frame.
-T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/2.), Vector(0., 0., -1.3))
+T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/2.), Vector(0., 0., -0.13))
 print("Setting the end-effector frame of PSM1 w.r.t Base", T_e_b)
 psm1.servo_cp(T_e_b)
 psm1.set_jaw_angle(0.2)
 add_break(1.0)
-T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/4.), Vector(0.1, -0.1, -1.3))
+T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/4.), Vector(0.01, -0.01, -0.13))
 print("Setting the end-effector frame of PSM2 w.r.t Base", T_e_b)
 psm2.servo_cp(T_e_b)
 psm2.set_jaw_angle(0.5)
 add_break(1.0)
 # Controlling in joint space
-jp = [0., 0., 1.35, 0.2, 0.3, 0.2]
+jp = [0., 0., 0.135, 0.2, 0.3, 0.2]
 print("Setting PSM1 joint positions to ", jp)
 psm1.servo_jp(jp)
 add_break(1.0)
-jp = [0., 0., 1.35, -0.2, -0.3, -0.2]
+jp = [0., 0., 0.135, -0.2, -0.3, -0.2]
 print("Setting PSM2 joint positions to ", jp)
 psm2.servo_jp(jp)
 add_break(1.0)
 # The ECM should always be controlled using its joint interface
-jp = [0., 0.2, -0.3, 0.2]
+jp = [0., 0.2, -0.03, 0.2]
 print("Setting ECM joint positions to ", jp)
 ecm.servo_jp(jp)
 add_break(5.0)

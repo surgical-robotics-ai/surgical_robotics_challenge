@@ -48,10 +48,10 @@ import time
 
 
 class Camera:
-    def __init__(self, client, name):
-        self.client = client
+    def __init__(self, simulation_manager, name):
+        self.simulation_manager = simulation_manager
         self.name = name
-        self.camera_handle = self.client.get_obj_handle(name)
+        self.camera_handle = self.simulation_manager.get_obj_handle(name)
         time.sleep(0.5)
 
         # Transform of Base in World
@@ -84,11 +84,7 @@ class Camera:
         self._pose_changed = True
 
     def _update_camera_pose(self):
-        p = self.camera_handle.get_pos()
-        q = self.camera_handle.get_rot()
-        P_c_w = Vector(p.x, p.y, p.z)
-        R_c_w = Rotation.Quaternion(q.x, q.y, q.z, q.w)
-        self._T_c_w = Frame(R_c_w, P_c_w)
+        self._T_c_w = self.camera_handle.get_pose()
         self._T_w_c = self._T_c_w.Inverse()
         self._pose_changed = False
 
@@ -96,9 +92,7 @@ class Camera:
         if type(T_c_w) in [np.matrix, np.array]:
             T_c_w = convert_mat_to_frame(T_c_w)
 
-        self.camera_handle.set_pos(T_c_w.p[0], T_c_w.p[1], T_c_w.p[2])
-        rpy = T_c_w.M.GetRPY()
-        self.camera_handle.set_rpy(rpy[0], rpy[1], rpy[2])
+        self.camera_handle.set_pose(T_c_w)
         self._pose_changed = True
 
     def move_cv(self, twist, dt):

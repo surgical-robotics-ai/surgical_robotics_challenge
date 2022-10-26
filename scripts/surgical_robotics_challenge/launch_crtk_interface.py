@@ -41,7 +41,6 @@
 # */
 # //==============================================================================
 import rospy
-from ambf_client import Client
 import psm_arm
 import ecm_arm
 import scene
@@ -52,6 +51,7 @@ from geometry_msgs.msg import PoseStamped, Pose, TwistStamped
 from PyKDL import Rotation, Vector, Frame
 from argparse import ArgumentParser
 from surgical_robotics_challenge.utils.utilities import get_boolean_from_opt
+from simulation_manager import SimulationManager
 from enum import Enum
 
 
@@ -249,9 +249,9 @@ class SceneObjectType(Enum):
 
 
 class SceneCRTKWrapper:
-    def __init__(self, client, namespace):
+    def __init__(self, simulation_manager, namespace):
         self.namespace = namespace
-        self.scene = scene.Scene(client)
+        self.scene = scene.Scene(simulation_manager)
         self._scene_object_pubs = dict()
         self._scene_object_pubs[SceneObjectType.Needle] = [None, self.scene.needle_measured_cp, PoseStamped()]
         self._scene_object_pubs[SceneObjectType.Entry1] = [None, self.scene.entry1_measured_cp, PoseStamped()]
@@ -280,29 +280,28 @@ class SceneCRTKWrapper:
 
 class SceneManager:
     def __init__(self, options):
-        self.client = Client("ambf_surgical_sim_crtk_node")
-        self.client.connect()
+        self.simulation_manager = SimulationManager("ambf_surgical_sim_crtk_node")
         time.sleep(0.2)
         self._components = []
         if options.run_psm_one is True:
             print("Launching CRTK-ROS Interface for PSM1 ")
-            self.psm1 = PSMCRTKWrapper(self.client, 'psm1', options.namespace)
+            self.psm1 = PSMCRTKWrapper(self.simulation_manager, 'psm1', options.namespace)
             self._components.append(self.psm1)
         if options.run_psm_two is True:
             print("Launching CRTK-ROS Interface for PSM2 ")
-            self.psm2 = PSMCRTKWrapper(self.client, 'psm2', options.namespace)
+            self.psm2 = PSMCRTKWrapper(self.simulation_manager, 'psm2', options.namespace)
             self._components.append(self.psm2)
         if options.run_psm_three is True:
             print("Launching CRTK-ROS Interface for PSM3 ")
-            self.psm3 = PSMCRTKWrapper(self.client, 'psm3', options.namespace)
+            self.psm3 = PSMCRTKWrapper(self.simulation_manager, 'psm3', options.namespace)
             self._components.append(self.psm3)
         if options.run_ecm:
             print("Launching CRTK-ROS Interface for ECM ")
-            self.ecm = ECMCRTKWrapper(self.client, 'ecm', options.namespace)
+            self.ecm = ECMCRTKWrapper(self.simulation_manager, 'ecm', options.namespace)
             self._components.append(self.ecm)
         if options.run_scene:
             print("Launching CRTK-ROS Interface for Scene ")
-            self.scene = SceneCRTKWrapper(self.client, options.namespace)
+            self.scene = SceneCRTKWrapper(self.simulation_manager, options.namespace)
             self._components.append(self.scene)
 
         self._task_3_init_sub = rospy.Subscriber('/CRTK/scene/task_3_setup/init',

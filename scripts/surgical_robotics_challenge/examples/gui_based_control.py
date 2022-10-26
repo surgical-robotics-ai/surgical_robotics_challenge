@@ -43,7 +43,7 @@
 # */
 # //==============================================================================
 from surgical_robotics_challenge.kinematics.psmIK import *
-from ambf_client import Client
+from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.psm_arm import PSM
 import time
 import rospy
@@ -53,6 +53,7 @@ from surgical_robotics_challenge.utils.obj_control_gui import ObjectGUI
 from surgical_robotics_challenge.utils.jnt_control_gui import JointGUI
 from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.utils.utilities import get_boolean_from_opt
+
 
 class PSMController:
     def __init__(self, gui_handle, arm):
@@ -73,16 +74,13 @@ class PSMController:
         if self.arm.target_IK is not None:
             gui = self.GUI
             T_ik_w = self.arm.get_T_b_w() * Frame(Rotation.RPY(gui.ro, gui.pi, gui.ya), Vector(gui.x, gui.y, gui.z))
-            self.arm.target_IK.set_pos(T_ik_w.p[0], T_ik_w.p[1], T_ik_w.p[2])
-            self.arm.target_IK.set_rpy(T_ik_w.M.GetRPY()[0], T_ik_w.M.GetRPY()[1], T_ik_w.M.GetRPY()[2])
+            self.arm.target_IK.set_pose(T_ik_w)
         if self.arm.target_FK is not None:
             ik_solution = self.arm.get_ik_solution()
             ik_solution = np.append(ik_solution, 0)
             T_t_b = convert_mat_to_frame(compute_FK(ik_solution))
             T_t_w = self.arm.get_T_b_w() * T_t_b
-            self.arm.target_FK.set_pos(T_t_w.p[0], T_t_w.p[1], T_t_w.p[2])
-            self.arm.target_FK.set_rpy(T_t_w.M.GetRPY()[0], T_t_w.M.GetRPY()[1], T_t_w.M.GetRPY()[2])
-
+            self.arm.target_FK.set_pose(T_t_w)
     def run(self):
             self.update_arm_pose()
             self.update_visual_markers()
@@ -119,52 +117,51 @@ if __name__ == "__main__":
     parsed_args.run_psm_three = get_boolean_from_opt(parsed_args.run_psm_three)
     parsed_args.run_ecm = get_boolean_from_opt(parsed_args.run_ecm)
 
-    c = Client(parsed_args.client_name)
-    c.connect()
+    simulation_manager = SimulationManager(parsed_args.client_name)
 
     time.sleep(0.5)
     controllers = []
 
     if parsed_args.run_psm_one is True:
         arm_name = 'psm1'
-        psm = PSM(c, arm_name)
+        psm = PSM(simulation_manager, arm_name)
         if psm.base is not None:
             print('LOADING CONTROLLER FOR ', arm_name)
             # Initial Target Offset for PSM1
             # init_xyz = [0.1, -0.85, -0.15]
-            init_xyz = [0, 0, -1.0]
+            init_xyz = [0, 0, -0.10]
             init_rpy = [3.14, 0, 1.57079]
-            gui = ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 10.0, 0.000001)
+            gui = ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 0.3, 10.0, 0.000001)
             controller = PSMController(gui, psm)
             controllers.append(controller)
 
     if parsed_args.run_psm_two is True:
         arm_name = 'psm2'
-        psm = PSM(c, arm_name)
+        psm = PSM(simulation_manager, arm_name)
         if psm.base is not None:
             print('LOADING CONTROLLER FOR ', arm_name)
             # Initial Target Offset for PSM2
-            init_xyz = [0, 0.0, -1.0]
+            init_xyz = [0, 0.0, -0.10]
             init_rpy = [3.14, 0, 1.57079]
-            gui = ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 12, 0.000001)
+            gui = ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 0.3, 12, 0.000001)
             controller = PSMController(gui, psm)
             controllers.append(controller)
 
     if parsed_args.run_psm_three is True:
         arm_name = 'psm3'
-        psm = PSM(c, arm_name)
+        psm = PSM(simulation_manager, arm_name)
         if psm.base is not None:
             print('LOADING CONTROLLER FOR ', arm_name)
             # Initial Target Offset for PSM2
-            init_xyz = [0, 0.0, -1.0]
+            init_xyz = [0, 0.0, -0.10]
             init_rpy = [3.14, 0, 1.57079]
-            gui = ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 3.14, 0.000001)
+            gui = ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 0.3, 3.14, 0.000001)
             controller = PSMController(gui, psm)
             controllers.append(controller)
 
     if parsed_args.run_ecm is True:
         arm_name = 'CameraFrame'
-        ecm = ECM(c, arm_name)
+        ecm = ECM(simulation_manager, arm_name)
         gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
         controller = ECMController(gui, ecm)
         controllers.append(controller)

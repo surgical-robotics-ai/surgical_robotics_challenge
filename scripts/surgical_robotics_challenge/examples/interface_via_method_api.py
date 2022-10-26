@@ -11,7 +11,7 @@ from PyKDL import Frame, Rotation, Vector
 import numpy as np
 
 # Import AMBF Client
-from ambf_client import Client
+from surgical_robotics_challenge.simulation_manager import SimulationManager
 import time
 
 
@@ -30,19 +30,18 @@ class ImageSub:
 
 
 # Create an instance of the client
-my_client = Client('my_example_client')
-my_client.connect()
+simulation_manager = SimulationManager('my_example_client')
 time.sleep(0.5)
-world_handle = my_client.get_world_handle()
+world_handle = simulation_manager.get_world_handle()
 
 # Get a handle to PSM1
-psm1 = PSM(my_client, 'psm1')
+psm1 = PSM(simulation_manager, 'psm1')
 # Get a handle  to PSM2
-psm2 = PSM(my_client, 'psm2')
+psm2 = PSM(simulation_manager, 'psm2')
 # Get a handle to ECM
-ecm = ECM(my_client, 'CameraFrame')
+ecm = ECM(simulation_manager, 'CameraFrame')
 # Get a handle to scene to access its elements, i.e. needle and entry / exit points
-scene = Scene(my_client)
+scene = Scene(simulation_manager)
 # Create an instance of task completion report with you team name
 task_report = TaskCompletionReport(team_name='my_team_name')
 # Small sleep to let the handles initialize properly
@@ -62,27 +61,27 @@ add_break(3.0)
 
 # The PSMs can be controlled either in joint space or cartesian space. For the
 # latter, the `servo_cp` command sets the end-effector pose w.r.t its Base frame.
-T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/2.), Vector(0., 0., -1.3))
+T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/2.), Vector(0., 0., -0.13))
 print("Setting the end-effector frame of PSM1 w.r.t Base", T_e_b)
 psm1.servo_cp(T_e_b)
 psm1.set_jaw_angle(0.2)
 add_break(1.0)
-T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/4.), Vector(0.1, -0.1, -1.3))
+T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/4.), Vector(0.01, -0.01, -0.13))
 print("Setting the end-effector frame of PSM2 w.r.t Base", T_e_b)
 psm2.servo_cp(T_e_b)
 psm2.set_jaw_angle(0.5)
 add_break(1.0)
 # Controlling in joint space
-jp = [0., 0., 1.35, 0.2, 0.3, 0.2]
+jp = [0., 0., 0.135, 0.2, 0.3, 0.2]
 print("Setting PSM1 joint positions to ", jp)
 psm1.servo_jp(jp)
 add_break(1.0)
-jp = [0., 0., 1.35, -0.2, -0.3, -0.2]
+jp = [0., 0., 0.135, -0.2, -0.3, -0.2]
 print("Setting PSM2 joint positions to ", jp)
 psm2.servo_jp(jp)
 add_break(1.0)
 # The ECM should always be controlled using its joint interface
-jp = [0., 0.2, -0.3, 0.2]
+jp = [0., 0.2, -0.03, 0.2]
 print("Setting ECM joint positions to ", jp)
 ecm.servo_jp(jp)
 add_break(5.0)

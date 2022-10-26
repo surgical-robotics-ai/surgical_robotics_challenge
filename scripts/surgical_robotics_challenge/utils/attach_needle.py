@@ -43,7 +43,7 @@
 # */
 # //==============================================================================
 
-from ambf_client import Client
+from surgical_robotics_challenge.simulation_manager import SimulationManager
 import PyKDL
 from PyKDL import Vector, Rotation
 from surgical_robotics_challenge.utils.utilities import cartesian_interpolate_step
@@ -55,12 +55,6 @@ if sys.version_info[0] >= 3:
     from tkinter import *
 else:
     from Tkinter import *
-
-
-def get_obj_trans(obj):
-    P = Vector(obj.get_pos().x, obj.get_pos().y, obj.get_pos().z)
-    R = Rotation.RPY(obj.get_rpy()[0], obj.get_rpy()[1], obj.get_rpy()[2])
-    return PyKDL.Frame(R, P)
 
 
 class NeedleOffsets:
@@ -77,9 +71,9 @@ def attach_needle(needle, link, T_offset):
     if link is None:
         print('Not a valid link, returning')
         return
-    T_nINw = get_obj_trans(needle)
+    T_nINw = needle.get_pose()
     while not reached and not rospy.is_shutdown():
-        T_tINw = get_obj_trans(link)
+        T_tINw = link.get_pose()
         T_nINw_cmd = T_tINw * T_offset
 
         T_delta, error_max = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01)
@@ -93,8 +87,7 @@ def attach_needle(needle, link, T_offset):
         T_cmd.p = T_nINw.p + T_delta.p
         T_cmd.M = T_nINw.M * Rotation.RPY(r_delta[0], r_delta[1], r_delta[2])
         T_nINw = T_cmd
-        needle.set_pos(T_cmd.p[0], T_cmd.p[1], T_cmd.p[2])
-        needle.set_rpy(T_cmd.M.GetRPY()[0], T_cmd.M.GetRPY()[1], T_cmd.M.GetRPY()[2])
+        needle.set_pose(T_cmd)
         time.sleep(0.001)
         # T_nINw = get_obj_trans(needle)
 
@@ -123,13 +116,13 @@ def psm3_btn_cb():
     attach_needle(needle, link3, NeedleOffsets.TnINt3)
 
 
-c = Client('attach_needle')
-c.connect()
+simulation_manager = SimulationManager('attach_needle')
 # psm_name =
-needle = c.get_obj_handle('Needle')
-link1 = c.get_obj_handle('psm1' + '/toolyawlink')
-link2 = c.get_obj_handle('psm2' + '/toolyawlink')
-link3 = c.get_obj_handle('psm3' + '/toolyawlink')
+needle = simulation_manager.get_obj_handle('Needle')
+link1 = simulation_manager.get_obj_handle('psm1' + '/toolyawlink')
+link2 = simulation_manager.get_obj_handle('psm2' + '/toolyawlink')
+link3 = simulation_manager.get_obj_handle('psm3' + '/toolyawlink')
+time.sleep(0.5)
 
 tk = Tk()
 tk.title("Attache Needle")
