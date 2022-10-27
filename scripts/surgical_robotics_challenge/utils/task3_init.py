@@ -48,22 +48,21 @@ from PyKDL import Vector, Rotation, Frame
 from surgical_robotics_challenge.utils.utilities import cartesian_interpolate_step
 import numpy as np
 import time
-import rospy
+from surgical_robotics_challenge.utils import coordinate_frames
 
 
 class NeedleInitialization:
     def __init__(self, simulation_manager):
-        self.TnINt2 = Frame(Rotation.RPY(-np.pi / 2., 0., 0.),
-                       Vector(0.009973019361495972, -0.005215135216712952, 0.003237169608473778))
-        self.TnINt2_far = Frame(Rotation.RPY(-np.pi / 2., 0., 0.),
-                       Vector(0.009973019361495972, -0.02, 0.003237169608473778))
+        self.T_needle_psmtip = coordinate_frames.Needle.T_center_psmtip
+        self.T_needle_psmtip_far = self.T_needle_psmtip * Frame(Rotation.RPY(0., 0., 0.), Vector(0., 0., -0.010))
+
         self.needle = simulation_manager.get_obj_handle('Needle')
         time.sleep(1.0)
         self._release = False
         self._reached = False
 
     def get_tip_to_needle_offset(self):
-        return self.TnINt2
+        return self.T_needle_psmtip
 
     def move_to(self, psm_tip):
         print('Moving Needle to PSM 2 Tip')
@@ -77,7 +76,7 @@ class NeedleInitialization:
         self._reached = False
         done = False
         while not done:
-            T_nINw_cmd = T_tINw * self.TnINt2_far
+            T_nINw_cmd = T_tINw * self.T_needle_psmtip_far
             T_delta, done = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01, 0.005)
             r_delta = T_delta.M.GetRPY()
             # print(error_max)
@@ -93,7 +92,7 @@ class NeedleInitialization:
         T_nINw = self.needle.get_pose()
         T_tINw = psm_tip.get_pose()
         while not done:
-            T_nINw_cmd = T_tINw * self.TnINt2
+            T_nINw_cmd = T_tINw * self.T_needle_psmtip
             T_delta, done = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01, 0.005)
             r_delta = T_delta.M.GetRPY()
             T_cmd = Frame()

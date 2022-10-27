@@ -44,11 +44,9 @@
 # //==============================================================================
 import numpy as np
 from surgical_robotics_challenge.kinematics.psmIK import *
-from surgical_robotics_challenge.utils.joint_pos_recorder import JointPosRecorder
 from surgical_robotics_challenge.utils.joint_errors_model import JointErrorsModel
+from surgical_robotics_challenge.utils import coordinate_frames
 import time
-
-jpRecorder = JointPosRecorder()
 
 
 class PSMJointMapping:
@@ -72,8 +70,7 @@ pjm = PSMJointMapping()
 
 
 class PSM:
-    def __init__(self, simulation_manager, name, add_joint_errors=True, save_jp=False):
-        self.save_jp = save_jp
+    def __init__(self, simulation_manager, name, add_joint_errors=True):
         self.simulation_manager = simulation_manager
         self.name = name
         self.base = self.simulation_manager.get_obj_handle(name + '/baselink')
@@ -89,7 +86,7 @@ class PSM:
         self.grasped = [False, False, False]
         self.graspable_objs_prefix = ["Needle", "Thread", "Puzzle"]
 
-        self.T_t_b_home = Frame(Rotation.RPY(3.14, 0.0, 1.57079), Vector(0.0, 0.0, -1.0))
+        self.T_t_b_home = coordinate_frames.PSM.T_t_b_home
 
         # Transform of Base in World
         self._T_b_w = None
@@ -162,11 +159,6 @@ class PSM:
         ik_solution = compute_IK(T_t_b)
         self._ik_solution = enforce_limits(ik_solution)
         self.servo_jp(self._ik_solution)
-
-        ###  save jp
-
-        if self.save_jp:
-            jpRecorder.record(self._ik_solution)  ### record joint angles
 
     def servo_cv(self, twist):
         pass
