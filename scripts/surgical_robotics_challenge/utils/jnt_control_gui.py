@@ -52,7 +52,7 @@ else:
 
 
 class JointGUI:
-    def __init__(self, obj_name, num_jnts, jnt_names, resolution=0.0001):
+    def __init__(self, obj_name, num_jnts, jnt_names, resolution=0.0001, lower_lims=None, upper_lims=None):
         self.App = Tk()
         self.jnt_cmds = []
         self.jnt_mode = []
@@ -60,7 +60,11 @@ class JointGUI:
         self._cmd_sliders = []
         self.obj_name = obj_name
         self.resolution = resolution
-        self.create_gui(self.App, num_jnts, jnt_names)
+        if not lower_lims:
+            lower_lims = [-1. for i in range(num_jnts)]
+        if not upper_lims:
+            upper_lims = [1. for i in range(num_jnts)]
+        self.create_gui(self.App, num_jnts, jnt_names, lower_lims, upper_lims)
 
     def get_app_handle(self):
         return self.App
@@ -95,11 +99,10 @@ class JointGUI:
         for sl in self._cmd_sliders:
             sl.set(0.0)
 
-    def create_gui(self, app, num_jnts, jnt_names):
+    def create_gui(self, app, num_jnts, jnt_names, lower_lims, upper_lims):
+        assert num_jnts == len(lower_lims) and num_jnts == len(upper_lims)
         _width = 20
         _length = 300
-        _min = -1
-        _max = 1
         check_buttons = []
         self.jnt_cmds = [0.0] * num_jnts
         self.jnt_mode = [0]*num_jnts
@@ -118,7 +121,7 @@ class JointGUI:
                 jidx = int(i/2)
                 self.cmd_scales[jidx] = sv
 
-                slider = Scale(app, from_=_min, to=_max, resolution=self.resolution, orient=HORIZONTAL,
+                slider = Scale(app, from_=lower_lims[jidx], to=upper_lims[jidx], resolution=self.resolution, orient=HORIZONTAL,
                                command=functools.partial(self.slider_cb, idx=jidx))
                 slider.grid(row=i, column=1)
                 self._cmd_sliders.append(slider)
@@ -150,3 +153,9 @@ class JointGUI:
         reset_cmd_btn = Button(app, text='Reset Cmds',
                                command=self.reset_cmds_cb)
         reset_cmd_btn.grid(row=num_jnts*2, column=1)
+
+    def set_limit(self, idx, lower_limit, upper_limit):
+        if idx > (len(self.cmd_scales) - 1):
+            raise "Slider index out of range"
+
+        self._cmd_sliders[idx].configure(from_=lower_limit, to=upper_limit)
