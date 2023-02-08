@@ -58,17 +58,18 @@ import sys
 
 
 class ControllerInterface:
-    def __init__(self, leader, psm_arms, camera):
+    def __init__(self, leader, psm_arms, ecm):
         self.counter = 0
         self.leader = leader
         self.psm_arms = cycle(psm_arms)
         self.active_psm = next(self.psm_arms)
-        self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
+        self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"], lower_lims=cam.get_lower_limits(),
+                            upper_lims=cam.get_upper_limits())
 
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         self.cmd_rpy = None
         self.T_IK = None
-        self._camera = camera
+        self._ecm = ecm
 
         self._T_c_b = None
         self._update_T_c_b = True
@@ -82,13 +83,13 @@ class ControllerInterface:
         print('Switching Control of Next PSM Arm: ', self.active_psm.name)
 
     def update_T_c_b(self):
-        if self._update_T_c_b or self._camera.has_pose_changed():
-            self._T_c_b = self.active_psm.get_T_w_b() * self._camera.get_T_c_w()
+        if self._update_T_c_b or self._ecm.has_pose_changed():
+            self._T_c_b = self.active_psm.get_T_w_b() * self._ecm.get_T_c_w()
             self._update_T_c_b = False
 
     def update_camera_pose(self):
         self.gui.App.update()
-        self._camera.servo_jp(self.gui.jnt_cmds)
+        self._ecm.servo_jp(self.gui.jnt_cmds)
 
     def update_arm_pose(self):
         self.update_T_c_b()

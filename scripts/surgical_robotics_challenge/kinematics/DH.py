@@ -105,13 +105,13 @@ class DH:
         return self.mat_from_dh(self.alpha, self.a, self.theta, self.d, self.offset, self.joint_type, self.convention)
 
 
-def enforce_limits(j_raw, joint_lims):
+def enforce_limits(j_raw, lower_lims, upper_lims):
     num_joints = len(j_raw)
     j_limited = [0.0]*num_joints
 
     for idx in range(num_joints):
-        min_lim = joint_lims[idx][0]
-        max_lim = joint_lims[idx][1]
+        min_lim = lower_lims[idx]
+        max_lim = upper_lims[idx]
         j_limited[idx] = max(min_lim, min(j_raw[idx], max_lim))
 
     return j_limited

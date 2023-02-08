@@ -96,26 +96,6 @@ import rospy
 kinematics_data = PSMKinematicData()
 
 
-def enforce_limits(j_raw):
-    # Min to Max Limits
-    j1_lims = [np.deg2rad(-91.96), np.deg2rad(91.96)]
-    j2_lims = [np.deg2rad(-60), np.deg2rad(60)]
-    j3_lims = [0.0, 0.240]
-    j4_lims = [np.deg2rad(-175), np.deg2rad(175)]
-    j5_lims = [np.deg2rad(-90), np.deg2rad(90)]
-    j6_lims = [np.deg2rad(-85), np.deg2rad(85)]
-
-    j_limited = [0.0]*6
-    j_lims = [j1_lims, j2_lims, j3_lims, j4_lims, j5_lims, j6_lims]
-
-    for idx in range(6):
-        min_lim = j_lims[idx][0]
-        max_lim = j_lims[idx][1]
-        j_limited[idx] = max(min_lim, min(j_raw[idx], max_lim))
-
-    return [j_limited[0], j_limited[1], j_limited[2], j_limited[3], j_limited[4], j_limited[5]]
-
-
 def compute_IK(T_7_0):
     pkd = PSMKinematicData()
 

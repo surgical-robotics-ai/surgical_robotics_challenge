@@ -87,6 +87,7 @@ class PSM:
         self.graspable_objs_prefix = ["Needle", "Thread", "Puzzle"]
 
         self.T_t_b_home = coordinate_frames.PSM.T_t_b_home
+        self._kd = kinematics_data
 
         # Transform of Base in World
         self._T_b_w = None
@@ -116,6 +117,12 @@ class PSM:
 
     def get_ik_solution(self):
         return self._ik_solution
+
+    def get_lower_limits(self):
+        return self._kd.lower_limits
+
+    def get_upper_limits(self):
+        return self._kd.upper_limits
 
     def get_T_b_w(self):
         self._update_base_pose()
@@ -157,7 +164,7 @@ class PSM:
             T_t_b = convert_mat_to_frame(T_t_b)
 
         ik_solution = compute_IK(T_t_b)
-        self._ik_solution = enforce_limits(ik_solution)
+        self._ik_solution = enforce_limits(ik_solution, self.get_lower_limits(), self.get_upper_limits())
         self.servo_jp(self._ik_solution)
 
     def servo_cv(self, twist):

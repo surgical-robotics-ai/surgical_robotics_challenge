@@ -89,6 +89,10 @@ class PSMKinematicData:
                               JointType.REVOLUTE, Convention.MODIFIED),
                            DH(-PI_2, 0, 0, self.L_yaw2ctrlpnt, PI_2, JointType.REVOLUTE, Convention.MODIFIED)]
 
+        self.lower_limits = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
+
+        self.upper_limits = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
+
     def get_link_params(self, link_num):
         if link_num < 0 or link_num > self.num_links:
             # Error

@@ -162,7 +162,8 @@ if __name__ == "__main__":
     if parsed_args.run_ecm is True:
         arm_name = 'CameraFrame'
         ecm = ECM(simulation_manager, arm_name)
-        gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
+        gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"], lower_lims=ecm.get_lower_limits(),
+                       upper_lims=ecm.get_upper_limits())
         controller = ECMController(gui, ecm)
         controllers.append(controller)
 

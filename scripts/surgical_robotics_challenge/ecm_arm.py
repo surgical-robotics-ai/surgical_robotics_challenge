@@ -72,6 +72,7 @@ class ECM:
         self._T_c_w_cmd = None
         self._force_exit_thread = False
         self._thread_busy = False
+        self._kd = kinematics_data
 
     def _interpolate(self):
         self._thread_busy = True
@@ -85,9 +86,8 @@ class ECM:
                     break
 
                 T_step, done = cartesian_interpolate_step(self._measured_cp, self._T_c_w_cmd, self._max_vel)
-                r_cmd = T_step.M.GetRPY()
                 self._T_cmd.p = self._measured_cp.p + T_step.p
-                self._T_cmd.M = self._measured_cp.M * Rotation.RPY(r_cmd[0], r_cmd[1], r_cmd[2])
+                self._T_cmd.M = self._measured_cp.M * T_step.M
                 self._measured_cp = self._T_cmd
                 self.camera_handle.set_pose(self._T_cmd)
 
@@ -127,6 +127,12 @@ class ECM:
         self._T_c_w = self.camera_handle.get_pose()
         self._T_w_c = self._T_c_w.Inverse()
         self._pose_changed = False
+
+    def get_lower_limits(self):
+        return self._kd.lower_limits
+
+    def get_upper_limits(self):
+        return self._kd.upper_limits
 
     def servo_cp(self, T_c_w):
         if type(T_c_w) in [np.matrix, np.array]:
