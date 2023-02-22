@@ -48,13 +48,13 @@ from PyKDL import Frame, Rotation, Vector
 from geometry_msgs.msg import Pose, PoseStamped, TransformStamped, TwistStamped, WrenchStamped, Wrench
 from sensor_msgs.msg import Joy, JointState
 from std_msgs.msg import Bool
-import rospy
+import rospy, rostopic
 import time
 import numpy as np
 
 
 # Utilities
-def kdl_frame_to_pose_msg(kdl_pose):
+def kdl_frame_to_pose_stamped_msg(kdl_pose):
     ps = PoseStamped()
     p = ps.pose
     p.position.x = kdl_pose.p[0]
@@ -69,7 +69,7 @@ def kdl_frame_to_pose_msg(kdl_pose):
     return ps
 
 
-def kdl_frame_to_transform_msg(kdl_pose):
+def kdl_frame_to_transform_stamped_msg(kdl_pose):
     ps = TransformStamped()
     p = ps.transform
     p.translation.x = kdl_pose.p[0]
@@ -114,6 +114,19 @@ def kdl_wrench_to_wrench_msg(kdl_wrench):
 
 
 def pose_msg_to_kdl_frame(msg_pose):
+    pose = msg_pose.pose
+    f = Frame()
+    f.p[0] = pose.position.x
+    f.p[1] = pose.position.y
+    f.p[2] = pose.position.z
+    f.M = Rotation.Quaternion(pose.orientation.x,
+                              pose.orientation.y,
+                              pose.orientation.z,
+                              pose.orientation.w)
+
+    return f
+
+def transform_msg_to_kdl_frame(msg_pose):
     pose = msg_pose.transform
     f = Frame()
     f.p[0] = pose.translation.x
@@ -131,6 +144,16 @@ def vector_to_effort_msg(effort):
     msg = JointState()
     msg.effort = effort
     return msg
+
+
+def get_crtk_cp_msg_type_from_str(msg_type_str):
+    if msg_type_str == 'geometry_msgs/PoseStamped':
+        return PoseStamped
+    elif msg_type_str == 'geometry_msgs/TransformStamped':
+        return TransformStamped
+    else:
+        print("Exception! Message Type: %s CRTK CP MESSAGE TYPE IS NEITHER PoseStamped or TransformStamped", msg_type_str)
+        raise TypeError
 
 
 # Init everything related to Geomagic
@@ -174,8 +197,13 @@ class MTM:
         self._jv = []
         self._jf = []
 
+        print(rostopic.get_topic_type(pose_sub_topic_name))
+        print(rostopic.get_topic_type(pose_pub_topic_name))
+        self.MEASURED_CP_MESSAGE_TYPE = get_crtk_cp_msg_type_from_str(rostopic.get_topic_type(pose_sub_topic_name)[0])
+        self.SERVO_CP_MESSAGE_TYPE = get_crtk_cp_msg_type_from_str(rostopic.get_topic_type(pose_pub_topic_name)[0])
+
         self._pose_sub = rospy.Subscriber(
-            pose_sub_topic_name, TransformStamped, self.pose_cb, queue_size=1)
+            pose_sub_topic_name, self.MEASURED_CP_MESSAGE_TYPE, self.pose_cb, queue_size=1)
         self._state_sub = rospy.Subscriber(
             joint_state_sub_topic_name, JointState, self.state_cb, queue_size=1)
         self._gripper_sub = rospy.Subscriber(
@@ -188,7 +216,7 @@ class MTM:
             coag_topic_name, Joy, self.coag_buttons_cb, queue_size=1)
 
         self._pos_pub = rospy.Publisher(
-            pose_pub_topic_name, TransformStamped, queue_size=1)
+            pose_pub_topic_name, self.SERVO_CP_MESSAGE_TYPE, queue_size=1)
         self._wrench_pub = rospy.Publisher(
             wrench_pub_topic_name, WrenchStamped, queue_size=1)
         self._effort_pub = rospy.Publisher(
@@ -262,7 +290,10 @@ class MTM:
         self.cur_pos_msg = msg
         if self.pre_coag_pose_msg is None:
             self.pre_coag_pose_msg = self.cur_pos_msg
-        cur_frame = pose_msg_to_kdl_frame(msg)
+        if type(msg) == PoseStamped:
+            cur_frame = pose_msg_to_kdl_frame(msg)
+        elif type(msg) == TransformStamped:
+            cur_frame = transform_msg_to_kdl_frame(msg)
         cur_frame.p = cur_frame.p * self._scale
         self.pose = self._T_baseoffset_inverse * cur_frame * self._T_tipoffset
         # Mark active as soon as first message comes through
@@ -314,16 +345,29 @@ class MTM:
         pass
 
     def servo_cp(self, pose):
-        if type(pose) == PyKDL.Frame:
-            transform_msg = kdl_frame_to_transform_msg(pose)
-        elif type(pose) == PoseStamped:
-            transform_msg = pose_stamped_to_transform_stamped(pose)
-        elif type(pose) == TransformStamped:
-            transform_msg = pose
+        if self.SERVO_CP_MESSAGE_TYPE == PoseStamped:
+            if type(pose) == PyKDL.Frame:
+                servo_cp_msg = kdl_frame_to_pose_stamped_msg(pose)
+            elif type(pose) == PoseStamped:
+                servo_cp_msg = pose
+            elif type(pose) == TransformStamped:
+                servo_cp_msg = pose
+            else:
+                raise TypeError
+        elif self.SERVO_CP_MESSAGE_TYPE == TransformStamped:
+            if type(pose) == PyKDL.Frame:
+                servo_cp_msg = kdl_frame_to_transform_stamped_msg(pose)
+            elif type(pose) == PoseStamped:
+                servo_cp_msg = pose_stamped_to_transform_stamped(pose)
+            elif type(pose) == TransformStamped:
+                servo_cp_msg = pose
+            else:
+                raise TypeError
         else:
+            print(self.SERVO_CP_MESSAGE_TYPE)
             raise TypeError
 
-        self._pos_pub.publish(transform_msg)
+        self._pos_pub.publish(servo_cp_msg)
 
     def servo_cf(self, wrench):
         wrench = self._T_baseoffset_inverse * wrench

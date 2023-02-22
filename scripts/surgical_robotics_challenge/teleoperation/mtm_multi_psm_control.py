@@ -233,5 +233,6 @@ if __name__ == "__main__":
                 for cont in controllers:
                     cont.run()
                 rate.sleep()
-        except:
+        except Exception as e:
+            print(e)
             print('Exception! Goodbye')
