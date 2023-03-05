@@ -10,6 +10,7 @@ from scripts.surgical_robotics_challenge.ecm_arm import ECM
 from scripts.surgical_robotics_challenge.scene import Scene
 from scripts.surgical_robotics_challenge.simulation_manager import SimulationManager
 from scripts.surgical_robotics_challenge.task_completion_report import TaskCompletionReport
+from scripts.surgical_robotics_challenge.utils.task3_init import NeedleInitialization
 
 N_DISCRETE_ACTIONS = 0
 HEIGHT = 0
@@ -42,12 +43,18 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         self.ecm = ECM(self.simulation_manager, 'CameraFrame')
         self.scene = Scene(self.simulation_manager)
         self.task_report = TaskCompletionReport(team_name='my_team_name')
+        self.needle = NeedleInitialization(self.simulation_manager)
 
         # Small sleep to let the handles initialize properly
         add_break(0.5)
 
+        # Initialize task
+        # TODO implement for task 2
+        simulation_manager = SimulationManager('task_3_setup_test')
+
     def step(self, action):
         # Execute one time step within the environment
+        # TODO: look into AMBF RL paper for step function implementation
         raise NotImplementedError
 
     def reset(self):
@@ -72,11 +79,42 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         print("PSM2 Base pose in World Frame", self.psm2.get_T_b_w())
         print("PSM2 Joint state", self.psm2.measured_jp())
         add_break(1.0)
+        print("Needle pose in Needle Frame", self.needle.get_pose())
+        add_break(1.0)
         # Things are slightly different for ECM as the `measure_cp` returns pose in the world frame
         print("ECM pose in World", self.ecm.measured_cp())
         add_break(1.0)
+
         # Scene object poses are all w.r.t World
         print("Entry 1 pose in World", self.scene.entry1_measured_cp())
         print("Exit 4 pose in World", self.scene.exit4_measured_cp())
 
         # TODO: connect render to AMRL's simulation manager
+
+    def move_needle(self):
+        # First we shall move the PSM to its initial pose using joint commands OR pose command
+        self.psm2.servo_jp([-0.4, -0.22, 0.139, -1.64, -0.37, -0.11])
+        # Open the Jaws
+        self.psm2.set_jaw_angle(0.8)
+        # Sleep to achieve the target pose and jaw angle
+        time.sleep(1.0)
+
+        psm2_tip = self.simulation_manager.get_obj_handle('psm2/toolyawlink')
+        # Sanity sleep
+        time.sleep(0.5)
+        # This method will automatically start moving the needle to be with the PSM2's jaws
+        self.needle.move_to(psm2_tip)
+        time.sleep(0.5)
+        for i in range(30):
+            # Close the jaws to grasp the needle
+            # Calling it repeatedly a few times so that the needle is forced
+            # between the gripper tips and grasped properly
+            self.psm2.set_jaw_angle(0.0)
+            time.sleep(0.01)
+        time.sleep(0.5)
+        # Don't forget to release the needle control loop to move it freely.
+        self.needle.release()
+        time.sleep(2.0)
+        # Open the jaws to let go of the needle from grasp
+        self.psm2.set_jaw_angle(0.8)
+        time.sleep(2.0)
