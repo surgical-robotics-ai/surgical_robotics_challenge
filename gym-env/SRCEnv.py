@@ -5,14 +5,15 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import time
-from scripts.surgical_robotics_challenge.psm_arm import PSM
-from scripts.surgical_robotics_challenge.ecm_arm import ECM
-from scripts.surgical_robotics_challenge.scene import Scene
-from scripts.surgical_robotics_challenge.simulation_manager import SimulationManager
-from scripts.surgical_robotics_challenge.task_completion_report import TaskCompletionReport
-from scripts.surgical_robotics_challenge.utils.task3_init import NeedleInitialization
 
-N_DISCRETE_ACTIONS = 0
+from src.scripts.surgical_robotics_challenge.psm_arm import PSM
+from src.scripts.surgical_robotics_challenge.ecm_arm import ECM
+from src.scripts.surgical_robotics_challenge.scene import Scene
+from src.scripts.surgical_robotics_challenge.simulation_manager import SimulationManager
+from src.scripts.surgical_robotics_challenge.task_completion_report import TaskCompletionReport
+from src.scripts.surgical_robotics_challenge.utils.task3_init import NeedleInitialization
+
+N_DISCRETE_ACTIONS = 3
 HEIGHT = 0
 WIDTH = 0
 N_CHANNELS = 0
@@ -36,7 +37,7 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         self.observation_space = spaces.Box(
             low=0, high=255, shape=(HEIGHT, WIDTH, N_CHANNELS), dtype=np.uint8)
 
-        self.simulation_manager = SimulationManager('my_example_client')
+        self.simulation_manager = surgical_robotics_challenge.simulation_manager.SimulationManager('my_example_client')
         self.world_handle = self.simulation_manager.get_world_handle()
         self.psm1 = PSM(self.simulation_manager, 'psm1')
         self.psm2 = PSM(self.simulation_manager, 'psm2')
