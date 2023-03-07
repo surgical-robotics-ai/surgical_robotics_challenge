@@ -1,8 +1,8 @@
 '''
 Base Environment for Surgical Robotics Challenge
 '''
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 import numpy as np
 import time
 from scripts.surgical_robotics_challenge.psm_arm import PSM
