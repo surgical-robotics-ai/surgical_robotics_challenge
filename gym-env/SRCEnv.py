@@ -118,3 +118,9 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         # Open the jaws to let go of the needle from grasp
         self.psm2.set_jaw_angle(0.8)
         time.sleep(2.0)
+
+if __name__ == "__main__":
+    env = CustomEnv()
+    env.render()
+    env.reset()
+    env.render()
