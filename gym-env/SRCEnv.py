@@ -6,6 +6,7 @@ from gymnasium import spaces
 import numpy as np
 import time
 
+
 from src.scripts.surgical_robotics_challenge.psm_arm import PSM
 from src.scripts.surgical_robotics_challenge.ecm_arm import ECM
 from src.scripts.surgical_robotics_challenge.scene import Scene
@@ -37,7 +38,7 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         self.observation_space = spaces.Box(
             low=0, high=255, shape=(HEIGHT, WIDTH, N_CHANNELS), dtype=np.uint8)
 
-        self.simulation_manager = surgical_robotics_challenge.simulation_manager.SimulationManager('my_example_client')
+        self.simulation_manager = SimulationManager('my_example_client')
         self.world_handle = self.simulation_manager.get_world_handle()
         self.psm1 = PSM(self.simulation_manager, 'psm1')
         self.psm2 = PSM(self.simulation_manager, 'psm2')
