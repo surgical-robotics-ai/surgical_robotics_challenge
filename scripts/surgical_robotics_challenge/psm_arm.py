@@ -48,6 +48,7 @@ from surgical_robotics_challenge.utils.joint_errors_model import JointErrorsMode
 from surgical_robotics_challenge.utils import coordinate_frames
 import time
 
+import numpy as np
 
 class PSMJointMapping:
     def __init__(self):
@@ -67,6 +68,49 @@ class PSMJointMapping:
 
 
 pjm = PSMJointMapping()
+
+# simplified Interpolation class to compute the path for move_jp
+# derived from Interpolation.interp_logic
+class Interpolation_custom(object):
+    def __init__(self):
+        self._t0 = 0.0
+        self._tf = 0.0
+
+        self._coefficients = np.zeros([6, 1])
+        self._T_mat = np.zeros([6, 6])
+        self._boundary_conditions = np.zeros([6, 1])
+
+        self._dimensions = 1
+        self._t_array = []
+        self._x = np.zeros([1, 1])
+        # Define a custom margin of error for t0
+        self._t0_moe = 0.01
+        pass
+
+    def get_interpolated_x(self, t):
+        t = t - self._t0
+        t_mat = np.column_stack((t ** 0, t ** 1, t ** 2, t ** 3, t ** 4, t ** 5))
+        self._x = np.matmul(self._coefficients.transpose(), t_mat.transpose())
+        return self._x
+
+    def compute_interpolation_params(self, x0, xf, dx0, dxf, ddx0, ddxf, t0, tf):
+        self._dimensions = x0.size
+        self._t0 = t0
+        self._tf = tf
+        tf = tf - t0
+        t0 = 0
+
+        self._T_mat = np.mat([[1, t0, t0 ** 2, t0 ** 3, t0 ** 4, t0 ** 5],
+                              [0, 1, 2 * t0, 3 * (t0 ** 2), 4 * (t0 ** 3), 5 * (t0 ** 4)],
+                              [0, 0, 2, 6 * t0, 12 * (t0 ** 2), 20 * (t0 ** 3)],
+                              [1, tf, tf ** 2, tf ** 3, tf ** 4, tf ** 5],
+                              [0, 1, 2 * tf, 3 * (tf ** 2), 4 * (tf ** 3), 5 * (tf ** 4)],
+                              [0, 0, 2, 6 * tf, 12 * (tf ** 2), 20 * (tf ** 3)]])
+
+        self._boundary_conditions = np.mat([x0, dx0, ddx0, xf, dxf, ddxf])
+        self._coefficients = np.matmul(np.linalg.inv(self._T_mat), self._boundary_conditions)
+
+
 
 
 class PSM:
@@ -101,10 +145,12 @@ class PSM:
         self._joint_error_model = JointErrorsModel(self.name, self._num_joints)
         if add_joint_errors:
             max_errors_list = [0.] * self._num_joints  # No error
-            max_errors_list[0] = np.deg2rad(5.0) # Max Error Joint 0 -> +-5 deg
-            max_errors_list[1] = np.deg2rad(5.0) # Max Error Joint 1 -> +- 5 deg
-            max_errors_list[2] = 0.005 # Max Error Joint 2 -> +- 5 mm or 0.05 Simulation units
+            max_errors_list[0] = np.deg2rad(5.0)  # Max Error Joint 0 -> +-5 deg
+            max_errors_list[1] = np.deg2rad(5.0)  # Max Error Joint 1 -> +- 5 deg
+            max_errors_list[2] = 0.005  # Max Error Joint 2 -> +- 5 mm or 0.05 Simulation units
             self._joint_error_model.generate_random_from_max_value(max_errors_list)
+
+        self.interp = Interpolation_custom()
 
     def set_home_pose(self, pose):
         self.T_t_b_home = pose
@@ -182,6 +228,25 @@ class PSM:
         self.base.set_joint_pos(3, jp[3])
         self.base.set_joint_pos(4, jp[4])
         self.base.set_joint_pos(5, jp[5])
+
+    def move_jp(self, jp):
+        jp = self._joint_error_model.add_to_joints(jp, self._joints_error_mask)
+
+        jp_cur = self.measured_jp()
+        jv_cur = self.measured_jv()
+
+        self.interp.compute_interpolation_params(jp_cur, jp, jv_cur, 0, 0, 0, 0, 0.1)
+        rate = rospy.Rate(100)
+        init_time = time.time()
+
+        while not rospy.is_shutdown():
+            cur_time = time.time()
+            adj_time = cur_time - init_time
+            if adj_time > 0.1:
+                break
+            val = self.interp.get_interpolated_x(adj_time)
+            self.servo_jp(val)
+            rate.sleep()
 
     def servo_jv(self, jv):
         print("Setting Joint Vel", jv)
