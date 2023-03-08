@@ -46,7 +46,7 @@
 from PyKDL import Vector, Rotation, Frame, dot
 import numpy as np
 import math
-from surgical_robotics_challenge.kinematics.psmFK import *
+from src.scripts.surgical_robotics_challenge.kinematics.psmFK import *
 import rospy
 
 # THIS IS THE IK FOR THE PSM MOUNTED WITH THE LARGE NEEDLE DRIVER TOOL. THIS IS THE

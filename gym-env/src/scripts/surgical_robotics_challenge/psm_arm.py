@@ -43,9 +43,9 @@
 # */
 # //==============================================================================
 import numpy as np
-from surgical_robotics_challenge.kinematics.psmIK import *
-from surgical_robotics_challenge.utils.joint_errors_model import JointErrorsModel
-from surgical_robotics_challenge.utils import coordinate_frames
+from src.scripts.surgical_robotics_challenge.kinematics.psmIK import *
+from src.scripts.surgical_robotics_challenge.utils.joint_errors_model import JointErrorsModel
+from src.scripts.surgical_robotics_challenge.utils import coordinate_frames
 import time
 
 
