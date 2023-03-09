@@ -45,7 +45,7 @@
 from surgical_robotics_challenge.kinematics.psmIK import *
 from surgical_robotics_challenge.utils.joint_errors_model import JointErrorsModel
 from surgical_robotics_challenge.utils import coordinate_frames
-from surgical_robotics_challenge.utils import interpolation
+from scripts.surgical_robotics_challenge.interpolation import Interpolation_custom
 
 import time
 
@@ -167,6 +167,14 @@ class PSM:
         ik_solution = compute_IK(T_t_b)
         self._ik_solution = enforce_limits(ik_solution, self.get_lower_limits(), self.get_upper_limits())
         self.servo_jp(self._ik_solution)
+
+    def move_cp(self, T_t_b):
+        if type(T_t_b) in [np.matrix, np.array]:
+            T_t_b = convert_mat_to_frame(T_t_b)
+
+        ik_solution = compute_IK(T_t_b)
+        self._ik_solution = enforce_limits(ik_solution, self.get_lower_limits(), self.get_upper_limits())
+        self.move_jp(self._ik_solution)
 
     def servo_cv(self, twist):
         pass
