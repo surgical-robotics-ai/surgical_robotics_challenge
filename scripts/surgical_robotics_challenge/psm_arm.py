@@ -42,7 +42,6 @@
 #     \version   1.0
 # */
 # //==============================================================================
-import numpy as np
 from surgical_robotics_challenge.kinematics.psmIK import *
 from surgical_robotics_challenge.utils.joint_errors_model import JointErrorsModel
 from surgical_robotics_challenge.utils import coordinate_frames
