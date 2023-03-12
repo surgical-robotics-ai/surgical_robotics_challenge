@@ -45,7 +45,7 @@
 from surgical_robotics_challenge.kinematics.psmIK import *
 from surgical_robotics_challenge.utils.joint_errors_model import JointErrorsModel
 from surgical_robotics_challenge.utils import coordinate_frames
-from scripts.surgical_robotics_challenge.interpolation import Interpolation_custom
+from surgical_robotics_challenge.interpolation import Interpolation_custom
 
 import time
 
@@ -198,16 +198,20 @@ class PSM:
         jp_cur = self.measured_jp()
         jv_cur = self.measured_jv()
 
-        self.interp.compute_interpolation_params(jp_cur, jp, jv_cur, 0, 0, 0, 0, 0.1)
+        zero = np.zeros(6)
+
+        time_interval = 0.5
+
+        self.interp.compute_interpolation_params(jp_cur, jp, jv_cur, zero, zero, zero, 0, time_interval)
         rate = rospy.Rate(100)
         init_time = time.time()
 
         while not rospy.is_shutdown():
             cur_time = time.time()
             adj_time = cur_time - init_time
-            if adj_time > 0.1:
+            if adj_time > time_interval:
                 break
-            val = self.interp.get_interpolated_x(adj_time)
+            val = self.interp.get_interpolated_x(np.array(adj_time, dtype=np.float32))
             self.servo_jp(val)
             rate.sleep()
 
