@@ -39,30 +39,47 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         self.observation_space = spaces.Box(
             low=0, high=255, shape=(HEIGHT, WIDTH, N_CHANNELS), dtype=np.uint8)
 
+        # connect to client using SimulationManager
         self.simulation_manager = SimulationManager('my_example_client')
+
+        # initialize simulation environment
         self.world_handle = self.simulation_manager.get_world_handle()
+        self.scene = Scene(self.simulation_manager)
         self.psm1 = PSM(self.simulation_manager, 'psm1')
         self.psm2 = PSM(self.simulation_manager, 'psm2')
         self.ecm = ECM(self.simulation_manager, 'CameraFrame')
-        self.scene = Scene(self.simulation_manager)
-        self.task_report = TaskCompletionReport(team_name='my_team_name')
         self.needle = NeedleInitialization(self.simulation_manager)
+
+        self.task_report = TaskCompletionReport(team_name='my_team_name')
 
         # Small sleep to let the handles initialize properly
         add_break(0.5)
-
-        # Initialize task
-        # TODO implement for task 2
-        simulation_manager = SimulationManager('task_3_setup_test')
+        return
 
     def step(self, action):
         # Execute one time step within the environment
         raise NotImplementedError
+        # step function from AMBF-RL
+        # action = np.clip(action, self.action_lims_low, self.action_lims_high)
+        # self.action = action
+
+        # self.obj_handle.pose_command(action[0],
+        #                              action[1],
+        #                              action[2],
+        #                              action[3],
+        #                              action[4],
+        #                              action[5],
+        #                              action[6])
+        # self.world_handle.update()
+        # self._update_observation(action)
+        # return self.obs.cur_observation()
 
     def reward(self, action):
         # Return the reward for the action
-        task2_eval = Task_2_Evaluation()
-        return task2_eval._success
+        task2_eval = Task_2_Evaluation(self.simulation_manager._client, "test")
+        task2_eval.evaluate()
+        success = task2_eval._report.success # record success/completion of Task 2
+        return success
 
     def reset(self):
         # Reset the state of the environment to an initial state
