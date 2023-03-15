@@ -13,6 +13,7 @@ from src.scripts.surgical_robotics_challenge.scene import Scene
 from src.scripts.surgical_robotics_challenge.simulation_manager import SimulationManager
 from src.scripts.surgical_robotics_challenge.task_completion_report import TaskCompletionReport
 from src.scripts.surgical_robotics_challenge.utils.task3_init import NeedleInitialization
+from src.scripts.surgical_robotics_challenge.evaluation.evaluation import Task_2_Evaluation, Task_2_Evaluation_Report
 
 N_DISCRETE_ACTIONS = 3
 HEIGHT = 0
@@ -56,8 +57,12 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
 
     def step(self, action):
         # Execute one time step within the environment
-        # TODO: look into AMBF RL paper for step function implementation
         raise NotImplementedError
+
+    def reward(self, action):
+        # Return the reward for the action
+        task2_eval = Task_2_Evaluation()
+        return task2_eval._success
 
     def reset(self):
         # Reset the state of the environment to an initial state
@@ -120,6 +125,7 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         # Open the jaws to let go of the needle from grasp
         self.psm2.set_jaw_angle(0.8)
         time.sleep(2.0)
+
 
 if __name__ == "__main__":
     env = CustomEnv()
