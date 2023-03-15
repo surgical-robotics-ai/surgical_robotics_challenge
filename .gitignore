@@ -2,5 +2,5 @@
 *.blend1
 *.~
 *.old
-.idea/
-scripts/surgical_robotics_challenge.egg-info/
+.idea
+gym-env/src/scripts/surgical_robotics_challenge.egg-info/
