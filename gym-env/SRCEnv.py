@@ -41,14 +41,18 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
 
         # connect to client using SimulationManager
         self.simulation_manager = SimulationManager('my_example_client')
+        self.simulation_manager._client.print_summary()
 
         # initialize simulation environment
         self.world_handle = self.simulation_manager.get_world_handle()
+        print('hi')
         self.scene = Scene(self.simulation_manager)
-        self.psm1 = PSM(self.simulation_manager, 'psm1')
-        self.psm2 = PSM(self.simulation_manager, 'psm2')
-        self.ecm = ECM(self.simulation_manager, 'CameraFrame')
+        print('scene: ', self.scene)
+        # self.psm1 = PSM(self.simulation_manager, 'psm1')
+        # self.psm2 = PSM(self.simulation_manager, 'psm2')
+        # self.ecm = ECM(self.simulation_manager, 'CameraFrame')
         self.needle = NeedleInitialization(self.simulation_manager)
+        print('needle: ', self.needle.needle)
 
         self.task_report = TaskCompletionReport(team_name='my_team_name')
 
@@ -76,10 +80,27 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
 
     def reward(self, action):
         # Return the reward for the action
-        task2_eval = Task_2_Evaluation(self.simulation_manager._client, "test")
-        task2_eval.evaluate()
-        success = task2_eval._report.success # record success/completion of Task 2
-        return success
+        reward = 0
+        grasp_reward = self.grasp_reward(action)
+        reward += grasp_reward
+        # task2_eval = Task_2_Evaluation(self.simulation_manager._client, "test")
+        # task2_eval.evaluate()
+        # success = task2_eval._report.success # record success/completion of Task 2
+        return reward
+
+    def calc_dist(self, goal_pose, current_pose):
+        dist = np.linalg.norm(goal_pose - current_pose)
+        return dist
+
+    def grasp_reward(self, action):
+        goal_pose = self.needle.get_pose()
+        current_pose = self.psm1.measured_cp() + action
+        print('goal_pose: ', goal_pose)
+        print('self.psm1.measured_cp(): ', self.psm1.measured_cp())
+        print('action: ', action)
+
+        dist = self.calc_dist(goal_pose, current_pose)
+        return -dist
 
     def reset(self):
         # Reset the state of the environment to an initial state
