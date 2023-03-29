@@ -42,7 +42,13 @@
 #     \version   1.0
 # */
 # //==============================================================================
+import os
 import sys
+dynamic_path = os.path.abspath(__file__+"/../../../")
+# dynamic_path = os.path.abspath(__file__+"/../../")  # outside folder
+print(dynamic_path)
+sys.path.append(dynamic_path)
+
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.ecm_arm import ECM
@@ -50,9 +56,10 @@ import time
 import rospy
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
-from input_devices.razer_device import razer_Device
+from input_devices.hydra_device import HydraDevice
 from itertools import cycle
-from surgical_robotics_challenge.jnt_control_gui import JointGUI
+from surgical_robotics_challenge.utils.jnt_control_gui import JointGUI
+from surgical_robotics_challenge.utils.utilities import get_boolean_from_opt
 from surgical_robotics_challenge.utils import coordinate_frames
 
 
@@ -133,7 +140,7 @@ if __name__ == "__main__":
     parser.add_argument('-c', action='store', dest='client_name', help='Client Name', default='razer_sim_teleop')
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
-    parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=True)
+    parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=False)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
@@ -202,7 +209,7 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        leader = razer_Device()
+        leader = HydraDevice()
         theta_base = -0.9
         theta_tip = -theta_base
         leader.set_base_frame(Frame(Rotation.RPY(theta_base, 0, 0), Vector(0, 0, 0)))

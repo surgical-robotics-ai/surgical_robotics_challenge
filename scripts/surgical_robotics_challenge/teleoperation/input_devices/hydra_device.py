@@ -39,6 +39,8 @@
 
 #     \author    <amunawar@jhu.edu>
 #     \author    Adnan Munawar
+#     \author    <hzhou6@wpi.edu>
+#     \author    Haoying Zhou
 #     \version   1.0
 # */
 # //==============================================================================
@@ -46,10 +48,11 @@
 import PyKDL
 from PyKDL import Frame, Rotation, Vector
 from razer_hydra.msg import Hydra
-# from geomagic_control.msg import DeviceFeedback, DeviceButtonEvent
 from geometry_msgs.msg import PoseStamped, Twist
 import rospy
 import time
+from scipy.spatial.transform import Rotation as Rot
+import numpy as np
 
 # Utilities
 
@@ -88,59 +91,55 @@ def pose_msg_to_kdl_frame(msg_pose):
 def hydra_msg_to_kdl_frame(msg_hydra):
     pose = msg_hydra.paddles[0].transform
     f = Frame()
-    f.p[0] = 10*pose.translation.x
-    f.p[1] = 10*pose.translation.y
-    f.p[2] = 10*pose.translation.z
+    f.p[0] = pose.translation.x
+    f.p[1] = pose.translation.y
+    f.p[2] = pose.translation.z
     f.M = Rotation.Quaternion(pose.rotation.x,
                               pose.rotation.y,
                               pose.rotation.z,
                               pose.rotation.w)
-
     return f
 
 
 # Init everything related to Geomagic
-class razer_Device:
+class HydraDevice:
     # The name should include the full qualified prefix. I.e. '/Geomagic/', or '/omniR_' etc.
-    def __init__(self, name='hydra_calib'):
-        pose_topic_name = name  # + 'pose'
-        twist_topic_name = name
-        # twist_topic_name = name + 'twist'
-        # button_topic_name = name + 'button'
-        # force_topic_name = name + 'force_feedback'
-
+    def __init__(self, name='hydra_calib', hydra_idx=0):
+        ### hydra_idx=0 --> left, hydra_idx=1 --> right
+        self.pose_topic_name = name
+        assert (hydra_idx == 0) or (hydra_idx == 1), 'Incorrect hydra controller index'
+        self.hydra_idx = hydra_idx
         self._active = False
-        self._scale = 0.0002
-        self.pose = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
-        self.twist = PyKDL.Twist()
+        self._scale = [1.0, 1.0, 1.0]
+        self._jaw_scale = 1.0
+        self.clutch_button_pressed = False  # Used as Position Engage Clutch
+        self.gripper_button_pressed = False  # Used as Gripper Open Close Binary Angle
+        self._pose_sub = rospy.Subscriber(self.pose_topic_name, Hydra, self.pose_cb, queue_size=1)
+        self.reset_pose = [0.0, 0.0, 0.0]
+        self.reset_mtx = np.eye(3)
+        self.pose = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.jaw = 0.0
+        self.reset_button = False
+
+
+        ### old script
+        self.switch_psm = False
+        # self.pose = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
+        # self.twist = PyKDL.Twist()
         # This offset is to align the pitch with the view frame
         R_off = Rotation.RPY(0.0, 0, 0)
         self._T_baseoffset = Frame(R_off, Vector(0, 0, 0))
         self._T_baseoffset_inverse = self._T_baseoffset.Inverse()
         self._T_tipoffset = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
-        self.clutch_button_pressed = False  # Used as Position Engage Clutch
-        self.gripper_button_pressed = False  # Used as Gripper Open Close Binary Angle
-        # self._force = DeviceFeedback()
-        # self._force.force.x = 0
-        # self._force.force.y = 0
-        # self._force.force.z = 0
-        # self._force.position.x = 0
-        # self._force.position.y = 0
-        # self._force.position.z = 0
-
-        self._pose_sub = rospy.Subscriber(
-            pose_topic_name, Hydra, self.pose_cb, queue_size=1)
-        self._twist_sub = rospy.Subscriber(
-            twist_topic_name, Hydra, self.twist_cb, queue_size=1)
-        # self._button_sub = rospy.Subscriber(button_topic_name, DeviceButtonEvent, self.buttons_cb, queue_size=1)
-        # self._force_pub = rospy.Publisher(force_topic_name, DeviceFeedback, queue_size=1)
-
-        self.switch_psm = False
-
-        # self._button_msg_time = rospy.Time.now()
+        self._button_msg_time = rospy.Time.now()
         self._switch_psm_duration = rospy.Duration(0.5)
 
-        # print('Creating Geomagic Device Named: ', name, ' From ROS Topics')
+        if hydra_idx == 0:
+            hydra_name = 'Left Paddle'
+        else:
+            hydra_name = 'Right Paddle'
+
+        print('Creating Razer Device Named: ', name, 'of ', hydra_name, ' From ROS Topics')
         self._msg_counter = 0
 
     def set_base_frame(self, frame):
@@ -158,13 +157,62 @@ class razer_Device:
     def get_scale(self):
         return self._scale
 
+    def set_reset_frame(self, msg):
+        data = msg.paddles[self.hydra_idx]
+        if data.buttons[0]:
+            mtx_read = Rot.from_quat([data.transform.rotation.x,
+                                      data.transform.rotation.y,
+                                      data.transform.rotation.z,
+                                      data.transform.rotation.w])
+            self.reset_mtx = mtx_read.as_matrix()
+            self.reset_pose = [data.transform.translation.x,
+                               data.transform.translation.y,
+                               data.transform.translation.z]
+            self.reset_button = True
+        pass
+
+    def get_clutch(self, msg):
+        data = msg.paddles[self.hydra_idx]
+        if data.buttons[5]:
+            time.sleep(0.05)
+            if data.buttons[5]:
+                self.clutch_button_pressed = True
+        else:
+            self.clutch_button_pressed = False
+        pass
+
+    def hydra_msg_read(self, msg_hydra):
+        self.set_reset_frame(msg_hydra)
+        data = msg_hydra.paddles[self.hydra_idx].transform
+        pos_temp = [data.translation.x,
+                    data.translation.y,
+                    data.translation.z]
+        rot_temp = Rot.from_quat([data.rotation.x,
+                                  data.rotation.y,
+                                  data.rotation.z,
+                                  data.rotation.w])
+        return pos_temp, rot_temp.as_matrix()
+
     def pose_cb(self, msg):
         # cur_frame = pose_msg_to_kdl_frame(msg)
-        cur_frame = hydra_msg_to_kdl_frame(msg)
-        cur_frame.p = cur_frame.p * self._scale
-        self.pose = self._T_baseoffset_inverse * cur_frame * self._T_tipoffset
+        # cur_frame = hydra_msg_to_kdl_frame(msg)
+        # cur_frame.p = cur_frame.p * self._scale
+        # self.pose = self._T_baseoffset_inverse * cur_frame * self._T_tipoffset
         # Mark active as soon as first message comes through
+
+        ## new script
         self._active = True
+        self.get_clutch(msg)
+        pos_temp, rot_temp = self.hydra_msg_read(msg)
+        # print(msg.paddles[0].transform.translation.x)
+        pose_output = []
+        pos_output = [x*y for x,y in zip(self._scale, pos_temp)]
+        pose_output.extend(pos_output)
+        mtx_temp = Rot.from_matrix(np.dot(np.transpose(self.reset_mtx), rot_temp))
+        ori_output = mtx_temp.as_euler('xyz', degrees=False)
+        pose_output.extend(ori_output)
+        self.pose = pose_output
+        self.jaw = self._jaw_scale * msg.paddles[self.hydra_idx].trigger
         pass
 
     def twist_cb(self, msg):
@@ -222,12 +270,15 @@ class razer_Device:
 
 
 def test():
-    rospy.init_node('test_geomagic')
+    rospy.init_node('test_hydra')
 
-    d = razer_Device()
+    d = HydraDevice()
 
     while not rospy.is_shutdown():
         [r, p, y] = d.measured_cp().M.GetRPY()
+        [p_x, p_y, p_z] = d.measured_cp().p
+        print('x: ', p_x, ', Y: ', p_y, ', Z: ', p_z)
+
         f = 180.0 / 3.1404
         r = round(r * f, 2)
         p = round(p * f, 2)
@@ -235,8 +286,20 @@ def test():
         print('Roll: ', r, ', Pitch: ', p, ', Yaw: ', y)
         tst = d.measured_cv()
         print(tst.vel)
-        time.sleep(0.05)
+        time.sleep(0.5)
+
+
+def test_np():
+    rospy.init_node('test_hydra')
+
+    d = HydraDevice()
+
+    while not rospy.is_shutdown():
+        pose = d.measured_cp()
+        print(pose)
+        time.sleep(0.5)
 
 
 if __name__ == '__main__':
-    test()
+    # test()
+    test_np()
