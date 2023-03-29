@@ -25,34 +25,46 @@ def add_break(s):
     time.sleep(s)
     print('-------------')
 
+class Observation:
+    def __init__(self):
+        self.state = [0]*13
+        self.dist = 0
+        self.reward = 0.0
+        self.prev_reward = 0.0
+        self.cur_reward = 0.0
+        self.is_done = False
+        self.info = {}
+        self.sim_step_no = 0
+
+    def cur_observation(self):
+        return np.array(self.state), self.reward, self.is_done, self.info
+
 
 class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
     """Custom Environment that follows gym interface"""
     metadata = {'render.modes': ['human']}
 
-    def __init__(self):  # TODO: Add more arguments
+    def __init__(self):
         # Define action and observation space
         super(CustomEnv, self).__init__()
-        # They must be gym.spaces objects    # Example when using discrete actions:
-        # Example for using image as input:
         self.action_space = spaces.Discrete(N_DISCRETE_ACTIONS)
+        # TODO: check action limitations
+        # self.action_lims_low = np.array([-30, -30, -30, -2, -2, -2, 0])
+        # self.action_lims_high = np.array([30, 30, 30, 2, 2, 2, 1])
         self.observation_space = spaces.Box(
             low=0, high=255, shape=(HEIGHT, WIDTH, N_CHANNELS), dtype=np.uint8)
+        self.obs = Observation()
 
         # connect to client using SimulationManager
         self.simulation_manager = SimulationManager('my_example_client')
-        self.simulation_manager._client.print_summary()
 
         # initialize simulation environment
         self.world_handle = self.simulation_manager.get_world_handle()
-        print('hi')
         self.scene = Scene(self.simulation_manager)
-        print('scene: ', self.scene)
-        # self.psm1 = PSM(self.simulation_manager, 'psm1')
-        # self.psm2 = PSM(self.simulation_manager, 'psm2')
-        # self.ecm = ECM(self.simulation_manager, 'CameraFrame')
+        self.psm1 = PSM(self.simulation_manager, 'psm1')
+        self.psm2 = PSM(self.simulation_manager, 'psm2')
+        self.ecm = ECM(self.simulation_manager, 'CameraFrame')
         self.needle = NeedleInitialization(self.simulation_manager)
-        print('needle: ', self.needle.needle)
 
         self.task_report = TaskCompletionReport(team_name='my_team_name')
 
@@ -60,23 +72,43 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         add_break(0.5)
         return
 
-    def step(self, action):
-        # Execute one time step within the environment
-        raise NotImplementedError
-        # step function from AMBF-RL
-        # action = np.clip(action, self.action_lims_low, self.action_lims_high)
-        # self.action = action
+    def _update_observation(self, action):
+        """ Update the observation of the environment
 
-        # self.obj_handle.pose_command(action[0],
-        #                              action[1],
-        #                              action[2],
-        #                              action[3],
-        #                              action[4],
-        #                              action[5],
-        #                              action[6])
-        # self.world_handle.update()
-        # self._update_observation(action)
-        # return self.obs.cur_observation()
+        Parameters
+        - action: an action provided by the environment
+
+        Returns
+
+        """
+        self.obs.state = self.psm1.measured_jp() + action
+        print('needle.get_pose()', self.needle.needle.get_pose().p)
+        print('psm measured_cp', self.psm1.measured_cp())
+        self.obs.dist = self.calc_dist(self.needle.needle.get_pose().p, self.psm1.measured_cp())
+        self.obs.reward = self.reward(action)
+        self.obs.info = {}
+        self.obs.sim_step_no += 1
+        if self.obs.dist < 0.01: # TODO: tune goal threshold
+            self.obs.is_done = True
+    
+
+    def step(self, action):
+        """ Execute one time step within the environment
+
+        Parameters
+        - action: an action provided by the environment
+
+        Returns
+        - observation: agent's observation of the current environment after the action
+
+        """
+        # action = np.clip(action, self.action_lims_low, self.action_lims_high)
+        self.action = action
+
+        self.psm1.servo_jp(action)
+        self.world_handle.update()
+        self._update_observation(action)
+        return self.obs.cur_observation()
 
     def reward(self, action):
         # Return the reward for the action
@@ -108,6 +140,14 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         self.psm2.servo_jp([-0.4, -0.22, 0.139, -1.64, -0.37, -0.11])
         self.psm2.set_jaw_angle(0.8)
         add_break(3.0)
+        action = [0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0]
+        return self.step(action)[0]
 
     def render(self, mode='human', close=False):
         '''
@@ -124,7 +164,7 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         print("PSM2 Base pose in World Frame", self.psm2.get_T_b_w())
         print("PSM2 Joint state", self.psm2.measured_jp())
         add_break(1.0)
-        print("Needle pose in Needle Frame", self.needle.get_pose())
+        print("Needle pose in Needle Frame", self.needle.get_tip_to_needle_offset())
         add_break(1.0)
         # Things are slightly different for ECM as the `measure_cp` returns pose in the world frame
         print("ECM pose in World", self.ecm.measured_cp())
@@ -168,5 +208,5 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
 if __name__ == "__main__":
     env = CustomEnv()
     env.render()
-    env.reset()
+    env.step([1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     env.render()
