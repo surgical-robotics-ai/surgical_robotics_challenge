@@ -45,7 +45,6 @@
 import os
 import sys
 dynamic_path = os.path.abspath(__file__+"/../../../")
-# dynamic_path = os.path.abspath(__file__+"/../../")  # outside folder
 print(dynamic_path)
 sys.path.append(dynamic_path)
 
