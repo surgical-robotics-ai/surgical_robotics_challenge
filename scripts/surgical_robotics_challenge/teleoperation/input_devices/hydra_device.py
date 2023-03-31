@@ -124,7 +124,7 @@ class HydraDevice:
 
         ### old script
         self.switch_psm = False
-        # self.pose = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
+        self.pose_hydra = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
         # self.twist = PyKDL.Twist()
         # This offset is to align the pitch with the view frame
         R_off = Rotation.RPY(0.0, 0, 0)
@@ -213,6 +213,7 @@ class HydraDevice:
         pose_output.extend(ori_output)
         self.pose = pose_output
         self.jaw = self._jaw_scale * msg.paddles[self.hydra_idx].trigger
+        self.hydra_pose_to_kdl_frame()
         pass
 
     def twist_cb(self, msg):
@@ -252,11 +253,21 @@ class HydraDevice:
                 self.switch_psm = True
             self._button_msg_time = rospy.Time.now()
 
+    def hydra_pose_to_kdl_frame(self):
+        cur_frame = PyKDL.Frame()
+        cur_frame.p = PyKDL.Vector(float(self.pose[1]) * -0.19,
+                                   float(self.pose[0]) * -0.226,
+                                   float(self.pose[2]) * 0.25)
+        cur_frame.M = PyKDL.Rotation.EulerZYX(float(self.pose[5]),
+                                              float(self.pose[3]),
+                                              float(self.pose[4]))
+        self.pose_hydra = self._T_baseoffset_inverse * cur_frame * self._T_tipoffset
+
     def command_force(self, force):
         pass
 
     def measured_cp(self):
-        return self.pose
+        return self.pose_hydra
 
     def measured_cv(self):
         return self.twist
@@ -284,9 +295,9 @@ def test():
         p = round(p * f, 2)
         y = round(y * f, 2)
         print('Roll: ', r, ', Pitch: ', p, ', Yaw: ', y)
-        tst = d.measured_cv()
-        print(tst.vel)
-        time.sleep(0.5)
+        # tst = d.measured_cv()
+        # print(tst.vel)
+        time.sleep(1)
 
 
 def test_np():
@@ -301,5 +312,5 @@ def test_np():
 
 
 if __name__ == '__main__':
-    # test()
+    test()
     test_np()
