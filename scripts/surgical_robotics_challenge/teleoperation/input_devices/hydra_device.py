@@ -169,14 +169,14 @@ class HydraDevice:
                                data.transform.translation.y,
                                data.transform.translation.z]
             self.reset_button = True
+        else:
+            self.reset_button = False
         pass
 
     def get_clutch(self, msg):
         data = msg.paddles[self.hydra_idx]
         if data.buttons[5]:
-            time.sleep(0.05)
-            if data.buttons[5]:
-                self.clutch_button_pressed = True
+            self.clutch_button_pressed = True
         else:
             self.clutch_button_pressed = False
         pass
@@ -258,6 +258,9 @@ class HydraDevice:
         cur_frame.p = PyKDL.Vector(float(self.pose[1]) * -0.19,
                                    float(self.pose[0]) * -0.226,
                                    float(self.pose[2]) * 0.25)
+        # cur_frame.M = PyKDL.Rotation.EulerZYX(float(self.pose[5]),
+        #                                       float(self.pose[3]),
+        #                                       float(self.pose[4]))
         cur_frame.M = PyKDL.Rotation.EulerZYX(float(self.pose[5]),
                                               float(self.pose[3]),
                                               float(self.pose[4]))
@@ -273,7 +276,7 @@ class HydraDevice:
         return self.twist
 
     def get_jaw_angle(self):
-        return 0.0
+        return 0.3 - self.jaw * 0.3
         # if self.gripper_button_pressed:
         #     return 0.0
         # else:

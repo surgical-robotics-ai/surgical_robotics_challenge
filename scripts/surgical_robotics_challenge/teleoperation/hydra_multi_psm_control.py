@@ -44,6 +44,9 @@
 # //==============================================================================
 import os
 import sys
+
+import numpy as np
+
 dynamic_path = os.path.abspath(__file__+"/../../../")
 print(dynamic_path)
 sys.path.append(dynamic_path)
@@ -53,6 +56,7 @@ from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.ecm_arm import ECM
 import time
 import rospy
+import PyKDL
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
 from input_devices.hydra_device import HydraDevice
@@ -81,6 +85,17 @@ class ControllerInterface:
         self._T_c_b = None
         self._update_T_c_b = True
 
+
+        self.T_data = self.leader.measured_cp()
+        # self.T_start = self.active_psm.T_t_b_home
+        # self.T_origin = self.T_start
+        #
+        # self.rot_origin = np.array(list(self.T_origin.M.GetEulerZYX()))
+        # self.rot_start = np.array(list(self.T_start.M.GetEulerZYX()))
+        #
+        # self.step_p = (self.T_start.p - self.T_origin.p)
+
+
     def switch_psm(self):
         self._update_T_c_b = True
         self.active_psm = self.psm_arms.next()
@@ -97,14 +112,14 @@ class ControllerInterface:
 
     def update_arm_pose(self):
         self.update_T_c_b()
-        twist = self.leader.measured_cv()
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         if not self.leader.clutch_button_pressed:
-            delta_t = self._T_c_b.M * twist.vel * 0.00002 ### The coefficient can be modified [0.002 or some other values]
+            self.T_data = self.leader.measured_cp()
+            self.step_p = self.T_data.p
+            delta_t = self._T_c_b.M * self.step_p * 0.001 # 0.00002 ### The coefficient can be modified [0.002 or some other values]
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_psm.T_t_b_home.p = self.cmd_xyz
-
-        self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M * Rotation.RPY(3.14, 0, 3.14 / 2.0)
+        self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M * Rotation.RPY(3.14 / 2.0, 0, 0) #Rotation.RPY(3.14, 0, 3.14 / 2.0)
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
         self.active_psm.servo_cp(self.T_IK)
         self.active_psm.set_jaw_angle(self.leader.get_jaw_angle())
