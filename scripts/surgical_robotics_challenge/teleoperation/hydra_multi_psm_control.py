@@ -112,14 +112,13 @@ class ControllerInterface:
 
     def update_arm_pose(self):
         self.update_T_c_b()
+        twist = self.leader.measured_cv()
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         if not self.leader.clutch_button_pressed:
-            self.T_data = self.leader.measured_cp()
-            self.step_p = self.T_data.p
-            delta_t = self._T_c_b.M * self.step_p * 0.001 # 0.00002 ### The coefficient can be modified [0.002 or some other values]
+            delta_t = self._T_c_b.M * twist.vel * 0.2
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_psm.T_t_b_home.p = self.cmd_xyz
-        self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M * Rotation.RPY(3.14 / 2.0, 0, 0) #Rotation.RPY(3.14, 0, 3.14 / 2.0)
+        self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M * Rotation.RPY(3.14, 0, 3.14 / 2.0)
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
         self.active_psm.servo_cp(self.T_IK)
         self.active_psm.set_jaw_angle(self.leader.get_jaw_angle())
@@ -151,9 +150,9 @@ class ControllerInterface:
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('-c', action='store', dest='client_name', help='Client Name', default='razer_sim_teleop')
+    parser.add_argument('-c', action='store', dest='client_name', help='Client Name', default='hydra_sim_teleop')
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
-    parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
+    parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=False)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=False)
 
     parsed_args = parser.parse_args()
@@ -223,7 +222,10 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        leader = HydraDevice()
+        if parsed_args.run_psm_one is True:
+            leader = HydraDevice(hydra_idx=0)
+        if parsed_args.run_psm_two is True:
+            leader = HydraDevice(hydra_idx=1)
         theta_base = -0.9
         theta_tip = -theta_base
         leader.set_base_frame(Frame(Rotation.RPY(theta_base, 0, 0), Vector(0, 0, 0)))

@@ -114,18 +114,22 @@ class HydraDevice:
         self._jaw_scale = 1.0
         self.clutch_button_pressed = False  # Used as Position Engage Clutch
         self.gripper_button_pressed = False  # Used as Gripper Open Close Binary Angle
-        self._pose_sub = rospy.Subscriber(self.pose_topic_name, Hydra, self.pose_cb, queue_size=1)
-        self.reset_pose = [0.0, 0.0, 0.0]
+        self.reset_pos = [0.0, 0.0, 0.0]
         self.reset_mtx = np.eye(3)
+        init_msg = rospy.wait_for_message(self.pose_topic_name, Hydra, timeout=1)
+        self.set_reset_pos(init_msg)
+        self.is_reset_rot = False
+        self._pose_sub = rospy.Subscriber(self.pose_topic_name, Hydra, self.pose_cb, queue_size=1)
+        self._twist_sub = rospy.Subscriber(self.pose_topic_name, Hydra, self.twist_cb, queue_size=1)
         self.pose = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.jaw = 0.0
         self.reset_button = False
-
+        self.pos_pre = [0.0, 0.0, 0.0]
 
         ### old script
         self.switch_psm = False
         self.pose_hydra = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
-        # self.twist = PyKDL.Twist()
+        self.twist = PyKDL.Twist()
         # This offset is to align the pitch with the view frame
         R_off = Rotation.RPY(0.0, 0, 0)
         self._T_baseoffset = Frame(R_off, Vector(0, 0, 0))
@@ -157,20 +161,37 @@ class HydraDevice:
     def get_scale(self):
         return self._scale
 
+    def set_reset_rot_opt(self, msg):
+        data = msg.paddles[self.hydra_idx]
+        if data.buttons[2]:
+            self.is_reset_rot = True
+        else:
+            self.is_reset_rot = False
+        pass
+
     def set_reset_frame(self, msg):
+        self.set_reset_rot_opt(msg)
         data = msg.paddles[self.hydra_idx]
         if data.buttons[0]:
-            mtx_read = Rot.from_quat([data.transform.rotation.x,
-                                      data.transform.rotation.y,
-                                      data.transform.rotation.z,
-                                      data.transform.rotation.w])
-            self.reset_mtx = mtx_read.as_matrix()
-            self.reset_pose = [data.transform.translation.x,
-                               data.transform.translation.y,
-                               data.transform.translation.z]
+            if self.is_reset_rot:
+                mtx_read = Rot.from_quat([data.transform.rotation.x,
+                                          data.transform.rotation.y,
+                                          data.transform.rotation.z,
+                                          data.transform.rotation.w])
+                self.reset_mtx = mtx_read.as_matrix()
+            self.reset_pos = [data.transform.translation.x,
+                              data.transform.translation.y,
+                              data.transform.translation.z]
             self.reset_button = True
         else:
             self.reset_button = False
+        pass
+
+    def set_reset_pos(self, msg):
+        data = msg.paddles[self.hydra_idx]
+        self.reset_pos = [data.transform.translation.x,
+                          data.transform.translation.y,
+                          data.transform.translation.z]
         pass
 
     def get_clutch(self, msg):
@@ -194,19 +215,14 @@ class HydraDevice:
         return pos_temp, rot_temp.as_matrix()
 
     def pose_cb(self, msg):
-        # cur_frame = pose_msg_to_kdl_frame(msg)
-        # cur_frame = hydra_msg_to_kdl_frame(msg)
-        # cur_frame.p = cur_frame.p * self._scale
-        # self.pose = self._T_baseoffset_inverse * cur_frame * self._T_tipoffset
-        # Mark active as soon as first message comes through
-
         ## new script
         self._active = True
         self.get_clutch(msg)
         pos_temp, rot_temp = self.hydra_msg_read(msg)
         # print(msg.paddles[0].transform.translation.x)
         pose_output = []
-        pos_output = [x*y for x,y in zip(self._scale, pos_temp)]
+        pos_init = [x-y for x, y in zip(pos_temp, self.reset_pos)]
+        pos_output = [x*y for x, y in zip(self._scale, pos_init)]
         pose_output.extend(pos_output)
         mtx_temp = Rot.from_matrix(np.dot(np.transpose(self.reset_mtx), rot_temp))
         ori_output = mtx_temp.as_euler('xyz', degrees=False)
@@ -218,52 +234,42 @@ class HydraDevice:
 
     def twist_cb(self, msg):
         twist = PyKDL.Twist()
-        state_button_1 = msg.paddles[1].buttons[0]
-        state_button_4 = msg.paddles[1].buttons[4]
-        state_button_5 = msg.paddles[1].buttons[5]
-        if state_button_1:
-            para_vel = -1
-        else:
-            para_vel = 1
-        if state_button_5:
-            para_ang = 1
-        else:
-            para_ang = 0
-        if state_button_4:
-            para_trans = 1
-        else:
-            para_trans = 0
-        twist[0] = msg.paddles[1].joy[0]
-        twist[1] = msg.paddles[1].joy[1]
-        twist[2] = para_vel*msg.paddles[1].trigger
-        twist[3] = 0  # para_ang*msg.paddles[1].joy[0]#msg.angular.x
-        twist[4] = 0  # para_ang*msg.paddles[1].joy[1]#msg.angular.y
-        twist[5] = 0  # para_ang*para_vel*msg.paddles[1].trigger#msg.angular.z
+        self.set_reset_frame(msg)
+        data = msg.paddles[self.hydra_idx].transform
+        pos_temp = [-(data.translation.y - self.reset_pos[1]),
+                    data.translation.z - self.reset_pos[2],
+                    -(data.translation.x - self.reset_pos[0])]
+        vel = [x-y for x, y in zip(pos_temp, self.pos_pre)]
+        self.pos_pre = pos_temp
+        vel_out = [x if x <= 0.005 else 0.005 for x in vel]
+        twist[0] = vel_out[0]
+        twist[1] = vel_out[1]
+        twist[2] = vel_out[2]
+        twist[3] = 0
+        twist[4] = 0
+        twist[5] = 0
         self.twist = self._T_baseoffset_inverse * twist
         pass
 
-    def buttons_cb(self, msg):
-        self.gripper_button_pressed = msg.white_button
-        self.clutch_button_pressed = msg.grey_button
-
-        if self.clutch_button_pressed:
-            time_diff = rospy.Time.now() - self._button_msg_time
-            if time_diff.to_sec() < self._switch_psm_duration.to_sec():
-                print('Allow PSM Switch')
-                self.switch_psm = True
-            self._button_msg_time = rospy.Time.now()
+    # def buttons_cb(self, msg):
+    #     self.gripper_button_pressed = msg.white_button
+    #     self.clutch_button_pressed = msg.grey_button
+    #
+    #     if self.clutch_button_pressed:
+    #         time_diff = rospy.Time.now() - self._button_msg_time
+    #         if time_diff.to_sec() < self._switch_psm_duration.to_sec():
+    #             print('Allow PSM Switch')
+    #             self.switch_psm = True
+    #         self._button_msg_time = rospy.Time.now()
 
     def hydra_pose_to_kdl_frame(self):
         cur_frame = PyKDL.Frame()
-        cur_frame.p = PyKDL.Vector(float(self.pose[1]) * -0.19,
-                                   float(self.pose[0]) * -0.226,
-                                   float(self.pose[2]) * 0.25)
-        # cur_frame.M = PyKDL.Rotation.EulerZYX(float(self.pose[5]),
-        #                                       float(self.pose[3]),
-        #                                       float(self.pose[4]))
-        cur_frame.M = PyKDL.Rotation.EulerZYX(float(self.pose[5]),
-                                              float(self.pose[3]),
-                                              float(self.pose[4]))
+        cur_frame.p = PyKDL.Vector(-float(self.pose[1]) * 0.19,
+                                   float(self.pose[2]) * 0.226,
+                                   -float(self.pose[0]) * 0.25)
+        cur_frame.M = PyKDL.Rotation.EulerZYX(-float(self.pose[3]),
+                                              float(self.pose[5]),
+                                              -float(self.pose[4]))
         self.pose_hydra = self._T_baseoffset_inverse * cur_frame * self._T_tipoffset
 
     def command_force(self, force):
