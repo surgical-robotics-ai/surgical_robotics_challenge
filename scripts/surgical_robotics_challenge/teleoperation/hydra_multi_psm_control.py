@@ -115,7 +115,7 @@ class ControllerInterface:
         twist = self.leader.measured_cv()
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         if not self.leader.clutch_button_pressed:
-            delta_t = self._T_c_b.M * twist.vel * 0.2
+            delta_t = self._T_c_b.M * twist.vel * 1.2
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_psm.T_t_b_home.p = self.cmd_xyz
         self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M * Rotation.RPY(3.14, 0, 3.14 / 2.0)

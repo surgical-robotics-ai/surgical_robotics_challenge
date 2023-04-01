@@ -236,9 +236,9 @@ class HydraDevice:
         twist = PyKDL.Twist()
         self.set_reset_frame(msg)
         data = msg.paddles[self.hydra_idx].transform
-        pos_temp = [-(data.translation.y - self.reset_pos[1]),
-                    data.translation.z - self.reset_pos[2],
-                    -(data.translation.x - self.reset_pos[0])]
+        pos_temp = [-(data.translation.y - self.reset_pos[1]) * 0.226,
+                    (data.translation.z - self.reset_pos[2]) * 0.25,
+                    -(data.translation.x - self.reset_pos[0]) * 0.19]
         vel = [x-y for x, y in zip(pos_temp, self.pos_pre)]
         self.pos_pre = pos_temp
         vel_out = [x if x <= 0.005 else 0.005 for x in vel]
@@ -264,9 +264,9 @@ class HydraDevice:
 
     def hydra_pose_to_kdl_frame(self):
         cur_frame = PyKDL.Frame()
-        cur_frame.p = PyKDL.Vector(-float(self.pose[1]) * 0.19,
-                                   float(self.pose[2]) * 0.226,
-                                   -float(self.pose[0]) * 0.25)
+        cur_frame.p = PyKDL.Vector(-float(self.pose[1]) * 0.226,
+                                   float(self.pose[2]) * 0.25,
+                                   -float(self.pose[0]) * 0.19)
         cur_frame.M = PyKDL.Rotation.EulerZYX(-float(self.pose[3]),
                                               float(self.pose[5]),
                                               -float(self.pose[4]))
