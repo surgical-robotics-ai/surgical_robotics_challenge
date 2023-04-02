@@ -170,15 +170,13 @@ class HydraDevice:
         pass
 
     def set_reset_frame(self, msg):
-        self.set_reset_rot_opt(msg)
         data = msg.paddles[self.hydra_idx]
         if data.buttons[0]:
-            if self.is_reset_rot:
-                mtx_read = Rot.from_quat([data.transform.rotation.x,
-                                          data.transform.rotation.y,
-                                          data.transform.rotation.z,
-                                          data.transform.rotation.w])
-                self.reset_mtx = mtx_read.as_matrix()
+            mtx_read = Rot.from_quat([data.transform.rotation.x,
+                                      data.transform.rotation.y,
+                                      data.transform.rotation.z,
+                                      data.transform.rotation.w])
+            self.reset_mtx = mtx_read.as_matrix()
             self.reset_pos = [data.transform.translation.x,
                               data.transform.translation.y,
                               data.transform.translation.z]
