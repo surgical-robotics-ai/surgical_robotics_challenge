@@ -48,9 +48,8 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         # Define action and observation space
         super(CustomEnv, self).__init__()
         self.action_space = spaces.Discrete(N_DISCRETE_ACTIONS)
-        # TODO: check action limitations
-        # self.action_lims_low = np.array([-30, -30, -30, -2, -2, -2, 0])
-        # self.action_lims_high = np.array([30, 30, 30, 2, 2, 2, 1])
+        self.action_lims_low = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
+        self.action_lims_high = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
         self.observation_space = spaces.Box(
             low=0, high=255, shape=(HEIGHT, WIDTH, N_CHANNELS), dtype=np.uint8)
         self.obs = Observation()
@@ -61,6 +60,7 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         # initialize simulation environment
         self.world_handle = self.simulation_manager.get_world_handle()
         self.scene = Scene(self.simulation_manager)
+        self.simulation_manager._client.print_summary()
         self.psm1 = PSM(self.simulation_manager, 'psm1')
         self.psm2 = PSM(self.simulation_manager, 'psm2')
         self.ecm = ECM(self.simulation_manager, 'CameraFrame')
@@ -72,6 +72,12 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         add_break(0.5)
         return
 
+    def get_needle_in_world(self):
+        T_tINn = self.needle.needle.get_pose()
+        T_nINw = # TODO
+        T_tINw = T_nINw * T_tINn
+        return T_tINw
+
     def _update_observation(self, action):
         """ Update the observation of the environment
 
@@ -81,9 +87,10 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         Returns
 
         """
-        self.obs.state = self.psm1.measured_jp() + action
+        self.obs.state = self.psm1.measured_jp() + action # jp = jaw position
         print('needle.get_pose()', self.needle.needle.get_pose().p)
         print('psm measured_cp', self.psm1.measured_cp())
+        T_tINw = get_needle_in_world()
         self.obs.dist = self.calc_dist(self.needle.needle.get_pose().p, self.psm1.measured_cp())
         self.obs.reward = self.reward(action)
         self.obs.info = {}
@@ -103,6 +110,7 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
 
         """
         # action = np.clip(action, self.action_lims_low, self.action_lims_high)
+        # TODO: action is already determined to be the best action
         self.action = action
 
         self.psm1.servo_jp(action)
