@@ -48,8 +48,10 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         # Define action and observation space
         super(CustomEnv, self).__init__()
         self.action_space = spaces.Discrete(N_DISCRETE_ACTIONS)
-        self.action_lims_low = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
-        self.action_lims_high = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
+        # limits for psm
+        self.psm_action_lims_low = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
+        self.psm_action_lims_high = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
+
         self.observation_space = spaces.Box(
             low=0, high=255, shape=(HEIGHT, WIDTH, N_CHANNELS), dtype=np.uint8)
         self.obs = Observation()
@@ -73,9 +75,9 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         return
 
     def get_needle_in_world(self):
-        T_tINn = self.needle.needle.get_pose()
-        T_nINw = # TODO
-        T_tINw = T_nINw * T_tINn
+        T_tINn = self.needle.needle.get_pose() # needle tip position in needle FC
+        T_nINw = # TODO Walee # frame transformation from needle to world 
+        T_tINw = T_nINw * T_tINn # needle tip position in world FC
         return T_tINw
 
     def _update_observation(self, action):
@@ -91,11 +93,12 @@ class CustomEnv(gym.Env):  # TODO: on dVRL parent class is gym.GoalEnv
         print('needle.get_pose()', self.needle.needle.get_pose().p)
         print('psm measured_cp', self.psm1.measured_cp())
         T_tINw = get_needle_in_world()
-        self.obs.dist = self.calc_dist(self.needle.needle.get_pose().p, self.psm1.measured_cp())
+        self.obs.dist = self.calc_dist(T_tINw.p, self.psm1.measured_cp()) # both in world coordinates
+        self.obs.angle = # TODO Walee # angle between needle and psm1
         self.obs.reward = self.reward(action)
         self.obs.info = {}
         self.obs.sim_step_no += 1
-        if self.obs.dist < 0.01: # TODO: tune goal threshold
+        if self.obs.dist < 0.01: # TODO: tune goal threshold, Walee add angle threshold
             self.obs.is_done = True
     
 
