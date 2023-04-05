@@ -132,7 +132,6 @@ class SRCEnv(gym.Env):
                   0.0,
                   0.0,
                   0.0,
-                  0.0,
                   0.0]
         return self.step(action)[0]
     
@@ -167,14 +166,19 @@ class SRCEnv(gym.Env):
         # compute vector for needle base to needle tip
         # then compute vector or get vector for psm link at its tip
         # then use formula v1 dot v2 = |v1||v2|cos(theta) and solve for theta
+        # ideal theta is 90 deg
         return not ImplementedError
 
     def calc_dist(self, goal_pose, current_pose):
+        # TODO: fix goal_pose is vector, current_pose is float
+        print('goal_pose: ', goal_pose)
+        print('current_pose: ', current_pose)
         dist = np.linalg.norm(goal_pose - current_pose)
+        
         return dist
 
     def grasp_reward(self, action):
-        goal_pose = self.needle.get_pose()
+        goal_pose = self.get_needle_in_world()
         current_pose = self.psm1.measured_cp() + action
         print('goal_pose: ', goal_pose)
         print('self.psm1.measured_cp(): ', self.psm1.measured_cp())
@@ -193,7 +197,6 @@ class SRCEnv(gym.Env):
         self.psm2.set_jaw_angle(0.8)
         add_break(3.0)
         action = [0.0,
-                  0.0,
                   0.0,
                   0.0,
                   0.0,
