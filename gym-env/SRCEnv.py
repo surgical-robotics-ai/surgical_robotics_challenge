@@ -40,6 +40,59 @@ class Observation:
     def cur_observation(self):
         return np.array(self.state), self.reward, self.is_done, self.info
 
+class NeedleKinematics:
+    # Base in Needle Origin
+    T_bINn = Frame(Rotation.RPY(0., 0., 0.), Vector(-0.102, 0., 0.))
+    # Mid in Needle Origin
+    T_mINn = Frame(Rotation.RPY(0., 0., -1.091), Vector(-0.048, 0.093, 0.))
+    # Tip in Needle Origin
+    T_tINn = Frame(Rotation.RPY(0., 0., -0.585), Vector(0.056, 0.085, 0.))
+
+    def __init__(self):
+        """
+
+        :return:
+        """
+        self._needle_sub = rospy.Subscriber(
+            '/ambf/env/Needle/State', RigidBodyState, self.needle_cb, queue_size=1)
+        # Needle in World
+        self._T_nINw = Frame()
+
+    def needle_cb(self, msg):
+        """ needle callback; called every time new msg is received
+
+        :param msg:
+        :return:
+        """
+        self._T_nINw = pose_msg_to_frame(msg.pose)
+
+    def get_tip_pose(self):
+        """
+
+        :return:
+        """
+        T_tINw = self._T_nINw * self.T_tINn
+        return T_tINw
+
+    def get_base_pose(self):
+        """
+
+        :return:
+        """
+        T_bINw = self._T_nINw * self.T_bINn
+        return T_bINw
+
+    def get_mid_pose(self):
+        """
+
+        :return:
+        """
+        T_mINw = self._T_nINw * self.T_mINn
+        return T_mINw
+
+    def get_pose(self):
+        return self._T_nINw
+
 
 class SRCEnv(gym.Env):
     """Custom Environment that follows gym interface"""
@@ -49,7 +102,7 @@ class SRCEnv(gym.Env):
         # Define action and observation space
         super(SRCEnv, self).__init__()
         self.action_space = spaces.Discrete(N_DISCRETE_ACTIONS)
-        # limits for psm
+        # Limits for psm
         self.action_lims_low = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
         self.action_lims_high = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
 
@@ -57,10 +110,10 @@ class SRCEnv(gym.Env):
             low=0, high=255, shape=(HEIGHT, WIDTH, N_CHANNELS), dtype=np.uint8)
         self.obs = Observation()
 
-        # connect to client using SimulationManager
-        self.simulation_manager = SimulationManager('my_example_client')
+        # Connect to client using SimulationManager
+        self.simulation_manager = SimulationManager('src_client')
 
-        # initialize simulation environment
+        # Initialize simulation environment
         self.world_handle = self.simulation_manager.get_world_handle()
         self.scene = Scene(self.simulation_manager)
         self.simulation_manager._client.print_summary()
@@ -68,35 +121,14 @@ class SRCEnv(gym.Env):
         self.psm2 = PSM(self.simulation_manager, 'psm2')
         self.ecm = ECM(self.simulation_manager, 'CameraFrame')
         self.needle = NeedleInitialization(self.simulation_manager)
+        self._needle_kin = NeedleKinematics()
 
         # Small sleep to let the handles initialize properly
         add_break(0.5)
         return
 
-    def pose_msg_to_frame(msg):
-        """
-
-        :param msg:
-        :return:
-        """
-        p = Vector(msg.position.x,
-                msg.position.y,
-                msg.position.z)
-
-        R = Rotation.Quaternion(msg.orientation.x,
-                                msg.orientation.y,
-                                msg.orientation.z,
-                                msg.orientation.w)
-
-        return Frame(R, p)
-
     def get_needle_in_world(self):
-        T_tINn = self.needle.needle.get_pose() # needle tip position in needle FC
-        return T_tINn
-        # T_nINw = 1
-        # # T_nINw = # TODO Walee # frame transformation from needle to world 
-        # T_tINw = T_nINw * T_tINn # needle tip position in world FC
-        # return T_tINw
+        return self._needle_kin.get_tip_pose
 
     def _update_observation(self, action):
         """ Update the observation of the environment
@@ -104,22 +136,19 @@ class SRCEnv(gym.Env):
         Parameters
         - action: an action provided by the environment
 
-        Returns
-
         """
         self.obs.state = self.psm1.measured_jp() + action # jp = jaw position
-        print('needle.get_pose()', self.needle.needle.get_pose().p)
-        print('psm measured_cp', self.psm1.measured_cp())
-        T_tINw = self.get_needle_in_world()
-        self.obs.dist = self.calc_dist(T_tINw.p, self.psm1.measured_cp()) # both in world coordinates
-        # self.obs.angle = self.calc_angle(T_tINw, self.psm1) TODO: uncomment once done with angle
+
+        # Compute current distance and approach angle of psm and needle, both in world coordinates
+        self.obs.dist = self.calc_dist(self.get_needle_in_world(), self.psm1.measured_cp())
+        self.obs.angle = self.calc_angle(self.get_needle_in_world(), self.psm1.measured_cp()) 
         self.obs.reward = self.reward(action)
         self.obs.info = {}
         self.obs.sim_step_no += 1
-        if self.obs.dist < 0.01:
+
+        # Determine if psm is ready to grasp needle
+        if self.obs.dist < 0.01 and self.obs.angle < 0.0174533:
             self.obs.is_done = True
-        # if self.obs.dist < 0.01 and self.obs.angle < 0.0174533: TODO: uncomment once done with angle
-        #     self.obs.is_done is True
 
     def reset(self):
         # Reset the state of the environment to an initial state
@@ -146,7 +175,7 @@ class SRCEnv(gym.Env):
         - observation: agent's observation of the current environment after the action
 
         """
-        # action = np.clip(action, self.action_lims_low, self.action_lims_high)
+        action = np.clip(action, self.action_lims_low, self.action_lims_high)
         self.action = action
 
         self.psm1.servo_jp(action)
