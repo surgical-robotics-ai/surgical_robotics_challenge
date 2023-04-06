@@ -15,6 +15,8 @@ from src.scripts.surgical_robotics_challenge.simulation_manager import Simulatio
 from src.scripts.surgical_robotics_challenge.task_completion_report import TaskCompletionReport
 from src.scripts.surgical_robotics_challenge.utils.task3_init import NeedleInitialization
 from src.scripts.surgical_robotics_challenge.evaluation.evaluation import Task_2_Evaluation, Task_2_Evaluation_Report
+from utils.observation import Observation
+from utils.needle_kinematics import NeedleKinematics
 
 N_DISCRETE_ACTIONS = 3
 HEIGHT = 0
@@ -25,74 +27,6 @@ N_CHANNELS = 0
 def add_break(s):
     time.sleep(s)
     print('-------------')
-
-class Observation:
-    def __init__(self):
-        self.state = [0]*13
-        self.dist = 0
-        self.reward = 0.0
-        self.prev_reward = 0.0
-        self.cur_reward = 0.0
-        self.is_done = False
-        self.info = {}
-        self.sim_step_no = 0
-
-    def cur_observation(self):
-        return np.array(self.state), self.reward, self.is_done, self.info
-
-class NeedleKinematics:
-    # Base in Needle Origin
-    T_bINn = Frame(Rotation.RPY(0., 0., 0.), Vector(-0.102, 0., 0.))
-    # Mid in Needle Origin
-    T_mINn = Frame(Rotation.RPY(0., 0., -1.091), Vector(-0.048, 0.093, 0.))
-    # Tip in Needle Origin
-    T_tINn = Frame(Rotation.RPY(0., 0., -0.585), Vector(0.056, 0.085, 0.))
-
-    def __init__(self):
-        """
-
-        :return:
-        """
-        self._needle_sub = rospy.Subscriber(
-            '/ambf/env/Needle/State', RigidBodyState, self.needle_cb, queue_size=1)
-        # Needle in World
-        self._T_nINw = Frame()
-
-    def needle_cb(self, msg):
-        """ needle callback; called every time new msg is received
-
-        :param msg:
-        :return:
-        """
-        self._T_nINw = pose_msg_to_frame(msg.pose)
-
-    def get_tip_pose(self):
-        """
-
-        :return:
-        """
-        T_tINw = self._T_nINw * self.T_tINn
-        return T_tINw
-
-    def get_base_pose(self):
-        """
-
-        :return:
-        """
-        T_bINw = self._T_nINw * self.T_bINn
-        return T_bINw
-
-    def get_mid_pose(self):
-        """
-
-        :return:
-        """
-        T_mINw = self._T_nINw * self.T_mINn
-        return T_mINw
-
-    def get_pose(self):
-        return self._T_nINw
-
 
 class SRCEnv(gym.Env):
     """Custom Environment that follows gym interface"""
@@ -288,7 +222,7 @@ class SRCEnv(gym.Env):
 
 
 if __name__ == "__main__":
-    env = CustomEnv()
+    env = SRCEnv()
     env.render()
     env.step([1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     env.render()
