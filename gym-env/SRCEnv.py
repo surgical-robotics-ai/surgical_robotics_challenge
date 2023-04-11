@@ -5,6 +5,7 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import time
+import re
 from PyKDL import Frame, Rotation, Vector
 
 
@@ -54,41 +55,41 @@ class SRCEnv(gym.Env):
         self.psm1 = PSM(self.simulation_manager, 'psm1')
         self.psm2 = PSM(self.simulation_manager, 'psm2')
         self.ecm = ECM(self.simulation_manager, 'CameraFrame')
-        self.needle = NeedleInitialization(self.simulation_manager)
-        self._needle_kin = NeedleKinematics()
+        self.needle = NeedleInitialization(self.simulation_manager) # needle obj
+        self._needle_kin = NeedleKinematics() # needle movement and positioning
 
         # Small sleep to let the handles initialize properly
         add_break(0.5)
         return
 
     def get_needle_in_world(self):
-        return self._needle_kin.get_tip_pose
+        """ Get the needle pose in world coordinates """
+        return self._needle_kin.get_tip_pose()
 
     def _update_observation(self, action):
         """ Update the observation of the environment
 
         Parameters
         - action: an action provided by the environment
-
         """
         self.obs.state = self.psm1.measured_jp() + action # jp = jaw position
 
         # Compute current distance and approach angle of psm and needle, both in world coordinates
         self.obs.dist = self.calc_dist(self.get_needle_in_world(), self.psm1.measured_cp())
-        self.obs.angle = self.calc_angle(self.get_needle_in_world(), self.psm1.measured_cp()) 
-        self.obs.reward = self.reward(action)
+        self.obs.angle = self.calc_angle(self.psm1) 
+        self.obs.reward = self.reward(self.obs)
         self.obs.info = {}
         self.obs.sim_step_no += 1
 
         # Determine if psm is ready to grasp needle
-        if self.obs.dist < 0.01 and self.obs.angle < 0.0174533:
+        if self.obs.dist < 0.01 and self.obs.angle < 0.01:
             self.obs.is_done = True
 
     def reset(self):
-        # Reset the state of the environment to an initial state
-        self.world_handle.reset()  # self.world_handle.reset_bodies()
-        self.psm2.servo_jp([-0.4, -0.22, 0.139, -1.64, -0.37, -0.11])
-        self.psm2.set_jaw_angle(0.8)
+        """ Reset the state of the environment to an initial state """
+        self.world_handle.reset()
+        self.psm1.servo_jp([-0.4, -0.22, 0.139, -1.64, -0.37, -0.11])
+        self.psm1.set_jaw_angle(0.8)
         add_break(3.0)
         action = [0.0,
                   0.0,
@@ -109,49 +110,85 @@ class SRCEnv(gym.Env):
         - observation: agent's observation of the current environment after the action
 
         """
+        # Limit PSM action to bounds
         action = np.clip(action, self.action_lims_low, self.action_lims_high)
         self.action = action
 
+        # Move PSM
         self.psm1.servo_jp(action)
+
+        # Update simulation
         self.world_handle.update()
         self._update_observation(action)
         return self.obs.cur_observation()
 
-    def reward(self, action):
-        # Return the reward for the action
+    def reward(self, obs):
+        """ Compute the cumulative reward for the action taken
+        
+        Parameters
+        - obs: an action provided by the environment
+        
+        Returns
+        - reward: the reward for the action
+        """
         reward = 0
-        grasp_reward = self.grasp_reward(action)
+        grasp_reward = self.grasp_reward(obs)
+        # TODO: Uncomment when implemented
+        # insert_reward = self.insert_reward(obs)
+        # target_reward = self.target_reward(obs)
         reward += grasp_reward
         return reward
 
-    def calc_angle(self, needle, psm):
-        # TODO
-        # compute vector for needle base to needle tip
-        # then compute vector or get vector for psm link at its tip
-        # then use formula v1 dot v2 = |v1||v2|cos(theta) and solve for theta
-        # ideal theta is 90 deg
-        return not ImplementedError
+    def calc_angle(self, psm):
+        """ Compute dot product of needle tip and specific psm tip
+        
+        Parameters
+        - needle: the needle pose in world coordinates
+        - psm: the psm pose in world coordinates
+        
+        Returns
+        - angle: the angle between the needle and psm"""
+        # TODO double check axes of needle R; between x and y?
+        needle_R = str(self.get_needle_in_world().M).replace('[', '').replace(']', '').replace('\n', ' ').replace(';', ' ').replace(',', ' ').split()
+        needle_R = np.array([float(i) for i in needle_R]).reshape(3, 3)[0:3, 0:1]
+        psm_R = np.array(psm.measured_cp()[0:3, 1:2] * -1)
+        print('shapes: ', needle_R.shape, psm_R.shape)
+        return np.dot(np.squeeze(np.asarray(needle_R)), np.squeeze(np.asarray(psm_R)))
 
     def calc_dist(self, goal_pose, current_pose):
+        """ Compute the distance between the goal pose and current pose
+
+        Parameters
+        - goal_pose: the goal pose in world coordinates
+        - current_pose: the current pose in world coordinates
+
+        Returns
+        - dist: the distance between the goal pose and current pose
+        """
         # TODO: fix goal_pose is vector, current_pose is float
-        print('goal_pose: ', goal_pose)
-        print('current_pose: ', current_pose)
-        dist = np.linalg.norm(goal_pose - current_pose)
-        
+        if type(goal_pose) == Frame:
+            goal_pose_p = np.array([goal_pose.p.x(), goal_pose.p.y(), goal_pose.p.z()])
+        elif type(goal_pose) == np.matrix:
+            goal_pose_p = goal_pose[0:3, 3]
+
+        if type(current_pose) == Frame:
+            current_pose_p = np.array([current_pose.p.x(), current_pose.p.y(), current_pose.p.z()])
+        elif type(current_pose) == np.matrix:
+            current_pose_p = current_pose[0:3, 3]
+
+        dist = np.linalg.norm(goal_pose_p - current_pose_p)
         return dist
 
-    def grasp_reward(self, action):
-        goal_pose = self.get_needle_in_world()
-        current_pose = self.psm1.measured_cp() + action
-        print('goal_pose: ', goal_pose)
-        print('self.psm1.measured_cp(): ', self.psm1.measured_cp())
-        print('action: ', action)
-
-        dist = self.calc_dist(goal_pose, current_pose)
-        return -dist
-        # TODO: use below once calc_angle is implemented
-        # angle = self.calc_angle(goal_pose, current_pose)
-        # return -(dist + angle)
+    def grasp_reward(self, obs):
+        """ Compute the reward for grasping the neelde in PSM
+        
+        Parameters
+        - obs: the observation of the environment
+        
+        Returns
+        - reward: the reward for grasping the needle in PSM
+        """
+        return -(obs.dist + obs.angle)
 
     def reset(self):
         # Reset the state of the environment to an initial state
@@ -192,37 +229,8 @@ class SRCEnv(gym.Env):
         print("Entry 1 pose in World", self.scene.entry1_measured_cp())
         print("Exit 4 pose in World", self.scene.exit4_measured_cp())
 
-    # def move_needle(self):
-    #     # First we shall move the PSM to its initial pose using joint commands OR pose command
-    #     self.psm2.servo_jp([-0.4, -0.22, 0.139, -1.64, -0.37, -0.11])
-    #     # Open the Jaws
-    #     self.psm2.set_jaw_angle(0.8)
-    #     # Sleep to achieve the target pose and jaw angle
-    #     time.sleep(1.0)
-
-    #     psm2_tip = self.simulation_manager.get_obj_handle('psm2/toolyawlink')
-    #     # Sanity sleep
-    #     time.sleep(0.5)
-    #     # This method will automatically start moving the needle to be with the PSM2's jaws
-    #     self.needle.move_to(psm2_tip)
-    #     time.sleep(0.5)
-    #     for i in range(30):
-    #         # Close the jaws to grasp the needle
-    #         # Calling it repeatedly a few times so that the needle is forced
-    #         # between the gripper tips and grasped properly
-    #         self.psm2.set_jaw_angle(0.0)
-    #         time.sleep(0.01)
-    #     time.sleep(0.5)
-    #     # Don't forget to release the needle control loop to move it freely.
-    #     self.needle.release()
-    #     time.sleep(2.0)
-    #     # Open the jaws to let go of the needle from grasp
-    #     self.psm2.set_jaw_angle(0.8)
-    #     time.sleep(2.0)
-
 
 if __name__ == "__main__":
     env = SRCEnv()
-    env.render()
     env.step([1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     env.render()

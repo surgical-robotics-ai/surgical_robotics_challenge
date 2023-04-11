@@ -1,5 +1,24 @@
 from PyKDL import Frame, Rotation, Vector
 import numpy as np
+import rospy
+from ambf_msgs.msg import RigidBodyState
+
+def pose_msg_to_frame(msg):
+    """
+
+    :param msg:
+    :return:
+    """
+    p = Vector(msg.position.x,
+               msg.position.y,
+               msg.position.z)
+
+    R = Rotation.Quaternion(msg.orientation.x,
+                            msg.orientation.y,
+                            msg.orientation.z,
+                            msg.orientation.w)
+
+    return Frame(R, p)
 
 class NeedleKinematics:
     # Base in Needle Origin
