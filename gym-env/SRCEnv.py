@@ -62,9 +62,13 @@ class SRCEnv(gym.Env):
         add_break(0.5)
         return
 
-    def get_needle_in_world(self):
-        """ Get the needle pose in world coordinates """
+    def get_needle_tip_in_world(self):
+        """ Get the needle tip pose in world coordinates """
         return self._needle_kin.get_tip_pose()
+
+    def get_needle_mid_in_world(self):
+        """ Get the needle mid pose in world coordinates """
+        return self._needle_kin.get_mid_pose()
 
     def _update_observation(self, action):
         """ Update the observation of the environment
@@ -75,7 +79,7 @@ class SRCEnv(gym.Env):
         self.obs.state = self.psm1.measured_jp() + action # jp = jaw position
 
         # Compute current distance and approach angle of psm and needle, both in world coordinates
-        self.obs.dist = self.calc_dist(self.get_needle_in_world(), self.psm1.measured_cp())
+        self.obs.dist = self.calc_dist(self.get_needle_mid_in_world(), self.psm1.measured_cp())
         self.obs.angle = self.calc_angle(self.psm1) 
         self.obs.reward = self.reward(self.obs)
         self.obs.info = {}
@@ -140,7 +144,7 @@ class SRCEnv(gym.Env):
         return reward
 
     def calc_angle(self, psm):
-        """ Compute dot product of needle tip and specific psm tip
+        """ Compute dot product of needle mid and specific psm tip
         
         Parameters
         - needle: the needle pose in world coordinates
@@ -149,7 +153,7 @@ class SRCEnv(gym.Env):
         Returns
         - angle: the angle between the needle and psm"""
         # TODO double check axes of needle R; between x and y?
-        needle_R = str(self.get_needle_in_world().M).replace('[', '').replace(']', '').replace('\n', ' ').replace(';', ' ').replace(',', ' ').split()
+        needle_R = str(self.get_needle_mid_in_world().M).replace('[', '').replace(']', '').replace('\n', ' ').replace(';', ' ').replace(',', ' ').split()
         needle_R = np.array([float(i) for i in needle_R]).reshape(3, 3)[0:3, 0:1]
         psm_R = np.array(psm.measured_cp()[0:3, 1:2] * -1)
         return np.dot(np.squeeze(np.asarray(needle_R)), np.squeeze(np.asarray(psm_R)))
