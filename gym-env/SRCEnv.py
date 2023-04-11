@@ -6,9 +6,9 @@ from gymnasium import spaces
 import numpy as np
 import time
 import re
+
 from PyKDL import Frame, Rotation, Vector
-
-
+from gym.spaces.box import Box
 from src.scripts.surgical_robotics_challenge.psm_arm import PSM
 from src.scripts.surgical_robotics_challenge.ecm_arm import ECM
 from src.scripts.surgical_robotics_challenge.scene import Scene
@@ -36,10 +36,10 @@ class SRCEnv(gym.Env):
     def __init__(self):
         # Define action and observation space
         super(SRCEnv, self).__init__()
-        self.action_space = spaces.Discrete(N_DISCRETE_ACTIONS)
         # Limits for psm
-        self.action_lims_low = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
-        self.action_lims_high = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
+        self.action_lims_low = np.array([np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)])
+        self.action_lims_high = np.array([np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)])
+        self.action_space = spaces.Box(self.action_lims_low, self.action_lims_high)
 
         self.observation_space = spaces.Box(
             low=0, high=255, shape=(HEIGHT, WIDTH, N_CHANNELS), dtype=np.uint8)
@@ -152,7 +152,6 @@ class SRCEnv(gym.Env):
         needle_R = str(self.get_needle_in_world().M).replace('[', '').replace(']', '').replace('\n', ' ').replace(';', ' ').replace(',', ' ').split()
         needle_R = np.array([float(i) for i in needle_R]).reshape(3, 3)[0:3, 0:1]
         psm_R = np.array(psm.measured_cp()[0:3, 1:2] * -1)
-        print('shapes: ', needle_R.shape, psm_R.shape)
         return np.dot(np.squeeze(np.asarray(needle_R)), np.squeeze(np.asarray(psm_R)))
 
     def calc_dist(self, goal_pose, current_pose):
