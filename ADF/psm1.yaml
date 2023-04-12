@@ -25,6 +25,7 @@ high resolution path: ./high_res/
 low resolution path: ./low_res/
 ignore inter-collision: false
 namespace: /ambf/env/psm1/
+gravity: {x: 0.0, y: 0.0, z: 0.0}
 BODY base link:
   name: base link
   mesh: base link.STL
