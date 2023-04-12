@@ -152,11 +152,12 @@ class SRCEnv(gym.Env):
         
         Returns
         - angle: the angle between the needle and psm"""
-        # TODO double check axes of needle R; between x and y?
         needle_R = str(self.get_needle_mid_in_world().M).replace('[', '').replace(']', '').replace('\n', ' ').replace(';', ' ').replace(',', ' ').split()
-        needle_R = np.array([float(i) for i in needle_R]).reshape(3, 3)[0:3, 0:1]
-        psm_R = np.array(psm.measured_cp()[0:3, 1:2] * -1)
-        return np.dot(np.squeeze(np.asarray(needle_R)), np.squeeze(np.asarray(psm_R)))
+        needle_R_x = np.array([float(i) for i in needle_R]).reshape(3, 3)[0:3, 0:1]
+        needle_R_y = np.array([float(i) for i in needle_R]).reshape(3, 3)[0:3, 1:2]
+        psm_R_x = np.array(psm.measured_cp()[0:3, 0:1])
+        psm_R_y = np.array(psm.measured_cp()[0:3, 1:2])
+        return np.cross(needle_R_x, psm_R_x) + np.cross(needle_R_y, psm_R_y)
 
     def calc_dist(self, goal_pose, current_pose):
         """ Compute the distance between the goal pose and current pose
@@ -168,7 +169,6 @@ class SRCEnv(gym.Env):
         Returns
         - dist: the distance between the goal pose and current pose
         """
-        # TODO: fix goal_pose is vector, current_pose is float
         if type(goal_pose) == Frame:
             goal_pose_p = np.array([goal_pose.p.x(), goal_pose.p.y(), goal_pose.p.z()])
         elif type(goal_pose) == np.matrix:

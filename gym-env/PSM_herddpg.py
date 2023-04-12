@@ -56,66 +56,15 @@ def main():
         stop_fn=lambda mean_rewards: mean_rewards >= env.spec.reward_threshold,
         logger=logger)
     print(f'Finished training! Use {result["duration"]}')
-
     torch.save(policy.state_dict(), 'dqn.pth')
-    policy.load_state_dict(torch.load('dqn.pth'))
 
+    policy.load_state_dict(torch.load('dqn.pth'))
     policy.eval()
     policy.set_eps(eps_test)
     collector = ts.data.Collector(policy, env, exploration_noise=True)
     collector.collect(n_episode=1, render=1 / 35)
+    
+    
 
 if __name__ == '__main__':
     main()
-    # ENV_NAME = 'psm/baselink'
-    # # env_kwargs = {
-    # #     'action_space_limit': 0.05,
-    # #     'goal_position_range': 0.05,
-    # #     'position_error_threshold': 0.01,
-    # #     'goal_error_margin': 0.0075,
-    # #     'joint_limits':
-    # #     {
-    # #         'lower_limit': np.array([-0.2,
-    # #                                 -0.2,
-    # #                                 0.1,
-    # #                                 -1.5,
-    # #                                 -1.5,
-    # #                                 -1.5,
-    # #                                 -1.5]),
-    # #         'upper_limit': np.array([0.2,
-    # #                                 0.2,
-    # #                                 0.24,
-    # #                                 1.5,
-    # #                                 1.5,
-    # #                                 1.5,
-    # #                                 1.5])
-    # #     },
-    # #     'workspace_limits':
-    # #     {
-    # #         'lower_limit': np.array([-0.04, -0.03, -0.2]),
-    # #         'upper_limit': np.array([0.03, 0.04, -0.091])
-    # #     },
-    # #     'enable_step_throttling': False,
-    # #     'steps_to_print': 10000
-    # # }
-    # # Training
-    # print("Creating training_env")
-    # src_env = SRCEnv()
-    # # src_env = SRCEnv(**env_kwargs)
-    # time.sleep(5)
-    # # src_env.make(ENV_NAME)
-    # src_env.reset()
-
-    # train(training_env=src_env)  #, eval_env=eval_env)
-    # src_env._client.clean_up()
-
-    # # Evaluate learnt policy
-    # print("Creating eval_env")
-    # # eval_env = SRCEnv(**env_kwargs)
-    # eval_env = SRCEnv()
-    # time.sleep(5)
-    # # eval_env.make(ENV_NAME)
-    # eval_env.reset()
-
-    # load_model(eval_env=eval_env)
-    # eval_env._client.clean_up()
