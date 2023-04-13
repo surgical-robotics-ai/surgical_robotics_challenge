@@ -19,11 +19,6 @@ from src.scripts.surgical_robotics_challenge.evaluation.evaluation import Task_2
 from utils.observation import Observation
 from utils.needle_kinematics import NeedleKinematics
 
-N_DISCRETE_ACTIONS = 3
-HEIGHT = 0
-WIDTH = 0
-N_CHANNELS = 0
-
 
 def add_break(s):
     time.sleep(s)
@@ -42,7 +37,7 @@ class SRCEnv(gym.Env):
         self.action_space = spaces.Box(self.action_lims_low, self.action_lims_high)
 
         self.observation_space = spaces.Box(
-            low=0, high=255, shape=(HEIGHT, WIDTH, N_CHANNELS), dtype=np.uint8)
+            low=-np.inf, high=np.inf, shape=(6,))
         self.obs = Observation()
 
         # Connect to client using SimulationManager
@@ -89,8 +84,9 @@ class SRCEnv(gym.Env):
         if self.obs.dist < 0.01 and self.obs.angle < 0.01:
             self.obs.is_done = True
 
-    def reset(self):
+    def reset(self, **kwargs):
         """ Reset the state of the environment to an initial state """
+        print('reset func')
         self.world_handle.reset()
         self.psm1.servo_jp([-0.4, -0.22, 0.139, -1.64, -0.37, -0.11])
         self.psm1.set_jaw_angle(0.8)
@@ -101,7 +97,7 @@ class SRCEnv(gym.Env):
                   0.0,
                   0.0,
                   0.0]
-        return self.step(action)[0]
+        return np.array(self.obs.state, dtype=np.float32), self.obs.info
     
 
     def step(self, action):
@@ -115,6 +111,7 @@ class SRCEnv(gym.Env):
 
         """
         # Limit PSM action to bounds
+        print('action: ', action)
         action = np.clip(action, self.action_lims_low, self.action_lims_high)
         self.action = action
 
@@ -124,6 +121,7 @@ class SRCEnv(gym.Env):
         # Update simulation
         self.world_handle.update()
         self._update_observation(action)
+        print('step end')
         return self.obs.cur_observation()
 
     def reward(self, obs):
@@ -153,11 +151,11 @@ class SRCEnv(gym.Env):
         Returns
         - angle: the angle between the needle and psm"""
         needle_R = str(self.get_needle_mid_in_world().M).replace('[', '').replace(']', '').replace('\n', ' ').replace(';', ' ').replace(',', ' ').split()
-        needle_R_x = np.array([float(i) for i in needle_R]).reshape(3, 3)[0:3, 0:1]
-        needle_R_y = np.array([float(i) for i in needle_R]).reshape(3, 3)[0:3, 1:2]
-        psm_R_x = np.array(psm.measured_cp()[0:3, 0:1])
-        psm_R_y = np.array(psm.measured_cp()[0:3, 1:2])
-        return np.cross(needle_R_x, psm_R_x) + np.cross(needle_R_y, psm_R_y)
+        needle_R_x = np.array([float(i) for i in needle_R]).reshape(3, 3)[0:3, 0].T
+        needle_R_y = np.array([float(i) for i in needle_R]).reshape(3, 3)[0:3, 1].T
+        psm_R_x = np.array(psm.measured_cp()[0:3, 0])
+        psm_R_y = np.array(psm.measured_cp()[0:3, 1])
+        return np.cross(needle_R_x, psm_R_x, axis=0) + np.cross(needle_R_y, psm_R_y, axis=0)
 
     def calc_dist(self, goal_pose, current_pose):
         """ Compute the distance between the goal pose and current pose
@@ -193,20 +191,6 @@ class SRCEnv(gym.Env):
         """
         return -(obs.dist + obs.angle)
 
-    def reset(self):
-        # Reset the state of the environment to an initial state
-        self.world_handle.reset()  # self.world_handle.reset_bodies()
-        self.psm2.servo_jp([-0.4, -0.22, 0.139, -1.64, -0.37, -0.11])
-        self.psm2.set_jaw_angle(0.8)
-        add_break(3.0)
-        action = [0.0,
-                  0.0,
-                  0.0,
-                  0.0,
-                  0.0,
-                  0.0]
-        return self.step(action)[0]
-
     def render(self, mode='human', close=False):
         '''
         1. run the simulation (using script or smt else) - init()
@@ -236,4 +220,5 @@ class SRCEnv(gym.Env):
 if __name__ == "__main__":
     env = SRCEnv()
     env.step([1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    env.reset()
     env.render()

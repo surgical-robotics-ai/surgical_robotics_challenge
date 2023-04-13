@@ -19,17 +19,17 @@ def main():
 
     # Hyperparameters
     lr, epoch, batch_size = 1e-3, 10, 128
-    train_num, test_num = 10, 10
+    train_num, test_num = 1, 1
     gamma, n_step, target_freq = 0.9, 3, 320
     buffer_size = 20000
     eps_train, eps_test = 0.1, 0.05
     step_per_epoch, step_per_collect = 10000, 10
     logger = ts.utils.TensorboardLogger(SummaryWriter(log_dir)) 
 
-    train_envs = ts.env.DummyVectorEnv([lambda: SRCEnv() for _ in range(train_num)])
-    test_envs = ts.env.DummyVectorEnv([lambda: SRCEnv() for _ in range(test_num)])
-
     gym.envs.register(id=task, entry_point=SRCEnv)
+    train_envs = ts.env.DummyVectorEnv([lambda: gym.make(task) for _ in range(train_num)])
+    test_envs = ts.env.DummyVectorEnv([lambda: gym.make(task) for _ in range(test_num)])
+
     env = gym.make(task)
     state_shape = env.observation_space.shape or env.observation_space.n
     action_shape = env.action_space.shape or env.action_space.n
@@ -37,7 +37,8 @@ def main():
     optim = torch.optim.Adam(net.parameters(), lr=lr)
 
     policy = ts.policy.DQNPolicy(net, optim, gamma, n_step, target_update_freq=target_freq)
-    train_collector = ts.data.Collector(policy, train_envs, ts.data.VectorReplayBuffer(buffer_size, train_num), exploration_noise=True)
+    # train_collector = ts.data.Collector(policy, train_envs, ts.data.VectorReplayBuffer(buffer_size, train_num), exploration_noise=True)
+    train_collector = ts.data.Collector(policy, train_envs, exploration_noise=True)  # because DQN uses epsilon-greedy method
     test_collector = ts.data.Collector(policy, test_envs, exploration_noise=True)  # because DQN uses epsilon-greedy method
 
     print('Start training...')
