@@ -116,8 +116,9 @@ class HydraDevice:
         self.gripper_button_pressed = False  # Used as Gripper Open Close Binary Angle
         self.reset_pos = [0.0, 0.0, 0.0]
         self.reset_mtx = np.eye(3)
-        init_msg = rospy.wait_for_message(self.pose_topic_name, Hydra, timeout=1)
-        self.set_reset_pos(init_msg)
+        ### if you would like to init the device before picking up, you may uncomment following lines. 
+        # init_msg = rospy.wait_for_message(self.pose_topic_name, Hydra, timeout=1)
+        # self.set_reset_pos(init_msg)
         self.is_reset_rot = False
         self._pose_sub = rospy.Subscriber(self.pose_topic_name, Hydra, self.pose_cb, queue_size=1)
         self._twist_sub = rospy.Subscriber(self.pose_topic_name, Hydra, self.twist_cb, queue_size=1)

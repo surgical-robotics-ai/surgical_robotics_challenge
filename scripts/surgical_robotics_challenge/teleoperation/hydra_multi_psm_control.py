@@ -39,6 +39,8 @@
 
 #     \author    <amunawar@jhu.edu>
 #     \author    Adnan Munawar
+#     \author    <hzhou6@wpi.edu>
+#     \author    Haoying(Jack) Zhou
 #     \version   1.0
 # */
 # //==============================================================================
@@ -48,7 +50,7 @@ import sys
 import numpy as np
 
 dynamic_path = os.path.abspath(__file__+"/../../../")
-print(dynamic_path)
+# print(dynamic_path)
 sys.path.append(dynamic_path)
 
 from surgical_robotics_challenge.simulation_manager import SimulationManager
@@ -67,7 +69,7 @@ from surgical_robotics_challenge.utils import coordinate_frames
 
 
 class ControllerInterface:
-    def __init__(self, leader, psm_arms, camera):
+    def __init__(self, leader, psm_arms, ecm):
         self.counter = 0
         self.leader = leader
         self.psm_arms = cycle(psm_arms)
@@ -80,20 +82,10 @@ class ControllerInterface:
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         self.cmd_rpy = None
         self.T_IK = None
-        self._camera = camera
+        self._ecm = ecm
 
         self._T_c_b = None
         self._update_T_c_b = True
-
-
-        self.T_data = self.leader.measured_cp()
-        # self.T_start = self.active_psm.T_t_b_home
-        # self.T_origin = self.T_start
-        #
-        # self.rot_origin = np.array(list(self.T_origin.M.GetEulerZYX()))
-        # self.rot_start = np.array(list(self.T_start.M.GetEulerZYX()))
-        #
-        # self.step_p = (self.T_start.p - self.T_origin.p)
 
 
     def switch_psm(self):
@@ -102,13 +94,13 @@ class ControllerInterface:
         print('Switching Control of Next PSM Arm: ', self.active_psm.name)
 
     def update_T_c_b(self):
-        if self._update_T_c_b or self._camera.has_pose_changed():
-            self._T_c_b = self.active_psm.get_T_w_b() * self._camera.get_T_c_w()
+        if self._update_T_c_b or self._ecm.has_pose_changed():
+            self._T_c_b = self.active_psm.get_T_w_b() * self._ecm.get_T_c_w()
             self._update_T_c_b = False
 
     def update_camera_pose(self):
         self.gui.App.update()
-        self._camera.servo_jp(self.gui.jnt_cmds)
+        self._ecm.servo_jp(self.gui.jnt_cmds)
 
     def update_arm_pose(self):
         self.update_T_c_b()
@@ -177,6 +169,7 @@ if __name__ == "__main__":
 
     cam = ECM(simulation_manager, 'CameraFrame')
     time.sleep(0.5)
+    cam.servo_jp([0., 0., 0., 0.])
 
     controllers = []
     psm_arms = []
