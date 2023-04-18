@@ -2,7 +2,7 @@ import numpy as np
 
 class Observation:
     def __init__(self):
-        self.state = [0]*6
+        self.state = [0]*7
         self.dist = 0
         self.reward = 0.0
         self.prev_reward = 0.0

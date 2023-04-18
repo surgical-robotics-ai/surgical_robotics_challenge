@@ -32,12 +32,12 @@ class SRCEnv(gym.Env):
         # Define action and observation space
         super(SRCEnv, self).__init__()
         # Limits for psm
-        self.action_lims_low = np.array([np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)])
-        self.action_lims_high = np.array([np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)])
+        self.action_lims_low = np.array([np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85), 0])
+        self.action_lims_high = np.array([np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85), 1])
         self.action_space = spaces.Box(self.action_lims_low, self.action_lims_high)
 
         self.observation_space = spaces.Box(
-            low=-np.inf, high=np.inf, shape=(6,))
+            low=-np.inf, high=np.inf, shape=(7,))
         self.obs = Observation()
 
         # Connect to client using SimulationManager
@@ -71,7 +71,9 @@ class SRCEnv(gym.Env):
         Parameters
         - action: an action provided by the environment
         """
-        self.obs.state = self.psm1.measured_jp() + action # jp = jaw position
+        self.obs.state += action
+        self.psm1.servo_jp(action[:6])
+        self.psm1.set_jaw_angle(action[6])
 
         # Compute current distance and approach angle of psm and needle, both in world coordinates
         self.obs.dist = self.calc_dist(self.get_needle_mid_in_world(), self.psm1.measured_cp())
