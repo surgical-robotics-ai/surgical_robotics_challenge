@@ -21,3 +21,4 @@ multibody configs:
   - "ADF/ghosts.yaml" #14
   - "ADF/phantom_with_thread.yaml" #15
   - "ADF/camera_frame.yaml" #16
+  - "ADF/3dMed_phantom_with_thread.yaml" #17
