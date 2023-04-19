@@ -1,5 +1,5 @@
 # Surgical Robotics Challenge
-For more information regarding the challenge, please visit https://collaborative-robotics.github.io/surgical-robotics-challenge/challenge-2021.html
+For more information regarding the challenge, please visit [Surgical Robotics Challenge 2021-2022](https://collaborative-robotics.github.io/surgical-robotics-challenge/challenge-2021.html) or [Surgical Robotics Challenge 2023-2024](https://collaborative-robotics.github.io/surgical-robotics-challenge-2023/challenge-2023.html).
 
 # [Discussions Forum](https://github.com/collaborative-robotics/surgical_robotics_challenge/discussions)
 Please checkout the [Discussions Tab](https://github.com/collaborative-robotics/surgical_robotics_challenge/discussions) for asking questions, posting suggestions, connecting with the community and for keeping up to date with the challenge.
