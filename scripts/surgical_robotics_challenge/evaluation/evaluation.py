@@ -275,18 +275,18 @@ class Task_2_Evaluation_Report():
             print('\t Completion Time: ', self.completion_time)
             print('\t Targeted Entry/Exit Hole Pair (1 to 4): ', self.entry_exit_idx + 1)
             print('\t Needle Tip Axial Distance From Exit Hole (Recommended {})'.format(GlobalParams.hole_bounds[0]), self.L_ntINexit_axial)
-            print('\t Needle Tip P Exit Hole During Insertion (Lower is Better): ',
-                  self.P_ntINexit_lateral)
             print('\t Needle Tip P From Entry Hole During Insertion (Lower is Better): ',
                   self.P_ntINentry_lateral)
-            print('\t Needle Tip Lateral Distance From Exit Hole During Insertion (Lower is Better): ',
-                  self.L_ntINexit_lateral)
+            print('\t Needle Tip P Exit Hole During Insertion (Lower is Better): ',
+                  self.P_ntINexit_lateral)
             print('\t Needle Tip Lateral Distance From Entry Hole During Insertion (Lower is Better): ',
                   self.L_ntINentry_lateral)
-            print('\t Needle Tip Max Lateral Component From Exit Hole During Insertion (Lower is Better): ',
-                  self.P_max_ntINexit_lateral)
+            print('\t Needle Tip Lateral Distance From Exit Hole During Insertion (Lower is Better): ',
+                  self.L_ntINexit_lateral)
             print('\t Needle Tip Max Lateral Component From Entry Hole During Insertion (Lower is Better): ',
                   self.P_max_ntINentry_lateral)
+            print('\t Needle Tip Max Lateral Component From Exit Hole During Insertion (Lower is Better): ',
+                  self.P_max_ntINexit_lateral)
         else:
             print(FAIL_STR('Task Failed: '))
 
@@ -623,7 +623,7 @@ class Task_3_Evaluation_Report():
 
         :return:
         """
-        print('Team: ', self.team_name, ' Task 2 Completion Report: ')
+        print('Team: ', self.team_name, ' Task 3 Completion Report: ')
         if self.success:
             print(OK_STR('\t Task Successful: '))
             print('\t Completion Time: ', self.completion_time)
@@ -631,10 +631,10 @@ class Task_3_Evaluation_Report():
             for hidx in range(GlobalParams.hole_count):
                 print('--------------------------------------------')
                 print('\t Hole Number: ', hidx + 1, '/', GlobalParams.hole_count)
-                print('\t Needle Tip Lateral Distance From Exit Hole During Insertion (Lower is Better): ',
-                      self.L_ntINexit_lateral[hidx])
                 print('\t Needle Tip Lateral Distance From Entry Hole During Insertion (Lower is Better): ',
                       self.L_ntINentry_lateral[hidx])
+                print('\t Needle Tip Lateral Distance From Exit Hole During Insertion (Lower is Better): ',
+                      self.L_ntINexit_lateral[hidx])
         else:
             print(FAIL_STR('Task Failed: '))
 
