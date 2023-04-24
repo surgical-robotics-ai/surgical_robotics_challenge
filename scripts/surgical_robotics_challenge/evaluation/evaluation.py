@@ -191,7 +191,9 @@ class Task_1_Evaluation:
         :param msg:
         :return:
         """
-        self._T_ecmINw = pose_msg_to_frame(msg.pose)
+        T_ecmINw = pose_msg_to_frame(msg.pose)
+        T_ecmINw.p = T_ecmINw.p / units_conversion.SimToSI.linear_factor
+        self._T_ecmINw = T_ecmINw
 
     def task_completion_cb(self, msg):
         """
