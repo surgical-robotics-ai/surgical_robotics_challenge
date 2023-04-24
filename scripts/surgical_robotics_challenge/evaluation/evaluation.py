@@ -274,7 +274,7 @@ class Task_2_Evaluation_Report():
             print(OK_STR('\t Task Successful: '))
             print('\t Completion Time: ', self.completion_time)
             print('\t Targeted Entry/Exit Hole Pair (1 to 4): ', self.entry_exit_idx + 1)
-            print('\t Needle Tip Axial Distance From Exit Hole (Recommended 0.05): ', self.L_ntINexit_axial)
+            print('\t Needle Tip Axial Distance From Exit Hole (Recommended {})'.format(GlobalParams.hole_bounds[0]), self.L_ntINexit_axial)
             print('\t Needle Tip P Exit Hole During Insertion (Lower is Better): ',
                   self.P_ntINexit_lateral)
             print('\t Needle Tip P From Entry Hole During Insertion (Lower is Better): ',
@@ -627,7 +627,7 @@ class Task_3_Evaluation_Report():
         if self.success:
             print(OK_STR('\t Task Successful: '))
             print('\t Completion Time: ', self.completion_time)
-            print('\t Needle Tip Axial Distance From Exit Hole (4/4) (Recommended 0.05): ', self.L_ntINexit_axial)
+            print('\t Needle Tip Axial Distance From Exit Hole (4/4) (Recommended {})'.format(GlobalParams.hole_bounds[0]), self.L_ntINexit_axial)
             for hidx in range(GlobalParams.hole_count):
                 print('--------------------------------------------')
                 print('\t Hole Number: ', hidx + 1, '/', GlobalParams.hole_count)
