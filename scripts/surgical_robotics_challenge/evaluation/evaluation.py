@@ -11,7 +11,7 @@ from collections import deque
 from enum import Enum
 from ambf_client import Client
 from argparse import ArgumentParser
-import surgical_robotics_challenge.units_conversion
+from surgical_robotics_challenge import units_conversion
 
 
 def frame_to_pose_stamped_msg(frame):
@@ -60,20 +60,21 @@ def pose_msg_to_frame(msg):
 
     return Frame(R, p)
 
+
 class GlobalParams:
     hole_count = 4
     # The Object Aligned Bounding Box (OABB) to check for needle tip
-    hole_bounds = Vector(0.05, 0.05, 0.05)
-    insertion_depth_threshold = 0.01
+    hole_bounds = Vector(0.005, 0.005, 0.005) # in SI
+    insertion_depth_threshold = 0.001 # in SI
 
 
 class NeedleKinematics:
     # Base in Needle Origin
-    T_bINn = Frame(Rotation.RPY(0., 0., 0.), Vector(-0.102, 0., 0.))
+    T_bINn = Frame(Rotation.RPY(0., 0., 0.), Vector(-0.102, 0., 0.) / units_conversion.SimToSI.linear_factor)
     # Mid in Needle Origin
-    T_mINn = Frame(Rotation.RPY(0., 0., -1.091), Vector(-0.048, 0.093, 0.))
+    T_mINn = Frame(Rotation.RPY(0., 0., -1.091), Vector(-0.048, 0.093, 0.) / units_conversion.SimToSI.linear_factor)
     # Tip in Needle Origin
-    T_tINn = Frame(Rotation.RPY(0., 0., -0.585), Vector(0.056, 0.085, 0.))
+    T_tINn = Frame(Rotation.RPY(0., 0., -0.585), Vector(0.056, 0.085, 0.) / units_conversion.SimToSI.linear_factor)
 
     def __init__(self):
         """
@@ -90,7 +91,9 @@ class NeedleKinematics:
         :param msg:
         :return:
         """
-        self._T_nINw = pose_msg_to_frame(msg.pose)
+        T_nINw = pose_msg_to_frame(msg.pose)
+        T_nINw.p = T_nINw.p / units_conversion.SimToSI.linear_factor
+        self._T_nINw = T_nINw
 
     def get_tip_pose(self):
         """
