@@ -122,11 +122,17 @@ class PSMCRTKWrapper:
         self.servo_jp_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'servo_jp', JointState,
                                              self.servo_jp_cb, queue_size=1)
 
+        self.servo_jp_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'move_jp', JointState,
+                                             self.move_jp_cb, queue_size=1)
+
         self.servo_jv_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'servo_jv', JointState,
                                              self.servo_jv_cb, queue_size=1)
 
         self.servo_cp_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'servo_cp', PoseStamped,
                                              self.servo_cp_cb, queue_size=1)
+
+        self.servo_cp_sub = rospy.Subscriber(namespace + '/' + name + '/' + 'move_cp', PoseStamped,
+                                             self.move_cp_cb, queue_size=1)
 
         self.servo_jaw_jp_sub = rospy.Subscriber(namespace + '/' + name + '/jaw/' + 'servo_jp', JointState,
                                                  self.servo_jaw_jp_cb, queue_size=1)
@@ -144,8 +150,15 @@ class PSMCRTKWrapper:
         frame = pose_to_frame(cp.pose)
         self.arm.servo_cp(frame)
 
+    def move_cp_cb(self, cp):
+        frame = pose_to_frame(cp.pose)
+        self.arm.move_cp(frame)
+
     def servo_jp_cb(self, js):
         self.arm.servo_jp(js.position)
+
+    def move_jp_cb(self, js):
+        self.arm.move_jp(js.position)
 
     def servo_jv_cb(self, js):
         self.arm.servo_jv(js.velocity)

@@ -48,6 +48,8 @@ from surgical_robotics_challenge.utils import coordinate_frames
 from surgical_robotics_challenge.interpolation import Interpolation_custom
 
 import time
+from threading import Thread, Lock
+from surgical_robotics_challenge.utils.interpolation import Interpolation
 
 class PSMJointMapping:
     def __init__(self):
@@ -98,6 +100,9 @@ class PSM:
         self._last_jp = np.zeros([self._num_joints])
         self._joints_error_mask = [1, 1, 1, 0, 0, 0]  # Only apply error to joints with 1's
         self._joint_error_model = JointErrorsModel(self.name, self._num_joints)
+        self.interpolater = Interpolation()
+        self._force_exit_thread = False
+        self._thread_lock = Lock()
         if add_joint_errors:
             max_errors_list = [0.] * self._num_joints  # No error
             max_errors_list[0] = np.deg2rad(5.0)  # Max Error Joint 0 -> +-5 deg
@@ -105,7 +110,8 @@ class PSM:
             max_errors_list[2] = 0.005  # Max Error Joint 2 -> +- 5 mm or 0.05 Simulation units
             self._joint_error_model.generate_random_from_max_value(max_errors_list)
 
-        self.interp = Interpolation_custom()
+        # Initialize Jaw Angle
+        self.set_jaw_angle(0.5)
 
     def set_home_pose(self, pose):
         self.T_t_b_home = pose
@@ -168,13 +174,13 @@ class PSM:
         self._ik_solution = enforce_limits(ik_solution, self.get_lower_limits(), self.get_upper_limits())
         self.servo_jp(self._ik_solution)
 
-    def move_cp(self, T_t_b):
+    def move_cp(self, T_t_b, execute_time=0.5, control_rate=120):
         if type(T_t_b) in [np.matrix, np.array]:
             T_t_b = convert_mat_to_frame(T_t_b)
 
         ik_solution = compute_IK(T_t_b)
         self._ik_solution = enforce_limits(ik_solution, self.get_lower_limits(), self.get_upper_limits())
-        self.move_jp(self._ik_solution)
+        self.move_jp(self._ik_solution, execute_time, control_rate)
 
     def servo_cv(self, twist):
         pass
@@ -192,28 +198,31 @@ class PSM:
         self.base.set_joint_pos(4, jp[4])
         self.base.set_joint_pos(5, jp[5])
 
-    def move_jp(self, jp):
-        jp = self._joint_error_model.add_to_joints(jp, self._joints_error_mask)
+    def move_jp(self, jp_cmd, execute_time=0.5, control_rate=120):
 
         jp_cur = self.measured_jp()
         jv_cur = self.measured_jv()
 
         zero = np.zeros(6)
-
-        time_interval = 0.5
-
-        self.interp.compute_interpolation_params(jp_cur, jp, jv_cur, zero, zero, zero, 0, time_interval)
-        rate = rospy.Rate(100)
-        init_time = time.time()
-
-        while not rospy.is_shutdown():
-            cur_time = time.time()
-            adj_time = cur_time - init_time
-            if adj_time > time_interval:
+        self.interpolater.compute_interpolation_params(jp_cur, jp_cmd, jv_cur, zero, zero, zero, 0, execute_time)
+        trajectory_execute_thread = Thread(target=self._execute_trajectory, args=(self.interpolater, execute_time, control_rate,))
+        self._force_exit_thread = True
+        trajectory_execute_thread.start()
+    
+    def _execute_trajectory(self, trajectory_gen, execute_time, control_rate):
+        self._thread_lock.acquire()
+        self._force_exit_thread = False
+        init_time = rospy.Time.now().to_sec()
+        control_rate = rospy.Rate(control_rate)
+        while not rospy.is_shutdown() and not self._force_exit_thread:
+            print('Executing Trajectory')
+            cur_time = rospy.Time.now().to_sec() - init_time
+            if cur_time > execute_time:
                 break
-            val = self.interp.get_interpolated_x(np.array(adj_time, dtype=np.float32))
+            val = trajectory_gen.get_interpolated_x(np.array(cur_time, dtype=np.float32))
             self.servo_jp(val)
-            rate.sleep()
+            control_rate.sleep()
+        self._thread_lock.release()
 
     def servo_jv(self, jv):
         print("Setting Joint Vel", jv)
