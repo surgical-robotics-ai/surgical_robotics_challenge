@@ -45,7 +45,6 @@
 from surgical_robotics_challenge.kinematics.psmIK import *
 from surgical_robotics_challenge.utils.joint_errors_model import JointErrorsModel
 from surgical_robotics_challenge.utils import coordinate_frames
-from surgical_robotics_challenge.interpolation import Interpolation_custom
 
 import time
 from threading import Thread, Lock
@@ -215,7 +214,6 @@ class PSM:
         init_time = rospy.Time.now().to_sec()
         control_rate = rospy.Rate(control_rate)
         while not rospy.is_shutdown() and not self._force_exit_thread:
-            print('Executing Trajectory')
             cur_time = rospy.Time.now().to_sec() - init_time
             if cur_time > execute_time:
                 break
