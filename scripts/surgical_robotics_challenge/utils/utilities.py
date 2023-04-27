@@ -46,6 +46,7 @@
 from PyKDL import Vector, Rotation, Frame, dot
 import numpy as np
 import math
+from geometry_msgs.msg import Pose, PoseStamped
 
 PI = np.pi
 PI_2 = np.pi/2
@@ -120,6 +121,70 @@ def convert_mat_to_frame(mat):
     return frame
 
 
+def rot_mat_to_quat(cp):
+    R = Rotation(cp[0, 0], cp[0, 1], cp[0, 2],
+                 cp[1, 0], cp[1, 1], cp[1, 2],
+                 cp[2, 0], cp[2, 1], cp[2, 2])
+
+    return R.GetQuaternion()
+
+
+def np_mat_to_pose(cp):
+    pose = Pose()
+    pose.position.x = cp[0, 3]
+    pose.position.y = cp[1, 3]
+    pose.position.z = cp[2, 3]
+
+    Quat = rot_mat_to_quat(cp)
+
+    pose.orientation.x = Quat[0]
+    pose.orientation.y = Quat[1]
+    pose.orientation.z = Quat[2]
+    pose.orientation.w = Quat[3]
+    return pose
+
+
+def np_mat_to_pose_stamped(cp):
+    pose_stamped = PoseStamped()
+    pose_stamped.pose = np_mat_to_pose(cp)
+    return pose_stamped
+
+
+def pose_to_frame(cp):
+    frame = Frame()
+    frame.p = Vector(cp.position.x,
+                     cp.position.y,
+                     cp.position.z)
+    frame.M = Rotation.Quaternion(cp.orientation.x,
+                                  cp.orientation.y,
+                                  cp.orientation.z,
+                                  cp.orientation.w)
+    return frame
+
+
+def pose_stamped_to_frame(cp):
+    return pose_to_frame(cp.pose)
+
+
+def frame_to_pose(T):
+    pose = Pose()
+    pose.position.x = T.p[0]
+    pose.position.y = T.p[1]
+    pose.position.z = T.p[2]
+    q = T.M.GetQuaternion()
+    pose.orientation.x = q[0]
+    pose.orientation.y = q[1]
+    pose.orientation.z = q[2]
+    pose.orientation.w = q[3]
+    return pose
+
+
+def frame_to_pose_stamped(T):
+    pose_stamped = PoseStamped()
+    pose_stamped.pose = frame_to_pose(T)
+    return pose_stamped
+
+
 def get_boolean_from_opt(opt):
     if opt in ['True', 'true', '1', True]:
         return True
@@ -128,6 +193,7 @@ def get_boolean_from_opt(opt):
     else:
         print("Error: Option is invalid: ", opt)
         raise ValueError
+
 
 def cartesian_interpolate_step(T_curr, T_goal, max_delta=0.01, deadband=0.01):
     error = np.zeros(6)
