@@ -57,6 +57,7 @@ from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.utils.jnt_control_gui import JointGUI
 from surgical_robotics_challenge.utils import coordinate_frames
 from threading import Thread
+from std_msgs.msg import Float64MultiArray
 
 
 class ControllerInterface:
