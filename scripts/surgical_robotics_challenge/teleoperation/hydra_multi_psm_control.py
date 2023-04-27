@@ -39,25 +39,37 @@
 
 #     \author    <amunawar@jhu.edu>
 #     \author    Adnan Munawar
+#     \author    <hzhou6@wpi.edu>
+#     \author    Haoying(Jack) Zhou
 #     \version   1.0
 # */
 # //==============================================================================
+import os
 import sys
+
+import numpy as np
+
+dynamic_path = os.path.abspath(__file__+"/../../../")
+# print(dynamic_path)
+sys.path.append(dynamic_path)
+
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.ecm_arm import ECM
 import time
 import rospy
+import PyKDL
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
-from input_devices.razer_device import razer_Device
+from input_devices.hydra_device import HydraDevice
 from itertools import cycle
-from surgical_robotics_challenge.jnt_control_gui import JointGUI
+from surgical_robotics_challenge.utils.jnt_control_gui import JointGUI
+from surgical_robotics_challenge.utils.utilities import get_boolean_from_opt
 from surgical_robotics_challenge.utils import coordinate_frames
 
 
 class ControllerInterface:
-    def __init__(self, leader, psm_arms, camera):
+    def __init__(self, leader, psm_arms, ecm):
         self.counter = 0
         self.leader = leader
         self.psm_arms = cycle(psm_arms)
@@ -70,10 +82,11 @@ class ControllerInterface:
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         self.cmd_rpy = None
         self.T_IK = None
-        self._camera = camera
+        self._ecm = ecm
 
         self._T_c_b = None
         self._update_T_c_b = True
+
 
     def switch_psm(self):
         self._update_T_c_b = True
@@ -81,23 +94,22 @@ class ControllerInterface:
         print('Switching Control of Next PSM Arm: ', self.active_psm.name)
 
     def update_T_c_b(self):
-        if self._update_T_c_b or self._camera.has_pose_changed():
-            self._T_c_b = self.active_psm.get_T_w_b() * self._camera.get_T_c_w()
+        if self._update_T_c_b or self._ecm.has_pose_changed():
+            self._T_c_b = self.active_psm.get_T_w_b() * self._ecm.get_T_c_w()
             self._update_T_c_b = False
 
     def update_camera_pose(self):
         self.gui.App.update()
-        self._camera.servo_jp(self.gui.jnt_cmds)
+        self._ecm.servo_jp(self.gui.jnt_cmds)
 
     def update_arm_pose(self):
         self.update_T_c_b()
         twist = self.leader.measured_cv()
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         if not self.leader.clutch_button_pressed:
-            delta_t = self._T_c_b.M * twist.vel * 0.00002 ### The coefficient can be modified [0.002 or some other values]
+            delta_t = self._T_c_b.M * twist.vel * 1.2
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_psm.T_t_b_home.p = self.cmd_xyz
-
         self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M * Rotation.RPY(3.14, 0, 3.14 / 2.0)
         self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
         self.active_psm.servo_cp(self.T_IK)
@@ -130,10 +142,10 @@ class ControllerInterface:
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('-c', action='store', dest='client_name', help='Client Name', default='razer_sim_teleop')
+    parser.add_argument('-c', action='store', dest='client_name', help='Client Name', default='hydra_sim_teleop')
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
-    parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
-    parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=True)
+    parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=False)
+    parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=False)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
@@ -157,6 +169,7 @@ if __name__ == "__main__":
 
     cam = ECM(simulation_manager, 'CameraFrame')
     time.sleep(0.5)
+    cam.servo_jp([0., 0., 0., 0.])
 
     controllers = []
     psm_arms = []
@@ -202,7 +215,10 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        leader = razer_Device()
+        if parsed_args.run_psm_one is True:
+            leader = HydraDevice(hydra_idx=0)
+        if parsed_args.run_psm_two is True:
+            leader = HydraDevice(hydra_idx=1)
         theta_base = -0.9
         theta_tip = -theta_base
         leader.set_base_frame(Frame(Rotation.RPY(theta_base, 0, 0), Vector(0, 0, 0)))

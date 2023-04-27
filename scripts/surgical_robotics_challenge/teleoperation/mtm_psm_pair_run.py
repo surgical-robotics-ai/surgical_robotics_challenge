@@ -39,6 +39,8 @@
 
 #     \author    <amunawar@jhu.edu>
 #     \author    Adnan Munawar
+#     \author    <hzhou6@wpi.edu>
+#     \author    Haoying(Jack) Zhou
 #     \version   1.0
 # */
 # //==============================================================================
@@ -54,70 +56,107 @@ from itertools import cycle
 from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.utils.jnt_control_gui import JointGUI
 from surgical_robotics_challenge.utils import coordinate_frames
+from threading import Thread
+from std_msgs.msg import Float64MultiArray
 
 
 class ControllerInterface:
-    def __init__(self, leader, psm_arms, ecm):
+    def __init__(self, leader_l, leader_r, psm_arm_l, psm_arm_r, ecm):
         self.counter = 0
-        self.leader = leader
-        self.psm_arms = cycle(psm_arms)
-        if sys.version_info[0] >= 3:
-            self.active_psm = next(self.psm_arms)
-        else:
-            self.active_psm = self.psm_arms.next()
-        self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"], lower_lims=cam.get_lower_limits(),
-                            upper_lims=cam.get_upper_limits())
+        self.leader_1 = leader_l
+        self.leader_2 = leader_r
+        self.psm_1 = psm_arm_l
+        self.psm_2 = psm_arm_r
+        self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
 
-        self.cmd_xyz = self.active_psm.T_t_b_home.p
-        self.cmd_rpy = None
-        self.T_IK = None
+        self.cmd1_xyz = self.psm_1.T_t_b_home.p
+        self.cmd1_rpy = None
+        self.cmd2_xyz = self.psm_2.T_t_b_home.p
+        self.cmd2_rpy = None
+        self.T1_IK = None
+        self.T2_IK = None
         self._ecm = ecm
 
-        self._T_c_b = None
+        self._T1_c_b = None
+        self._T2_c_b = None
         self._update_T_c_b = True
+        self._pub_ecm = rospy.Publisher('/ecm/setpoint_js', Float64MultiArray, queue_size=1)
+        self.leader_1.enable_gravity_comp()
+        self.leader_2.enable_gravity_comp()
 
-        self.leader.enable_gravity_comp()
-
-    def switch_psm(self):
-        self._update_T_c_b = True
-        self.active_psm = self.psm_arms.next()
-        print('Switching Control of Next PSM Arm: ', self.active_psm.name)
+    # def switch_psm(self):
+    #     self._update_T_c_b = True
+    #     self.active_psm = self.psm_arms.next()
+    #     print('Switching Control of Next PSM Arm: ', self.active_psm.name)
 
     def update_T_b_c(self):
         if self._update_T_c_b or self._ecm.has_pose_changed():
-            self._T_c_b = self.active_psm.get_T_w_b() * self._ecm.get_T_c_w()
+            self._T1_c_b = self.psm_1.get_T_w_b() * self._ecm.get_T_c_w()
+            self._T2_c_b = self.psm_2.get_T_w_b() * self._ecm.get_T_c_w()
             self._update_T_c_b = False
 
     def update_camera_pose(self):
         self.gui.App.update()
         self._ecm.servo_jp(self.gui.jnt_cmds)
 
-    def update_arm_pose(self):
-        self.update_T_b_c()
-        if self.leader.coag_button_pressed or self.leader.clutch_button_pressed:
+    def teleop_pair_1(self):
+        if self.leader_1.coag_button_pressed or self.leader_1.clutch_button_pressed:
             # self.leader.optimize_wrist_platform()
             f = Wrench()
-            self.leader.servo_cf(f)
+            self.leader_1.servo_cf(f)
         else:
-            if self.leader.is_active():
-                self.leader.servo_cp(self.leader.pre_coag_pose_msg)
-        twist = self.leader.measured_cv() * 0.0035
-        self.cmd_xyz = self.active_psm.T_t_b_home.p
-        if not self.leader.clutch_button_pressed:
-            delta_t = self._T_c_b.M * twist.vel
-            self.cmd_xyz = self.cmd_xyz + delta_t
-            self.active_psm.T_t_b_home.p = self.cmd_xyz
-        if self.leader.coag_button_pressed:
-            self.cmd_rpy = self._T_c_b.M * self.leader.measured_cp().M
-            self.T_IK = Frame(self.cmd_rpy, self.cmd_xyz)
-            self.active_psm.servo_cp(self.T_IK)
-        self.active_psm.set_jaw_angle(self.leader.get_jaw_angle())
+            if self.leader_1.is_active():
+                self.leader_1.servo_cp(self.leader_1.pre_coag_pose_msg)
+        twist = self.leader_1.measured_cv() * 0.0035
+        self.cmd1_xyz = self.psm_1.T_t_b_home.p
+        if not self.leader_1.clutch_button_pressed:
+            delta_t = self._T1_c_b.M * twist.vel
+            self.cmd1_xyz = self.cmd1_xyz + delta_t
+            self.psm_1.T_t_b_home.p = self.cmd1_xyz
+        if self.leader_1.coag_button_pressed:
+            self.cmd1_rpy = self._T1_c_b.M * self.leader_1.measured_cp().M
+            self.T1_IK = Frame(self.cmd1_rpy, self.cmd1_xyz)
+            self.psm_1.servo_cp(self.T1_IK)
+            self.psm_1.set_jaw_angle(self.leader_1.get_jaw_angle())
+
+    def teleop_pair_2(self):
+        if self.leader_2.coag_button_pressed or self.leader_2.clutch_button_pressed:
+            # self.leader.optimize_wrist_platform()
+            f = Wrench()
+            self.leader_2.servo_cf(f)
+        else:
+            if self.leader_2.is_active():
+                self.leader_2.servo_cp(self.leader_2.pre_coag_pose_msg)
+        twist = self.leader_2.measured_cv() * 0.0035
+        self.cmd2_xyz = self.psm_2.T_t_b_home.p
+        if not self.leader_2.clutch_button_pressed:
+            delta_t = self._T2_c_b.M * twist.vel
+            self.cmd2_xyz = self.cmd2_xyz + delta_t
+            self.psm_2.T_t_b_home.p = self.cmd2_xyz
+        if self.leader_2.coag_button_pressed:
+            self.cmd2_rpy = self._T2_c_b.M * self.leader_2.measured_cp().M
+            self.T2_IK = Frame(self.cmd2_rpy, self.cmd2_xyz)
+            self.psm_2.servo_cp(self.T2_IK)
+            self.psm_2.set_jaw_angle(self.leader_2.get_jaw_angle())
+
+    def update_arm_pose(self):
+        self.update_T_b_c()
+        t1 = Thread(target=self.teleop_pair_1)
+        t2 = Thread(target=self.teleop_pair_2)
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
 
     def update_visual_markers(self):
         # Move the Target Position Based on the GUI
-        if self.active_psm.target_IK is not None:
-            T_t_w = self.active_psm.get_T_b_w() * self.T_IK
-            self.active_psm.target_IK.set_pose(T_t_w)
+        if self.psm_1.target_IK is not None:
+            T_t_w = self.psm_1.get_T_b_w() * self.T1_IK
+            self.psm_1.target_IK.set_pose(T_t_w)
+
+        if self.psm_2.target_IK is not None:
+            T_t_w = self.psm_2.get_T_b_w() * self.T2_IK
+            self.psm_2.target_IK.set_pose(T_t_w)
         # if self.arm.target_FK is not None:
         #     ik_solution = self.arm.get_ik_solution()
         #     ik_solution = np.append(ik_solution, 0)
@@ -129,9 +168,9 @@ class ControllerInterface:
         #     self.arm.target_FK.set_rpy(RPY_7_0[0], RPY_7_0[1], RPY_7_0[2])
 
     def run(self):
-        if self.leader.switch_psm:
-            self.switch_psm()
-            self.leader.switch_psm = False
+        # if self.leader.switch_psm:
+        #     self.switch_psm()
+        #     self.leader.switch_psm = False
         self.update_camera_pose()
         self.update_arm_pose()
         # self.update_visual_markers()
@@ -143,19 +182,10 @@ if __name__ == "__main__":
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=False)
-    parser.add_argument('--mtm', action='store', dest='mtm_name', help='Name of MTM to Bind', default='/dvrk/MTMR/')
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
     print(parsed_args)
-
-    mtm_valid_list = ['/MTMR/, /MTML/', '/dvrk/MTMR/', '/dvrk/MTML/', 'MTMR', 'MTML']
-    if parsed_args.mtm_name in mtm_valid_list:
-        if parsed_args.mtm_name in ['MTMR', 'MTML']:
-            parsed_args.mtm_name = '/' + parsed_args.mtm_name + '/'
-    else:
-        print('ERROR! --mtm argument should be one of the following', mtm_valid_list)
-        raise ValueError
 
     if parsed_args.run_psm_one in ['True', 'true', '1']:
         parsed_args.run_psm_one = True
@@ -184,12 +214,12 @@ if __name__ == "__main__":
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm1'
         print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(simulation_manager, arm_name, add_joint_errors=False)
-        if psm.is_present():
+        psm1 = PSM(simulation_manager, arm_name, add_joint_errors=False)
+        if psm1.is_present():
             T_psmtip_c = coordinate_frames.PSM1.T_tip_cam
-            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
-            psm.set_home_pose(T_psmtip_b)
-            psm_arms.append(psm)
+            T_psmtip_b = psm1.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+            psm1.set_home_pose(T_psmtip_b)
+            psm_arms.append(psm1)
 
     if parsed_args.run_psm_two is True:
         # Initial Target Offset for PSM1
@@ -197,12 +227,12 @@ if __name__ == "__main__":
         arm_name = 'psm2'
         print('LOADING CONTROLLER FOR ', arm_name)
         theta_base = -0.7
-        psm = PSM(simulation_manager, arm_name, add_joint_errors=False)
-        if psm.is_present():
+        psm2 = PSM(simulation_manager, arm_name, add_joint_errors=False)
+        if psm2.is_present():
             T_psmtip_c = coordinate_frames.PSM2.T_tip_cam
-            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
-            psm.set_home_pose(T_psmtip_b)
-            psm_arms.append(psm)
+            T_psmtip_b = psm2.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
+            psm2.set_home_pose(T_psmtip_b)
+            psm_arms.append(psm2)
 
     if parsed_args.run_psm_three is True:
         # Initial Target Offset for PSM1
@@ -221,9 +251,11 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        leader = MTM(parsed_args.mtm_name)
-        leader.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
-        controller1 = ControllerInterface(leader, psm_arms, cam)
+        leader_l = MTM('/MTML/')
+        leader_r = MTM('/MTMR/')
+        leader_l.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
+        leader_r.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
+        controller1 = ControllerInterface(leader_l, leader_r, psm1, psm2, cam)
         controllers.append(controller1)
 
         rate = rospy.Rate(200)
@@ -236,4 +268,3 @@ if __name__ == "__main__":
         except Exception as e:
             print(e)
             print('Exception! Goodbye')
-            
