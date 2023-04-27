@@ -9,6 +9,7 @@ import numpy as np
 from std_msgs.msg import Empty
 from sensor_msgs.msg import Image
 from surgical_robotics_challenge.task_completion_report import TaskCompletionReport
+from surgical_robotics_challenge.utils.utilities import *
 
 
 def add_break(s):
@@ -29,21 +30,6 @@ class ArmType(Enum):
     PSM1=1
     PSM2=2
     ECM=3
-
-
-def frame_to_pose_stamped_msg(frame):
-    msg = PoseStamped()
-    msg.header.stamp = rospy.Time.now()
-    msg.pose.position.x = frame.p[0]
-    msg.pose.position.y = frame.p[1]
-    msg.pose.position.z = frame.p[2]
-
-    msg.pose.orientation.x = frame.M.GetQuaternion()[0]
-    msg.pose.orientation.y = frame.M.GetQuaternion()[1]
-    msg.pose.orientation.z = frame.M.GetQuaternion()[2]
-    msg.pose.orientation.w = frame.M.GetQuaternion()[3]
-
-    return msg
 
 
 def list_to_sensor_msg_position(jp_list):
@@ -94,7 +80,7 @@ class ARMInterface:
 
     def servo_cp(self, pose):
         if type(pose) == Frame:
-            msg = frame_to_pose_stamped_msg(pose)
+            msg = frame_to_pose_stamped(pose)
         else:
             msg = pose
         self.cp_pub.publish(msg)
