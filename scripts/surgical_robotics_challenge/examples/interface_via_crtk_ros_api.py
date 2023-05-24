@@ -51,7 +51,7 @@ class ARMInterface:
 
         self._cp_sub = rospy.Subscriber(arm_name + "/measured_cp", PoseStamped, self.cp_cb, queue_size=1)
         self._T_b_w_sub = rospy.Subscriber(arm_name + "/T_b_w", PoseStamped, self.T_b_w_cb, queue_size=1)
-        self._jp_sub = rospy.Subscriber(arm_name + "/measured_cp", JointState, self.jp_cb, queue_size=1)
+        self._jp_sub = rospy.Subscriber(arm_name + "/measured_js", JointState, self.jp_cb, queue_size=1)
         self.cp_pub = rospy.Publisher(arm_name + "/servo_cp", PoseStamped, queue_size=1)
         self.jp_pub = rospy.Publisher(arm_name + "/servo_jp", JointState, queue_size=1)
         self.jaw_jp_pub = rospy.Publisher(arm_name + '/jaw/' + 'servo_jp', JointState, queue_size=1)
