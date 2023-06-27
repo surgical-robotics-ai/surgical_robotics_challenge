@@ -33,7 +33,7 @@ The intrinsic parameters of cameras in AMBF are established in OpenGL fashion us
 Where `fx` and `fy` are the focal length in pixels in the x and y directions. `W` and `H` are the width and height of the image produced in pixels. `cx` and `cy` describe the x and y position of the camera principal point. Extrinsics information is obtained from the relative transformation between the cameras and world frame. 
 
 
-The camera parameters, such as `fva`, `near` and `far` plane, are found in its ADF definition. For this repo, the cameras are defined in the [World](./../ADF/world/world_stereo.yaml) file. The parameters `cx` and `cy` depend upon the image size of the published camera stream. It defaults to `640 x 480` but can be changed by setting an appropriate field as shown [here](https://github.com/collaborative-robotics/surgical_robotics_challenge/blob/master/ADF/world/world_stereo.yaml#L57), .
+The camera parameters, such as `fva`, `near` and `far` plane, are found in its ADF definition. For this repo, the cameras are defined in the [World](./../ADF/world/world_stereo.yaml) file. The parameters `cx` and `cy` depend upon the image size of the published camera stream. It defaults to `640 x 480` but can be changed by setting an appropriate field as shown [here](https://github.com/surgical-robotics-ai/surgical_robotics_challenge/blob/master/ADF/world/world_stereo.yaml#L57), .
 
 ## Difference between AMBF and Opencv camera conventions 
 
