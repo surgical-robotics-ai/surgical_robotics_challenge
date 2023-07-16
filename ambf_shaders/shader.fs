@@ -6,6 +6,8 @@ uniform sampler2DShadow shadowMap;
 uniform sampler2D diffuseMap;
 uniform sampler2D normalMap;
 
+uniform int uTextureEnabled;
+
 float attenuation(vec3 p, int i)
 {
      vec4 p_l = gl_LightSource[i].position;
@@ -50,7 +52,11 @@ vec4 shade(vec3 p, vec3 v, vec3 n)
 
          float att = attenuation(p, i);
          float intensity = clamp(spotlight(p, i), 0.0, 1.0);
-         vec3 texColor = texture2D(diffuseMap, vTexCoord.xy).xyz;
+
+         vec3 texColor = vec3(1., 1., 1.);
+         if (uTextureEnabled == 1){
+             texColor = texture2D(diffuseMap, vTexCoord.xy).xyz;
+         }
 
          vec3 Iambient = gl_FrontLightProduct[i].ambient.rgb * texColor;
          vec3 Idiffuse = gl_FrontLightProduct[i].diffuse.rgb * cosNL * texColor;
