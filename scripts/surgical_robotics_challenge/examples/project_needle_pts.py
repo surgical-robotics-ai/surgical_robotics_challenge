@@ -23,11 +23,14 @@ import tf_conversions.posemath as pm
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import rospy
+from surgical_robotics_challenge.simulation_manager import SimulationManager
+from surgical_robotics_challenge.ecm_arm import ECM
+
 
 np.set_printoptions(precision=3, suppress=True)
 
 
-class ImageSaver:
+class ImageSub:
     def __init__(self):
         self.bridge = CvBridge()
         self.img_subs = rospy.Subscriber(
@@ -52,15 +55,17 @@ class ImageSaver:
 if __name__ == "__main__":
     # Connect to AMBF and setup image suscriber
     rospy.init_node("image_listener")
-    saver = ImageSaver()
+    saver = ImageSub()
 
-    c = Client("client_n")
-    c.connect()
-    time.sleep(0.3)
+    simulation_manager = SimulationManager("needle_projection_ex")
+    time.sleep(0.5)
+    # cam = simulation_manager.get_obj_handle("cameraL")
+    scene = Scene(simulation_manager)  # Provides access to needle and entry/exit points
+    ambf_cam_l = Camera(simulation_manager, "/ambf/env/cameras/cameraL")
+    ambf_cam_frame = ECM(simulation_manager, "CameraFrame")
 
-    scene = Scene(c)
-    ambf_cam_l = Camera(c, "cameraL")
-    ambf_cam_frame = Camera(c, "CameraFrame")
+    assert ambf_cam_l is not None, "CameraL not found"
+    print(ambf_cam_l)
 
     # Calculate opencv camera intrinsics
     fvg = 1.2
@@ -76,6 +81,9 @@ if __name__ == "__main__":
     intrinsic_params[2, 2] = 1.0
 
     # Get pose for the needle and the camera
+    print(f"Needle measured cp:\n {scene.needle_measured_cp()}")
+    print(f"Camera Left frame cp: {ambf_cam_l.get_T_c_w()}")
+
     T_WN = pm.toMatrix(scene.needle_measured_cp())  # Needle to world
     T_FL = pm.toMatrix(ambf_cam_l.get_T_c_w())  # CamL to CamFrame
     T_WF = pm.toMatrix(ambf_cam_frame.get_T_c_w())  # CamFrame to world
@@ -83,7 +91,7 @@ if __name__ == "__main__":
     # Get image
     img = saver.left_frame
 
-    #Calculate needle to left camera transformation
+    # Calculate needle to left camera transformation
     T_WL = T_WF.dot(T_FL)
     T_LN = inv(T_WL).dot(T_WN)
 
@@ -95,12 +103,14 @@ if __name__ == "__main__":
     rvecs, _ = cv2.Rodrigues(T_LN_CV2[:3, :3])
     tvecs = T_LN_CV2[:3, 3]
 
-    # needle_salient points 
+    # needle_salient points
     theta = np.linspace(np.pi / 3, np.pi, num=8).reshape((-1, 1))
-    radius = 0.1018
+
+    # Scale salient points to match unit conversion in simulation manager
+    radius = 0.1018 / 10
     needle_salient = radius * np.hstack((np.cos(theta), np.sin(theta), theta * 0))
-    
-    #Project points
+
+    # Project points
     img_pt, _ = cv2.projectPoints(
         needle_salient,
         rvecs,
@@ -121,10 +131,7 @@ if __name__ == "__main__":
 
     # Display image
     for i in range(img_pt.shape[0]):
-        img = cv2.circle(
-            img, (int(img_pt[i, 0, 0]), int(img_pt[i, 0, 1])), 3, (255, 0, 0), -1
-        )
-
+        img = cv2.circle(img, (int(img_pt[i, 0, 0]), int(img_pt[i, 0, 1])), 3, (255, 0, 0), -1)
 
     cv2.imshow("img", img)
     cv2.waitKey(0)
