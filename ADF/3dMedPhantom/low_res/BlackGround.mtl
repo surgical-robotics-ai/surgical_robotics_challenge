@@ -2,7 +2,7 @@
 # Material Count: 1
 
 newmtl BlackGroundmat
-Ns 323.999994
+Ns 359.999993
 Ka 1.000000 1.000000 1.000000
 Kd 0.581500 0.581500 0.581500
 Ks 0.499914 0.499914 0.499914
@@ -10,4 +10,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /home/juan1995/research_juan/surgical_robotics_challenge/ADF/3dMedPhantom/high_res/surgical_drape.png
+map_Kd /home/juan1995/research_juan/ambf_models/SRC_3d_assets/3d_med_phantom/V1.1/high_res/surgical_drape.png
