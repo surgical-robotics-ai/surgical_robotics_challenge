@@ -36,18 +36,9 @@ def gripper_msg_to_jaw(msg):
 
 if __name__ == '__main__':
     data_folder = os.path.join(dynamic_path, "test_data")
-    print(data_folder)
-
     file_list = glob(os.path.join(data_folder, "*.bag"))
-    print(file_list)
-
     rosbag_name = file_list[0]
-
-    print(rosbag_name)
-    # rosbag_name = file_list[3]  ## phantom_old_shang_01.bag
-    # if not os.path.exists(output_folder):
-    #     print('Create Output Folder')
-    #     os.makedirs(output_folder)
+    print('The name of the rosbag is: \n', rosbag_name)
 
     bag = rosbag.Bag(rosbag_name)
     topics = list(bag.get_type_and_topic_info()[1].keys())

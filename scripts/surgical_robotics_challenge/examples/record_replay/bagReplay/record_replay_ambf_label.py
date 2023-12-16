@@ -60,15 +60,11 @@ def get_released(key):
 
 if __name__ == '__main__':
     key_d = False
-    data_folder = os.path.join(dynamic_path, "Data")  ## add rosbags here!
+    data_folder = os.path.join(dynamic_path, "test_data")  ## add rosbags here!
     file_list = glob(os.path.join(data_folder, "*.bag"))
 
-    user_id = 9 # (0-9)
+    rosbag_name = file_list[0]
 
-    exp_name = '3dmed' # 3dmed
-    # exp_name = 'oldphantom' # 2021 phantom
-
-    rosbag_name = os.path.join(data_folder, f'user_{str(user_id)}' ,f'test_{exp_name}.bag')
     print('The name of the rosbag is: \n', rosbag_name)
 
     bag = rosbag.Bag(rosbag_name)
@@ -204,21 +200,15 @@ if __name__ == '__main__':
     # save_action = False
 
     if save_action:
-        save_folder = os.path.join(dynamic_path, 'output', 'data_replay', f'user_{str(user_id)}')
-
+        save_folder = os.path.join(dynamic_path, 'test_output')
         if not os.path.exists(save_folder):
             print('Create Save Folder')
             os.makedirs(save_folder)
-
-        save_file = os.path.join(save_folder, f'test_needle_{exp_name}.pkl') # pickle file name
-
+        save_file = os.path.join(save_folder, f'test_needle.pkl') # pickle file name
         with open(save_file, 'wb') as f:
             pickle.dump(needle_pose[0:total_num], f)
-
         print('Needle list saved')
-
-        save_list_file = os.path.join(save_folder, f'test_needle_{exp_name}.json')  # json file name
-
+        save_list_file = os.path.join(save_folder, f'test_needle.json')  # json file name
         data = {'index_list': index_list,
                 'needle_linearv': needle_v[0:total_num],
                 'needle_angularv': needle_w[0:total_num]}
