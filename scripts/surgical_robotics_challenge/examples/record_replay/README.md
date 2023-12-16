@@ -1,4 +1,6 @@
-# Record and Replay Examples
+# Record and Replay 
+
+The sample scripts are using MTM teleoperation and AMBF ROS topics. 
 
 ## Record
 
