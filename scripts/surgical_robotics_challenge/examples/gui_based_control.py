@@ -159,6 +159,26 @@ if __name__ == "__main__":
             controller = PSMController(gui, psm)
             controllers.append(controller)
 
+    arm_name = 'psm1_ghost'
+    print('LOADING CONTROLLER FOR ', arm_name)
+    psm = PSM(c, arm_name, add_joint_errors=False)
+    if psm.is_present():
+        init_xyz = [0, 0.0, -1.0]
+        init_rpy = [3.14, 0.01, 1.57079]
+        gui = ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 3.14, 0.000001)
+        controller = PSMController(gui, psm)
+        controllers.append(controller)
+
+    arm_name = 'psm2_ghost'
+    print('LOADING CONTROLLER FOR ', arm_name)
+    psm = PSM(c, arm_name, add_joint_errors=False)
+    if psm.is_present():
+        init_xyz = [0, 0.0, -1.0]
+        init_rpy = [3.14, 0.01, 1.57079]
+        gui = ObjectGUI(arm_name + '/baselink', init_xyz, init_rpy, 3.0, 3.14, 0.000001)
+        controller = PSMController(gui, psm)
+        controllers.append(controller)
+
     if parsed_args.run_ecm is True:
         arm_name = 'CameraFrame'
         ecm = ECM(simulation_manager, arm_name)
@@ -166,6 +186,8 @@ if __name__ == "__main__":
                        upper_lims=ecm.get_upper_limits())
         controller = ECMController(gui, ecm)
         controllers.append(controller)
+
+
 
     if len(controllers) == 0:
         print('No Valid PSM Arms Specified')

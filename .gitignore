@@ -14,3 +14,5 @@ __pycache__
 *.egg-info
 build
 *.txt.user
+/build
+*.bag

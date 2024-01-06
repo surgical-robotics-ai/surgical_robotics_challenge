@@ -380,13 +380,13 @@ BODY tool roll link:
       level: 1.0
     diffuse:
       b: 0.3
-      g: 0.3
-      r: 0.3
+      g: 0.08185
+      r: 0.06518
     specular:
-      b: 0.15
-      g: 0.15
-      r: 0.15
-    transparency: 1.0
+      b: 0.04093
+      g: 0.04093
+      r: 0.03259
+    transparency: 0.8
 BODY tool pitch link:
   name: tool pitch link
   mesh: tool pitch link.STL

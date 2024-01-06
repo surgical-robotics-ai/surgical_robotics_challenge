@@ -3,6 +3,13 @@
 world config: ADF/world/world_stereo.yaml
 color config: ADF/color/colors.yaml
 input devices config: ADF/input_devices/input_devices.yaml
+plugins: [
+  {
+    name: AUTOCOMPLETE_SIMULATOR,
+    filename: libautocomplete.so,
+    path: build/
+  }
+]
 multibody configs:
   - "ADF/psm1.yaml" #0
   - "ADF/sensors_actuators_psm1.yaml" #1
@@ -22,3 +29,16 @@ multibody configs:
   - "ADF/phantom_with_thread.yaml" #15
   - "ADF/camera_frame.yaml" #16
   - "ADF/3dMed_phantom_with_thread.yaml" #17
+
+  - "ADF/psm1_ghost.yaml" #18
+  - "ADF/psm2_ghost.yaml" #19
+  - "ADF/psm1_remote.yaml" #20
+  - "ADF/psm2_remote.yaml" #21
+
+  - "ADF/test_puzzle.yaml" #22
+  - "ADF/peg_puzzle0.yaml" #23
+  - "ADF/peg_puzzle2.yaml" #24
+  - "ADF/test_shadow_final.yaml" #25
+
+  - "ADF/psm1_shadow.yaml" #26
+  - "ADF/psm2_shadow.yaml" #27
