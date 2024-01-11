@@ -1,0 +1,22 @@
+<launch>
+    <node pkg="rosbag" type="record" name="recorder" output="screen" 
+            args="-o    /home/jackzhy/surgical_robotics_challenge/scripts/surgical_robotics_challenge/examples/record_replay/test_data/test.bag
+                  -b    4096
+                        /ambf/env/Entry1/State
+                        /ambf/env/Entry2/State
+                        /ambf/env/Entry3/State
+                        /ambf/env/Entry4/State
+                        /ambf/env/Exit1/State
+                        /ambf/env/Exit2/State
+                        /ambf/env/Exit3/State
+                        /ambf/env/Exit4/State
+                        /ambf/env/CameraFrame/State
+                        /ambf/env/cameras/cameraL/State
+                        /ambf/env/cameras/cameraR/State
+                        /ambf/env/Needle/State
+                        /ambf/env/psm1/baselink/State
+                        /ambf/env/psm2/baselink/State
+                        /MTML/gripper/measured_js
+                        /MTMR/gripper/measured_js"/>
+
+</launch>
