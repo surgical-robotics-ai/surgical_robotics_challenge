@@ -43,7 +43,6 @@
 # */
 # //==============================================================================
 
-from ambf_client import Client
 import rospy
 from PyKDL import Rotation, Frame, Vector
 import socket
@@ -51,6 +50,7 @@ import json
 import time
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.ecm_arm import ECM
+from surgical_robotics_challenge.simulation_manager import SimulationManager
 import numpy as np
 import sys
 import signal
@@ -61,14 +61,13 @@ UDP_PORT = 8080
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("", UDP_PORT))
 
-_client = Client()
-_client.connect()
-print(_client.get_obj_names())
-w = _client.get_world_handle()
+simulation_manager = SimulationManager('my_example_client')
+print(simulation_manager.get_obj_names())
+w = simulation_manager.get_world_handle()
 w.reset_bodies()
-psm1 = PSM(_client, 'psm1')
-psm2 = PSM(_client, 'psm2')
-ecm = ECM(_client, 'CameraFrame')
+psm1 = PSM(simulation_manager, 'psm1')
+psm2 = PSM(simulation_manager, 'psm2')
+ecm = ECM(simulation_manager, 'CameraFrame')
 psms = {"left": psm1,
             "right": psm2}
 
