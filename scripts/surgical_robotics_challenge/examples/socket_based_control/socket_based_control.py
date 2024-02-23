@@ -62,7 +62,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("", UDP_PORT))
 
 simulation_manager = SimulationManager('my_example_client')
-print(simulation_manager.get_obj_names())
+print(simulation_manager._client.get_obj_names())
 w = simulation_manager.get_world_handle()
 w.reset_bodies()
 psm1 = PSM(simulation_manager, 'psm1')
