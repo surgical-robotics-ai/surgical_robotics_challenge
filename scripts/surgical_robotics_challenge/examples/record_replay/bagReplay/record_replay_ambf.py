@@ -59,7 +59,7 @@ if __name__ == '__main__':
         assert topic == '/ambf/env/psm1/baselink/State', 'load incorrect topics'
         psm1_pos_temp = [msg.joint_positions[0],
                          msg.joint_positions[1],
-                         msg.joint_positions[2] / 10.,
+                         msg.joint_positions[2] / SimToSI.linear_factor,
                          msg.joint_positions[3],
                          msg.joint_positions[4],
                          msg.joint_positions[5]]
@@ -73,7 +73,7 @@ if __name__ == '__main__':
         assert topic == '/ambf/env/psm2/baselink/State', 'load incorrect topics'
         psm2_pos_temp = [msg.joint_positions[0],
                          msg.joint_positions[1],
-                         msg.joint_positions[2] / 10.,
+                         msg.joint_positions[2] / SimToSI.linear_factor,
                          msg.joint_positions[3],
                          msg.joint_positions[4],
                          msg.joint_positions[5]]

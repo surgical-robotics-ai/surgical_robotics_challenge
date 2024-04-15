@@ -210,3 +210,12 @@ def compute_IK(T_7_0):
     # print('Computed Pose: \n', T_7_0_computed)
 
     return [j1, j2, j3, j4, j5, j6]
+
+if __name__ == '__main__':
+    joint_list_ref = [0.1, 0.1, 0.2, 0.1, 0.1, 0.1]
+    T_7_0 = compute_FK(joint_list_ref, 7)
+    T_7_0 = convert_mat_to_frame(T_7_0)
+
+    calculated_joint_list = compute_IK(T_7_0)
+    print('Requested Joint: \n', joint_list_ref)
+    print('Calculated Joint: \n', calculated_joint_list)

@@ -71,9 +71,10 @@ class PSMJointMapping:
 pjm = PSMJointMapping()
 
 class PSM:
-    def __init__(self, simulation_manager, name, add_joint_errors=True):
+    def __init__(self, simulation_manager, name, add_joint_errors=True, tool_id=400006):
         self.simulation_manager = simulation_manager
         self.name = name
+        self.tool_id = int(tool_id)
         self.base = self.simulation_manager.get_obj_handle(name + '/baselink')
         self.base.set_joint_types([JointType.REVOLUTE, JointType.REVOLUTE, JointType.PRISMATIC, JointType.REVOLUTE,
                                    JointType.REVOLUTE, JointType.REVOLUTE, JointType.REVOLUTE, JointType.REVOLUTE])
@@ -88,7 +89,7 @@ class PSM:
         self.graspable_objs_prefix = ["Needle", "Thread", "Puzzle"]
 
         self.T_t_b_home = coordinate_frames.PSM.T_t_b_home
-        self._kd = kinematics_data
+        self._kd = PSMKinematicData(self.tool_id)
 
         # Transform of Base in World
         self._T_b_w = None
@@ -233,8 +234,12 @@ class PSM:
         self.base.set_joint_vel(5, jv[5])
 
     def set_jaw_angle(self, jaw_angle):
-        self.base.set_joint_pos(6, jaw_angle)
-        self.base.set_joint_pos(7, jaw_angle)
+        if self.tool_id == 420006:
+            self.base.set_joint_pos(6, -jaw_angle)
+            self.base.set_joint_pos(7, -jaw_angle)
+        else:
+            self.base.set_joint_pos(6, jaw_angle)
+            self.base.set_joint_pos(7, jaw_angle)
         self.run_grasp_logic(jaw_angle)
 
     def measured_cp(self):

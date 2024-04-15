@@ -64,15 +64,23 @@ from surgical_robotics_challenge.kinematics.DH import *
 # i.e. the robot has 6 joints, but only provide 3 joints. The FK till the 3+1 link will be provided
 
 class PSMKinematicData:
-    def __init__(self):
+    def __init__(self, tool_id=400006):
         self.num_links = 7
 
-        self.L_rcc = 0.4389  # From dVRK documentation x 10
-        self.L_tool = 0.416  # From dVRK documentation x 10
-        self.L_pitch2yaw = 0.009  # Fixed length from the palm joint to the pinch joint
-        self.L_yaw2ctrlpnt = 0.0  # Fixed length from the pinch joint to the pinch tip
-        self.L_tool2rcm_offset = 0.0229 # Distance between tool tip and the Remote Center of Motion at Home Pose
-
+        if tool_id == 400006:
+            self.L_rcc = 0.4389  # From dVRK documentation
+            self.L_tool = 0.416  # From dVRK documentation
+            self.L_pitch2yaw = 0.009  # Fixed length from the palm joint to the pinch joint
+            self.L_yaw2ctrlpnt = 0.0  # Fixed length from the pinch joint to the pinch tip
+            self.L_tool2rcm_offset = 0.0229 # Distance between tool tip and the Remote Center of Motion at Home Pose
+        elif tool_id == 420006:
+            self.L_rcc = 0.4318  # From dVRK documentation, keep the same as the classical tool
+            self.L_tool = 0.4826  # L_rcc - L_tool2rcm_offset
+            self.L_pitch2yaw = 0.009  # Fixed length from the tool pitch link to the tool yaw link
+            self.L_yaw2ctrlpnt = 0.0  # Fixed length from the tool yaw link to the tool tip
+            self.L_tool2rcm_offset = -0.0508  # Distance between tool pitch link and the Remote Center of Motion at Home Pose
+        else:
+            raise ValueError('Invalid tool_id')
         # PSM DH Params
         # alpha | a | theta | d | offset | type
         self.kinematics = [DH(PI_2, 0, 0, 0, PI_2, JointType.REVOLUTE, Convention.MODIFIED),
