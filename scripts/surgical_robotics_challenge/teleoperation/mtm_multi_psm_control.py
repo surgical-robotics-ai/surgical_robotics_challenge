@@ -101,7 +101,7 @@ class ControllerInterface:
         else:
             if self.leader.is_active():
                 self.leader.servo_cp(self.leader.pre_coag_pose_msg)
-        twist = self.leader.measured_cv() * 0.01
+        twist = self.leader.measured_cv() * 0.005
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         if not self.leader.clutch_button_pressed:
             delta_t = self._T_c_b.M * twist.vel

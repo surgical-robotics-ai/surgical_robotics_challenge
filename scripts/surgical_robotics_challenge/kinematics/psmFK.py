@@ -109,10 +109,8 @@ class PSMKinematicData:
             return self.kinematics[link_num]
 
 
-kinematics_data = PSMKinematicData()
-
-
-def compute_FK(joint_pos, up_to_link):
+def compute_FK(joint_pos, up_to_link, tool_id=400006):
+    kinematics_data = PSMKinematicData(tool_id=tool_id)
     if up_to_link > kinematics_data.num_links:
         raise "ERROR! COMPUTE FK UP_TO_LINK GREATER THAN DOF"
     j = [0, 0, 0, 0, 0, 0, 0]

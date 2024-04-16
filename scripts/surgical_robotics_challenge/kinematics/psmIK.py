@@ -93,11 +93,9 @@ import rospy
 #
 # is the direction between the difference of A and B expressed in C.
 
-kinematics_data = PSMKinematicData()
 
-
-def compute_IK(T_7_0):
-    pkd = PSMKinematicData()
+def compute_IK(T_7_0, tool_id=400006):
+    pkd = PSMKinematicData(tool_id=tool_id)
 
     # Pinch Joint
     T_PinchJoint_7 = Frame(Rotation.RPY(
@@ -175,7 +173,7 @@ def compute_IK(T_7_0):
 
     # Calculate j5
     # This should be simple, just compute the angle between Rz_4_0 and D_PinchJoint_PalmJoint_0
-    link4_dh = kinematics_data.get_link_params(3)
+    link4_dh = pkd.get_link_params(3)
     link4_dh.theta = j4
     T_4_3 = convert_mat_to_frame(link4_dh.get_trans())
     T_4_0 = T_3_0 * T_4_3
@@ -185,7 +183,7 @@ def compute_IK(T_7_0):
 
     # Calculate j6
     # This too should be simple, compute the angle between the Rz_7_0 and Rx_5_0.
-    link5_dh = kinematics_data.get_link_params(4)
+    link5_dh = pkd.get_link_params(4)
     link5_dh.theta = j5
     T_5_4 = convert_mat_to_frame(link5_dh.get_trans())
     T_5_0 = T_4_0 * T_5_4
