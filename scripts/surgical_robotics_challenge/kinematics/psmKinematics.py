@@ -71,9 +71,11 @@ import json
 # i.e. the robot has 6 joints, but only provide 3 joints. The FK till the 3+1 link will be provided
 
 class PSMKinematicSolver:
-    def __init__(self, root_dir=dynamic_path, psm_type='classic', tool_id=None):
+    def __init__(self, root_dir=dynamic_path, psm_type=None, tool_id=None):
         self.num_links = 7
         self.root_dir = root_dir
+        self.psm_type = psm_type
+        self.tool_id = tool_id
 
         # self.load_json(tool_id)
 
@@ -112,7 +114,12 @@ class PSMKinematicSolver:
 
         self.upper_limits = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
 
-    def load_json(self, json_file):
+    def load_json_files(self):
+        psm_file_path = os.path.join(self.root_dir, 'config', 'kinematic', f'psm_{str(self.psm_type)}.json')
+        tool_file_list = glob(os.path.join(self.root_dir, 'config', 'tool', f'*{str(self.tool_id)}.json'))
+        assert len(tool_file_list) == 1, 'multiple tool files, please check the json configuraton files'
+        tool_file_path = tool_file_list[0]
+
         pass
 
     def get_link_params(self, link_num):
@@ -246,10 +253,10 @@ class PSMKinematicSolver:
         # print(round_mat(T_7_0, 4, 4, 3))
 
 if __name__ == "__main__":
-    file_folder = os.path.join(dynamic_path, 'kinematics', 'config')
+    file_folder = os.path.join(dynamic_path, 'kinematics', 'config', 'tool')
     psm_type = 'classic'
     tool_id = 420006
-    file_name = glob(os.path.join(file_folder, f'psm_{psm_type}*{str(tool_id)}.json'))
+    file_name = glob(os.path.join(file_folder, f'*{str(tool_id)}.json'))
 
     # jsonpickle.set_encoder_options('json', sort_keys=True, indent=4)
 
@@ -270,11 +277,11 @@ if __name__ == "__main__":
     #
     # joint_v = obj.compute_IK(convert_mat_to_frame(T))
 
-    file_name = os.path.join(file_folder, 'dvrk_ref', 'kinematic', 'psm.json')
+    # file_name = os.path.join(file_folder, 'dvrk_ref', 'kinematic', 'psm.json')
 
     import re
 
-    with open(file_name) as f:
+    with open(file_name[0]) as f:
         data = f.read()
         data = re.sub("//.*?\n", "", data)
         data = re.sub("/\\*.*?\\*/", "", data)
