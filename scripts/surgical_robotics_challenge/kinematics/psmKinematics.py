@@ -53,7 +53,6 @@ dynamic_path = os.path.abspath(__file__ + "/../../")
 sys.path.append(dynamic_path)
 from glob import glob
 import json
-import jsonpickle
 
 
 # THIS IS THE FK FOR THE PSM MOUNTED WITH THE LARGE NEEDLE DRIVER TOOL. THIS IS THE
@@ -239,12 +238,12 @@ class PSMKinematicSolver:
         return [j1, j2, j3, j4, j5, j6]
 
 
-# T_7_0 = compute_FK([-0.5, 0, 0.2, 0, 0, 0])
-#
-# print(T_7_0)
-# print("\n AFTER ROUNDING \n")
-# print(round_mat(T_7_0, 4, 4, 3))
-# print(round_mat(T_7_0, 4, 4, 3))
+        # T_7_0 = compute_FK([-0.5, 0, 0.2, 0, 0, 0])
+        #
+        # print(T_7_0)
+        # print("\n AFTER ROUNDING \n")
+        # print(round_mat(T_7_0, 4, 4, 3))
+        # print(round_mat(T_7_0, 4, 4, 3))
 
 if __name__ == "__main__":
     file_folder = os.path.join(dynamic_path, 'kinematics', 'config')
@@ -254,20 +253,30 @@ if __name__ == "__main__":
 
     # jsonpickle.set_encoder_options('json', sort_keys=True, indent=4)
 
-    ks = PSMKinematicSolver(tool_id=420006)
+    # ks = PSMKinematicSolver(tool_id=420006)
+    #
+    # with open('test.json', 'w') as f:
+    #     data = jsonpickle.encode(ks, indent=4)
+    #     f.write(data)
+    # # data = json.loads(f)
+    #
+    # with open('test.json', 'r') as f_r:
+    #     data = f_r.read()
+    #     obj = jsonpickle.decode(data)
+    #
+    # T = obj.compute_FK([0,0,0,0,0,0], 7)
+    #
+    # test_k = obj.kinematics
+    #
+    # joint_v = obj.compute_IK(convert_mat_to_frame(T))
 
-    with open('test.json', 'w') as f:
-        data = jsonpickle.encode(ks, indent=4)
-        f.write(data)
-    # data = json.loads(f)
+    file_name = os.path.join(file_folder, 'dvrk_ref', 'kinematic', 'psm.json')
 
-    with open('test.json', 'r') as f_r:
-        data = f_r.read()
-        obj = jsonpickle.decode(data)
+    import re
 
-    T = obj.compute_FK([0,0,0,0,0,0], 7)
-
-    test_k = obj.kinematics
-
-    joint_v = obj.compute_IK(convert_mat_to_frame(T))
-
+    with open(file_name) as f:
+        data = f.read()
+        data = re.sub("//.*?\n", "", data)
+        data = re.sub("/\\*.*?\\*/", "", data)
+        obj = data[data.find('{'): data.rfind('}') + 1]
+        jsonObj = json.loads(obj)
