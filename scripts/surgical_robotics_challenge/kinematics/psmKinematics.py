@@ -90,9 +90,7 @@ class PSMKinematicSolver:
         self.upper_limits = []
 
         self.load_json_files()
-        #
-        #
-        #
+
         # if tool_id == 400006:
         #     self.L_rcc = 0.4389  # From dVRK documentation
         #     self.L_tool = 0.416  # From dVRK documentation
@@ -107,24 +105,24 @@ class PSMKinematicSolver:
         #     self.L_tool2rcm_offset = -0.0508  # Distance between tool pitch link and the Remote Center of Motion at Home Pose
         # else:
         #     raise ValueError('Invalid tool_id')
-        # # PSM DH Params
-        # # alpha | a | theta | d | offset | type
-        # self.kinematics = [DH(PI_2, 0, 0, 0, PI_2, JointType.REVOLUTE, Convention.MODIFIED),
-        #                    DH(-PI_2, 0, 0, 0, -PI_2,
-        #                       JointType.REVOLUTE, Convention.MODIFIED),
-        #                    DH(PI_2, 0, 0, 0, -self.L_rcc,
-        #                       JointType.PRISMATIC, Convention.MODIFIED),
-        #                    DH(0, 0, 0, self.L_tool, 0,
-        #                       JointType.REVOLUTE, Convention.MODIFIED),
-        #                    DH(-PI_2, 0, 0, 0, -PI_2,
-        #                       JointType.REVOLUTE, Convention.MODIFIED),
-        #                    DH(-PI_2, self.L_pitch2yaw, 0, 0, -PI_2,
-        #                       JointType.REVOLUTE, Convention.MODIFIED),
-        #                    DH(-PI_2, 0, 0, self.L_yaw2ctrlpnt, PI_2, JointType.REVOLUTE, Convention.MODIFIED)]
-        #
-        # self.lower_limits = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
-        #
-        # self.upper_limits = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
+        # PSM DH Params
+        # alpha | a | theta | d | offset | type
+        self.kinematics_test = [DH(PI_2, 0, 0, 0, PI_2, JointType.REVOLUTE, Convention.MODIFIED),
+                           DH(-PI_2, 0, 0, 0, -PI_2,
+                              JointType.REVOLUTE, Convention.MODIFIED),
+                           DH(PI_2, 0, 0, 0, -self.L_rcc,
+                              JointType.PRISMATIC, Convention.MODIFIED),
+                           DH(0, 0, 0, self.L_tool, 0,
+                              JointType.REVOLUTE, Convention.MODIFIED),
+                           DH(-PI_2, 0, 0, 0, -PI_2,
+                              JointType.REVOLUTE, Convention.MODIFIED),
+                           DH(-PI_2, self.L_pitch2yaw, 0, 0, -PI_2,
+                              JointType.REVOLUTE, Convention.MODIFIED),
+                           DH(-PI_2, 0, 0, self.L_yaw2ctrlpnt, PI_2, JointType.REVOLUTE, Convention.MODIFIED)]
+
+        self.lower_limits = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
+
+        self.upper_limits = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
 
     @staticmethod
     def load_convention_type(convention_type: str):
@@ -151,7 +149,7 @@ class PSMKinematicSolver:
         tool_obj = load_json_dvrk(tool_file_path)
         self.L_rcc = -psm_obj['DH']['joints'][2]['offset']
         self.L_tool = tool_obj['DH']['joints'][0]['D']
-        self.L_pitch2yaw = tool_obj['DH']['joints'][0]['A']
+        self.L_pitch2yaw = tool_obj['DH']['joints'][2]['A']
         self.L_tool2rcm_offset = self.L_rcc - self.L_tool
 
         for i_obj in [psm_obj, tool_obj]:
@@ -261,8 +259,7 @@ class PSMKinematicSolver:
 
         # To get j4, compare the above vector with Y axes of T_3_0
         T_3_0 = convert_mat_to_frame(self.compute_FK([j1, j2, j3], 3))
-        j4 = get_angle(cross_palmlink_x7_0, T_3_0.M.UnitY(),
-                       up_vector=-T_3_0.M.UnitZ())
+        j4 = get_angle(cross_palmlink_x7_0, T_3_0.M.UnitY(), up_vector=-T_3_0.M.UnitZ())
 
         # Calculate j5
         # This should be simple, just compute the angle between Rz_4_0 and D_PinchJoint_PalmJoint_0
@@ -271,8 +268,7 @@ class PSMKinematicSolver:
         T_4_3 = convert_mat_to_frame(link4_dh.get_trans())
         T_4_0 = T_3_0 * T_4_3
 
-        j5 = get_angle(T_PinchJoint_0.p - T_PalmJoint_0.p,
-                       T_4_0.M.UnitZ(), up_vector=-T_4_0.M.UnitY())
+        j5 = get_angle(T_PinchJoint_0.p - T_PalmJoint_0.p, T_4_0.M.UnitZ(), up_vector=-T_4_0.M.UnitY())
 
         # Calculate j6
         # This too should be simple, compute the angle between the Rz_7_0 and Rx_5_0.
@@ -289,32 +285,20 @@ if __name__ == "__main__":
     file_folder = os.path.join(dynamic_path, 'kinematics', 'config')
     psm_type = 420006
     tool_id = 420006
-    psm_file_name = os.path.join(file_folder, 'kinematic', f'psm_{str(tool_id)}.json')
-    tool_file_name = glob(os.path.join(file_folder, 'tool', f'*{str(tool_id)}.json'))[0]
 
-    # jsonpickle.set_encoder_options('json', sort_keys=True, indent=4)
+    psm_ks = PSMKinematicSolver(psm_type=psm_type, tool_id=tool_id)
 
-    # ks = PSMKinematicSolver(tool_id=420006)
-    #
-    # with open('test.json', 'w') as f:
-    #     data = jsonpickle.encode(ks, indent=4)
-    #     f.write(data)
-    # # data = json.loads(f)
-    #
-    # with open('test.json', 'r') as f_r:
-    #     data = f_r.read()
-    #     obj = jsonpickle.decode(data)
-    #
-    # T = obj.compute_FK([0,0,0,0,0,0], 7)
-    #
-    # test_k = obj.kinematics
-    #
-    # joint_v = obj.compute_IK(convert_mat_to_frame(T))
+    joint_list_ref = [0.1, 0.1, 0.2, 0.1, 0.1, 0.1]
+    T_7_0 = psm_ks.compute_FK(joint_list_ref, 7)
+    print(T_7_0)
+    T_7_0 = convert_mat_to_frame(T_7_0)
 
-    # file_name = os.path.join(file_folder, 'dvrk_ref', 'kinematic', 'psm.json')
+    calculated_joint_list = psm_ks.compute_IK(T_7_0)
+    print('Requested Joint: \n', joint_list_ref)
+    print('Calculated Joint: \n', calculated_joint_list)
 
-    psm_obj = load_json_dvrk(psm_file_name)
-    tool_obj = load_json_dvrk(tool_file_name)
-
-
-
+    psm_file_path = os.path.join(file_folder, 'kinematic', f'psm_{str(psm_type)}.json')
+    tool_file_list = glob(os.path.join(file_folder, 'tool', f'*{str(tool_id)}.json'))
+    tool_file_path = tool_file_list[0]
+    psm_obj = load_json_dvrk(psm_file_path)
+    tool_obj = load_json_dvrk(tool_file_path)
