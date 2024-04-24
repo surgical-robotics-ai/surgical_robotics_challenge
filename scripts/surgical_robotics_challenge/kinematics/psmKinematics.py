@@ -90,7 +90,6 @@ class PSMKinematicSolver:
         self.upper_limits = []
 
         self.load_json_files()
-
         # if tool_id == 400006:
         #     self.L_rcc = 0.4389  # From dVRK documentation
         #     self.L_tool = 0.416  # From dVRK documentation
@@ -107,22 +106,22 @@ class PSMKinematicSolver:
         #     raise ValueError('Invalid tool_id')
         # PSM DH Params
         # alpha | a | theta | d | offset | type
-        self.kinematics_test = [DH(PI_2, 0, 0, 0, PI_2, JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(-PI_2, 0, 0, 0, -PI_2,
-                              JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(PI_2, 0, 0, 0, -self.L_rcc,
-                              JointType.PRISMATIC, Convention.MODIFIED),
-                           DH(0, 0, 0, self.L_tool, 0,
-                              JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(-PI_2, 0, 0, 0, -PI_2,
-                              JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(-PI_2, self.L_pitch2yaw, 0, 0, -PI_2,
-                              JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(-PI_2, 0, 0, self.L_yaw2ctrlpnt, PI_2, JointType.REVOLUTE, Convention.MODIFIED)]
-
-        self.lower_limits = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
-
-        self.upper_limits = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
+        # self.kinematics_test = [DH(PI_2, 0, 0, 0, PI_2, JointType.REVOLUTE, Convention.MODIFIED),
+        #                    DH(-PI_2, 0, 0, 0, -PI_2,
+        #                       JointType.REVOLUTE, Convention.MODIFIED),
+        #                    DH(PI_2, 0, 0, 0, -self.L_rcc,
+        #                       JointType.PRISMATIC, Convention.MODIFIED),
+        #                    DH(0, 0, 0, self.L_tool, 0,
+        #                       JointType.REVOLUTE, Convention.MODIFIED),
+        #                    DH(-PI_2, 0, 0, 0, -PI_2,
+        #                       JointType.REVOLUTE, Convention.MODIFIED),
+        #                    DH(-PI_2, self.L_pitch2yaw, 0, 0, -PI_2,
+        #                       JointType.REVOLUTE, Convention.MODIFIED),
+        #                    DH(-PI_2, 0, 0, self.L_yaw2ctrlpnt, PI_2, JointType.REVOLUTE, Convention.MODIFIED)]
+        #
+        # self.lower_limits = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
+        #
+        # self.upper_limits = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
 
     @staticmethod
     def load_convention_type(convention_type: str):

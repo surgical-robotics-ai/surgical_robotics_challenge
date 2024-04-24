@@ -71,9 +71,10 @@ class PSMJointMapping:
 pjm = PSMJointMapping()
 
 class PSM:
-    def __init__(self, simulation_manager, name, add_joint_errors=False, tool_id=400006):
+    def __init__(self, simulation_manager, name, add_joint_errors=False, tool_id=None):
         self.simulation_manager = simulation_manager
         self.name = name
+        assert tool_id is not None, 'Please specify a tool id'
         self.tool_id = int(tool_id)
         self.base = self.simulation_manager.get_obj_handle(name + '/baselink')
         self.base.set_joint_types([JointType.REVOLUTE, JointType.REVOLUTE, JointType.PRISMATIC, JointType.REVOLUTE,
@@ -87,8 +88,6 @@ class PSM:
         time.sleep(0.5)
         self.grasped = [False, False, False]
         self.graspable_objs_prefix = ["Needle", "Thread", "Puzzle"]
-
-        # self.T_t_b_home = Frame(Rotation.RPY(0.0, 0.0, 0.0), Vector(0.0, 0.0, 0.0))
         self.T_t_b_home = coordinate_frames.PSM.T_t_b_home
         self._kd = PSMKinematicSolver(psm_type=self.tool_id, tool_id=self.tool_id)
 
