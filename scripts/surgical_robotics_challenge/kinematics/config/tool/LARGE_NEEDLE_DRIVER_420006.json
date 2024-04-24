@@ -10,8 +10,8 @@
                 "type": "revolute",
                 "mode": "active",
                 "offset":  0.0000,
-                "qmin": -4.53786, // -260 degrees
-                "qmax":  4.53786, //  260 degrees
+                "qmin": -3.05433, // -175 degrees
+                "qmax":  3.05433, //  175 degrees
                 "ftmax": 0.33
             },
             {
@@ -26,7 +26,7 @@
             },
             {
                 "name": "outer_wrist_yaw",
-                "alpha": -1.5708, "A":  0.0091, "theta":  0.0000, "D":  0.0000,
+                "alpha": -1.5708, "A":  0.009, "theta":  0.0000, "D":  0.0000,
                 "type": "revolute",
                 "mode": "active",
                 "offset": -1.5708,

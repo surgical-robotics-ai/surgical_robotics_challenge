@@ -279,7 +279,7 @@ def load_json_dvrk(file_path:str)->dict:
     :param file_path: json file path
     :return: a dictionary with loaded json file content
     '''
-    with open(file_path[0]) as f:
+    with open(file_path) as f:
         data = f.read()
         data = re.sub("//.*?\n", "", data)
         data = re.sub("/\\*.*?\\*/", "", data)

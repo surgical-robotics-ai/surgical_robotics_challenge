@@ -43,10 +43,10 @@
 #     \version   1.0
 # */
 # //==============================================================================
-from surgical_robotics_challenge.kinematics.psmIK import *
+from surgical_robotics_challenge.kinematics.psmKinematics import *
 from surgical_robotics_challenge.utils.joint_errors_model import JointErrorsModel
 from surgical_robotics_challenge.utils import coordinate_frames
-
+import rospy
 import time
 from threading import Thread, Lock
 from surgical_robotics_challenge.utils.interpolation import Interpolation
@@ -90,7 +90,7 @@ class PSM:
 
         # self.T_t_b_home = Frame(Rotation.RPY(0.0, 0.0, 0.0), Vector(0.0, 0.0, 0.0))
         self.T_t_b_home = coordinate_frames.PSM.T_t_b_home
-        self._kd = PSMKinematicData(self.tool_id)
+        self._kd = PSMKinematicSolver(psm_type=self.tool_id, tool_id=self.tool_id)
 
         # Transform of Base in World
         self._T_b_w = None
@@ -172,7 +172,7 @@ class PSM:
         if type(T_t_b) in [np.matrix, np.array]:
             T_t_b = convert_mat_to_frame(T_t_b)
 
-        ik_solution = compute_IK(T_t_b, tool_id=self.tool_id)
+        ik_solution = self._kd.compute_IK(T_t_b)
         self._ik_solution = enforce_limits(ik_solution, self.get_lower_limits(), self.get_upper_limits())
         self.servo_jp(self._ik_solution)
 
@@ -180,7 +180,7 @@ class PSM:
         if type(T_t_b) in [np.matrix, np.array]:
             T_t_b = convert_mat_to_frame(T_t_b)
 
-        ik_solution = compute_IK(T_t_b, tool_id=self.tool_id)
+        ik_solution = self._kd.compute_IK(T_t_b)
         self._ik_solution = enforce_limits(ik_solution, self.get_lower_limits(), self.get_upper_limits())
         self.move_jp(self._ik_solution, execute_time, control_rate)
 
@@ -246,7 +246,7 @@ class PSM:
     def measured_cp(self):
         jp = self.measured_jp()
         jp.append(0.0)
-        return compute_FK(jp, 7, tool_id=self.tool_id)
+        return self._kd.compute_FK(jp, 7, tool_id=self.tool_id)
 
     def measured_jp(self):
         j0 = self.base.get_joint_pos(0)

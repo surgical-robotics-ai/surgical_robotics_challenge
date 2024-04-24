@@ -25,3 +25,7 @@ class PSM3(PSM):
 class Needle:
     T_center_psmtip = Frame(Rotation.RPY(-np.pi / 2., 0., 0.),
                             Vector(0.009973019361495972, -0.005215135216712952, 0.003237169608473778))
+
+
+class TeleopScale:
+    scale_factor = 0.005

@@ -54,6 +54,7 @@ sys.path.append(dynamic_path)
 from glob import glob
 import json
 
+config_folder = os.path.join(dynamic_path, 'kinematics', 'config')
 
 # THIS IS THE FK FOR THE PSM MOUNTED WITH THE LARGE NEEDLE DRIVER TOOL. THIS IS THE
 # SAME KINEMATIC CONFIGURATION FOUND IN THE DVRK MANUAL. NOTE, JUST LIKE A FAULT IN THE
@@ -71,56 +72,103 @@ import json
 # i.e. the robot has 6 joints, but only provide 3 joints. The FK till the 3+1 link will be provided
 
 class PSMKinematicSolver:
-    def __init__(self, root_dir=dynamic_path, psm_type=None, tool_id=None):
+    def __init__(self, root_dir=config_folder, psm_type=None, tool_id=None):
         self.num_links = 7
+        assert root_dir is not None, 'root dir must be provided'
+        assert psm_type is not None, 'psm type must be provided'
+        assert type(tool_id) == int, "tool id must be an integer, please check the tool id input"
         self.root_dir = root_dir
         self.psm_type = psm_type
         self.tool_id = tool_id
+        self.L_rcc = None
+        self.L_tool = None
+        self.L_pitch2yaw = None
+        self.L_yaw2ctrlpnt = 0.0  # Fixed length from the tool yaw joint to the end effector tip
+        self.L_tool2rcm_offset = None
+        self.kinematics = []
+        self.lower_limits = []
+        self.upper_limits = []
 
-        # self.load_json(tool_id)
+        self.load_json_files()
+        #
+        #
+        #
+        # if tool_id == 400006:
+        #     self.L_rcc = 0.4389  # From dVRK documentation
+        #     self.L_tool = 0.416  # From dVRK documentation
+        #     self.L_pitch2yaw = 0.009  # Fixed length from the palm joint to the pinch joint
+        #     self.L_yaw2ctrlpnt = 0.0  # Fixed length from the pinch joint to the pinch tip
+        #     self.L_tool2rcm_offset = 0.0229 # Distance between tool tip and the Remote Center of Motion at Home Pose
+        # elif tool_id == 420006:
+        #     self.L_rcc = 0.4318  # From dVRK documentation, keep the same as the classical tool
+        #     self.L_tool = 0.4826  # L_rcc - L_tool2rcm_offset
+        #     self.L_pitch2yaw = 0.009  # Fixed length from the tool pitch link to the tool yaw link
+        #     self.L_yaw2ctrlpnt = 0.0  # Fixed length from the tool yaw link to the tool tip
+        #     self.L_tool2rcm_offset = -0.0508  # Distance between tool pitch link and the Remote Center of Motion at Home Pose
+        # else:
+        #     raise ValueError('Invalid tool_id')
+        # # PSM DH Params
+        # # alpha | a | theta | d | offset | type
+        # self.kinematics = [DH(PI_2, 0, 0, 0, PI_2, JointType.REVOLUTE, Convention.MODIFIED),
+        #                    DH(-PI_2, 0, 0, 0, -PI_2,
+        #                       JointType.REVOLUTE, Convention.MODIFIED),
+        #                    DH(PI_2, 0, 0, 0, -self.L_rcc,
+        #                       JointType.PRISMATIC, Convention.MODIFIED),
+        #                    DH(0, 0, 0, self.L_tool, 0,
+        #                       JointType.REVOLUTE, Convention.MODIFIED),
+        #                    DH(-PI_2, 0, 0, 0, -PI_2,
+        #                       JointType.REVOLUTE, Convention.MODIFIED),
+        #                    DH(-PI_2, self.L_pitch2yaw, 0, 0, -PI_2,
+        #                       JointType.REVOLUTE, Convention.MODIFIED),
+        #                    DH(-PI_2, 0, 0, self.L_yaw2ctrlpnt, PI_2, JointType.REVOLUTE, Convention.MODIFIED)]
+        #
+        # self.lower_limits = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
+        #
+        # self.upper_limits = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
 
-        assert type(tool_id) == int, "tool id must be an integer, please check the input"
-
-        if tool_id == 400006:
-            self.L_rcc = 0.4389  # From dVRK documentation
-            self.L_tool = 0.416  # From dVRK documentation
-            self.L_pitch2yaw = 0.009  # Fixed length from the palm joint to the pinch joint
-            self.L_yaw2ctrlpnt = 0.0  # Fixed length from the pinch joint to the pinch tip
-            self.L_tool2rcm_offset = 0.0229 # Distance between tool tip and the Remote Center of Motion at Home Pose
-        elif tool_id == 420006:
-            self.L_rcc = 0.4318  # From dVRK documentation, keep the same as the classical tool
-            self.L_tool = 0.4826  # L_rcc - L_tool2rcm_offset
-            self.L_pitch2yaw = 0.009  # Fixed length from the tool pitch link to the tool yaw link
-            self.L_yaw2ctrlpnt = 0.0  # Fixed length from the tool yaw link to the tool tip
-            self.L_tool2rcm_offset = -0.0508  # Distance between tool pitch link and the Remote Center of Motion at Home Pose
+    @staticmethod
+    def load_convention_type(convention_type: str):
+        if convention_type == 'modified':
+            return Convention.MODIFIED
         else:
-            raise ValueError('Invalid tool_id')
-        # PSM DH Params
-        # alpha | a | theta | d | offset | type
-        self.kinematics = [DH(PI_2, 0, 0, 0, PI_2, JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(-PI_2, 0, 0, 0, -PI_2,
-                              JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(PI_2, 0, 0, 0, -self.L_rcc,
-                              JointType.PRISMATIC, Convention.MODIFIED),
-                           DH(0, 0, 0, self.L_tool, 0,
-                              JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(-PI_2, 0, 0, 0, -PI_2,
-                              JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(-PI_2, self.L_pitch2yaw, 0, 0, -PI_2,
-                              JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(-PI_2, 0, 0, self.L_yaw2ctrlpnt, PI_2, JointType.REVOLUTE, Convention.MODIFIED)]
+            return Convention.STANDARD
 
-        self.lower_limits = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
-
-        self.upper_limits = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
+    @staticmethod
+    def load_joint_type(joint_type: str):
+        if joint_type == 'revolute':
+            return JointType.REVOLUTE
+        elif joint_type == 'prismatic':
+            return JointType.PRISMATIC
+        else:
+            raise ValueError('incorrect joint type')
 
     def load_json_files(self):
-        psm_file_path = os.path.join(self.root_dir, 'config', 'kinematic', f'psm_{str(self.psm_type)}.json')
-        tool_file_list = glob(os.path.join(self.root_dir, 'config', 'tool', f'*{str(self.tool_id)}.json'))
-        assert len(tool_file_list) == 1, 'multiple tool files, please check the json configuraton files'
+        psm_file_path = os.path.join(self.root_dir, 'kinematic', f'psm_{str(self.psm_type)}.json')
+        tool_file_list = glob(os.path.join(self.root_dir, 'tool', f'*{str(self.tool_id)}.json'))
+        assert len(tool_file_list) == 1, 'multiple tool files, please check the json configuration files'
         tool_file_path = tool_file_list[0]
+        psm_obj = load_json_dvrk(psm_file_path)
+        tool_obj = load_json_dvrk(tool_file_path)
+        self.L_rcc = -psm_obj['DH']['joints'][2]['offset']
+        self.L_tool = tool_obj['DH']['joints'][0]['D']
+        self.L_pitch2yaw = tool_obj['DH']['joints'][0]['A']
+        self.L_tool2rcm_offset = self.L_rcc - self.L_tool
 
-        pass
+        for i_obj in [psm_obj, tool_obj]:
+            dict_DH = i_obj['DH']
+            obj_convention = self.load_convention_type(dict_DH['convention'])
+            list_joints = dict_DH['joints']
+            for i_joint in range(3):
+                dict_joint = list_joints[i_joint]
+                link_DH = DH(dict_joint['alpha'], dict_joint['A'], dict_joint['theta'], dict_joint['D'],
+                             dict_joint['offset'], self.load_joint_type(dict_joint['type']), obj_convention)
+                self.kinematics.append(link_DH)
+                self.lower_limits.append(dict_joint['qmin'])
+                self.upper_limits.append(dict_joint['qmax'])
+
+        last_link = DH(-np.pi / 2, 0, 0, self.L_yaw2ctrlpnt, np.pi / 2, JointType.REVOLUTE, Convention.MODIFIED)
+        self.kinematics.append(last_link)
+        print('kinematics loaded from', psm_file_path, ' and ', tool_file_path )
 
     def get_link_params(self, link_num):
         if link_num < 0 or link_num > self.num_links:
@@ -130,9 +178,13 @@ class PSMKinematicSolver:
         else:
             return self.kinematics[link_num]
 
-
-    def compute_FK(self, joint_pos, up_to_link, tool_id=400006):
-        # kinematics_data = PSMKinematicData(tool_id=tool_id)
+    def compute_FK(self, joint_pos:list, up_to_link:int)->np.matrix:
+        '''
+        Compute the forward kinematic matrix
+        :param file_path: joint value list
+        :param up_to_link: number of links
+        :return: the 4x4 transformation matrix from psm base to psm end effector
+        '''
         if up_to_link > self.num_links:
             raise "ERROR! COMPUTE FK UP_TO_LINK GREATER THAN DOF"
         j = [0, 0, 0, 0, 0, 0, 0]
@@ -182,17 +234,10 @@ class PSMKinematicSolver:
         # print(angle)
 
         # Add another frame to account for Palm link length
-        # print("N_PalmJoint_PinchJoint: ", round_vec(N_PalmJoint_PinchJoint))
-        T_PalmJoint_PinchJoint = Frame(Rotation.RPY(
-            0, 0, 0), N_PalmJoint_PinchJoint * self.L_pitch2yaw)
-        # print("P_PalmJoint_PinchJoint: ", round_vec(T_PalmJoint_PinchJoint.p))
+        T_PalmJoint_PinchJoint = Frame(Rotation.RPY(0, 0, 0),
+                                       N_PalmJoint_PinchJoint * self.L_pitch2yaw)
         # Get the shaft tip or the Palm's Joint position
         T_PalmJoint_0 = T_7_0 * T_PinchJoint_7 * T_PalmJoint_PinchJoint
-
-        # print("P_PalmJoint_0: ", round_vec(T_PalmJoint_0.p))
-        # print("P_PinchJoint_0: ", round_vec(T_PinchJoint_0.p))
-        # Now this should be the position of the point along the RC
-        # print("Point Along the SHAFT: ", T_PalmJoint_0.p)
 
         # Calculate insertion_depth to check if the tool is past the RCM
         insertion_depth = T_PalmJoint_0.p.Norm()
@@ -202,12 +247,8 @@ class PSMKinematicSolver:
         xz_diagonal = math.sqrt(T_PalmJoint_0.p[0] ** 2 + T_PalmJoint_0.p[2] ** 2)
         # # print('XZ Diagonal: ', xz_diagonal)
 
-        # yz_diagonal = math.sqrt(T_PalmJoint_0.p[1] ** 2 + T_PalmJoint_0.p[2] ** 2)
-        # # print('YZ Diagonal: ', yz_diagonal)
-
         j1 = math.atan2(T_PalmJoint_0.p[0], -T_PalmJoint_0.p[2])
 
-        # j2 = np.sign(T_PalmJoint_0.p[0]) * math.acos(-T_PalmJoint_0.p[2] / yz_diagonal)
         j2 = -math.atan2(T_PalmJoint_0.p[1], xz_diagonal)
 
         j3 = insertion_depth + self.L_tool2rcm_offset
@@ -244,19 +285,12 @@ class PSMKinematicSolver:
 
         return [j1, j2, j3, j4, j5, j6]
 
-
-        # T_7_0 = compute_FK([-0.5, 0, 0.2, 0, 0, 0])
-        #
-        # print(T_7_0)
-        # print("\n AFTER ROUNDING \n")
-        # print(round_mat(T_7_0, 4, 4, 3))
-        # print(round_mat(T_7_0, 4, 4, 3))
-
 if __name__ == "__main__":
-    file_folder = os.path.join(dynamic_path, 'kinematics', 'config', 'tool')
-    psm_type = 'classic'
+    file_folder = os.path.join(dynamic_path, 'kinematics', 'config')
+    psm_type = 420006
     tool_id = 420006
-    file_name = glob(os.path.join(file_folder, f'*{str(tool_id)}.json'))
+    psm_file_name = os.path.join(file_folder, 'kinematic', f'psm_{str(tool_id)}.json')
+    tool_file_name = glob(os.path.join(file_folder, 'tool', f'*{str(tool_id)}.json'))[0]
 
     # jsonpickle.set_encoder_options('json', sort_keys=True, indent=4)
 
@@ -279,11 +313,8 @@ if __name__ == "__main__":
 
     # file_name = os.path.join(file_folder, 'dvrk_ref', 'kinematic', 'psm.json')
 
-    import re
+    psm_obj = load_json_dvrk(psm_file_name)
+    tool_obj = load_json_dvrk(tool_file_name)
 
-    with open(file_name[0]) as f:
-        data = f.read()
-        data = re.sub("//.*?\n", "", data)
-        data = re.sub("/\\*.*?\\*/", "", data)
-        obj = data[data.find('{'): data.rfind('}') + 1]
-        jsonObj = json.loads(obj)
+
+
