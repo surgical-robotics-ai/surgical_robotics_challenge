@@ -1,24 +1,16 @@
 # This is the base file for Coordination Application
-# world config: ADF/world/world.yaml
-world config: ADF/world/world_stereo.yaml
-color config: ADF/color/colors.yaml
-input devices config: ADF/input_devices/input_devices.yaml
+world config: ./ADF/world/world_stereo.yaml
+color config: ./ADF/color/colors.yaml
+input devices config: ./ADF/input_devices/input_devices.yaml
+
 multibody configs:
-  - "ADF/psm1.yaml" #0
-  - "ADF/sensors_actuators_psm1.yaml" #1
-  - "ADF/target1_ik.yaml" #2
-  - "ADF/psm2.yaml" #3
-  - "ADF/sensors_actuators_psm2.yaml" #4
-  - "ADF/target2_ik.yaml" #5
-  - "ADF/psm3.yaml" #6
-  - "ADF/sensors_actuators_psm3.yaml" #7
-  - "ADF/target3_ik.yaml" #8
-  - "ADF/env.yaml" #9
-  - "ADF/gynae.yaml" #10
-  - "ADF/all_targets.yaml" #11
-  - "ADF/psm_debug.yaml" #12
-  - "ADF/phantom_without_thread.yaml" #13
-  - "ADF/ghosts.yaml" #14
-  - "ADF/phantom_with_thread.yaml" #15
-  - "ADF/camera_frame.yaml" #16
-  - "ADF/3dMed_phantom_with_thread.yaml" #17
+  - "ADF/ghosts.yaml" #0
+  - "ADF/3d_med_phantom.yaml" #1
+  - "ADF/full_new_psm1.yaml" #2
+  - "ADF/sensors_actuators_psm1.yaml" #3
+  - "ADF/full_new_psm2.yaml" #4
+  - "ADF/sensors_actuators_psm2.yaml" #5
+  - "ADF/full_simple_psm1.yaml" #6
+  - "ADF/sensors_actuators_psm1_simple.yaml" #7
+  - "ADF/full_simple_psm2.yaml" #8
+  - "ADF/sensors_actuators_psm2_simple.yaml" #9

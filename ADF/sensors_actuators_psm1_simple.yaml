@@ -1,0 +1,34 @@
+bodies: []
+joints: []
+sensors: [SENSOR Sensor0]
+actuators: [ACTUATOR Actuator0]
+high resolution path: .
+low resolution path: .
+ignore inter-collision: true
+namespace: /ambf/env/psm1/
+# publish children names: true
+
+SENSOR Sensor0:
+  name: Sensor0
+  type: Proximity
+  location:
+    orientation: {p: 0.0, r: 0.0, y: 0.0}
+    position: {x: 0.0, y: -0.003, z: 0.0}
+  array:
+    -
+      offset: {x: 0.0, y: 0.0, z: 0.0}
+      direction: {x: 0.0, y: -1.0, z: 0.0}
+  range: 0.007
+  parent: /ambf/env/psm1/BODY tool yaw link simple
+  visible: False
+  visible size: 0.0005
+
+ACTUATOR Actuator0:
+  name: Actuator0
+  type: Constraint
+  location:
+    orientation: {p: 0.0, r: 0.0, y: 0.0}
+    position: {x: 0.0, y: -0.010, z: 0.0}
+  parent: /ambf/env/psm1/BODY tool yaw link simple
+  visible: False
+  visible size: 0.0005
