@@ -9,10 +9,10 @@ import sys
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.simulation_manager import SimulationManager
-from surgical_robotics_challenge.kinematics.psmFK import *
-from surgical_robotics_challenge.kinematics.psmIK import *
+from surgical_robotics_challenge.kinematics.psmKinematics import PSMKinematicSolver
 from surgical_robotics_challenge.utils.utilities import convert_mat_to_frame
 from surgical_robotics_challenge.utils.utilities import convert_frame_to_mat
+from utilities import cartesian_interpolate_step
 import os
 import sys
 dynamic_path = os.path.abspath(__file__+"/../../")
@@ -51,8 +51,8 @@ def yaw_to_gripper(T: Frame) -> Frame:
     L_yaw2ctrlpnt = 0.0
     offset_gripper = Frame(Rotation.RPY(0, 0, 0),
                            L_yaw2ctrlpnt * Vector(0.0, 0.0, 1.0))
-    offset_x = Frame(Rotation.RPY(- PI_2, 0, 0), Vector(0.0, 0.0, 0.0))
-    offset_y = Frame(Rotation.RPY(0, PI_2, 0), Vector(0.0, 0.0, 0.0))
+    offset_x = Frame(Rotation.RPY(-np.pi/2, 0, 0), Vector(0.0, 0.0, 0.0))
+    offset_y = Frame(Rotation.RPY(0, np.pi/2, 0), Vector(0.0, 0.0, 0.0))
     T_out =  T* offset_y * offset_x * offset_gripper
     return T_out
 
@@ -65,12 +65,18 @@ if __name__ == "__main__":
     time.sleep(0.2)
     w.reset_bodies()
     time.sleep(0.2)
+
+    # set tool id
+    # tool_id = 400006 # the tool id for the simple psm
+    tool_id = 420006 # the tool id for the real psm
+    psm_ks = PSMKinematicSolver(psm_type=tool_id, tool_id=tool_id)
+
     cam = ECM(simulation_manager, "CameraFrame")
     cam.servo_jp([0.0, 0.05, -0.01, 0.0])
     time.sleep(0.2)
-    psm1 = PSM(simulation_manager, "psm1", add_joint_errors=False)
+    psm1 = PSM(simulation_manager, "psm1", add_joint_errors=False, tool_id=tool_id_simple)
     time.sleep(0.2)
-    psm2 = PSM(simulation_manager, "psm2", add_joint_errors=False)
+    psm2 = PSM(simulation_manager, "psm2", add_joint_errors=False, tool_id=tool_id_simple)
     time.sleep(0.2)
     needle = simulation_manager.get_obj_handle('Needle')
     time.sleep(0.2)
@@ -85,16 +91,17 @@ if __name__ == "__main__":
                  -1.0873261421084663, 0.7172512403887915, 0.48780102579228307]
 
     ## offset of PSM
-    offset_psm1 = Frame(Rotation.RPY(-np.pi / 2., np.pi*5/9, 0.),
+    offset_psm1 = Frame(Rotation.RPY(-np.pi / 2., np.pi*1/3, 0.),
                         Vector(0.009973019361495972, -0.005215135216712952, 0.003237169608473778))
 
     offset_psm2 = Frame(Rotation.RPY(-np.pi / 2., 0., 0.),
                         Vector(0.009973019361495972, -0.005215135216712952, 0.003237169608473778))
-
-    psm1.move_jp(psm1_init)
-    psm1.set_jaw_angle(0.7)
-    psm2.move_jp(psm2_init)
-    psm2.set_jaw_angle(0.7)
+    if grasp_arm == 'psm1':
+        psm1.move_jp(psm1_init)
+        psm1.set_jaw_angle(0.7)
+    else:
+        psm2.move_jp(psm2_init)
+        psm2.set_jaw_angle(0.7)
     time.sleep(3.0)
 
     if grasp_arm == 'psm2':
@@ -104,8 +111,8 @@ if __name__ == "__main__":
         psm2_pose_cp = psm2.measured_cp()
         psm2_pose = psm2.measured_jp()
         psm2_pose.append(0.0)
-        mtx_tool_tip = compute_FK(psm2_pose, 7) ### FK to the tool tip
-        mtx_tool_yaw = compute_FK(psm2_pose, 6) ### FK to the tool yaw link
+        mtx_tool_tip = psm_ks.compute_FK(psm2_pose, 7) ### FK to the tool tip
+        mtx_tool_yaw = psm_ks.compute_FK(psm2_pose, 6) ### FK to the tool yaw link
         T_psm_yaw = convert_mat_to_frame(mtx_tool_yaw)
     else:
         #### for psm 1
@@ -114,8 +121,8 @@ if __name__ == "__main__":
         psm1_pose_cp = psm1.measured_cp()
         psm1_pose = psm1.measured_jp()
         psm1_pose.append(0.0)
-        mtx_tool_tip = compute_FK(psm1_pose, 7)  ### FK to the tool tip
-        mtx_tool_yaw = compute_FK(psm1_pose, 6)  ### FK to the tool yaw link
+        mtx_tool_tip = psm_ks.compute_FK(psm1_pose, 7)  ### FK to the tool tip
+        mtx_tool_yaw = psm_ks.compute_FK(psm1_pose, 6)  ### FK to the tool yaw link
         T_psm_yaw = convert_mat_to_frame(mtx_tool_yaw)
 
 
