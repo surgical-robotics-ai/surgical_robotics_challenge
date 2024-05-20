@@ -562,8 +562,8 @@ BODY tool yaw link:
   inertial offset:
     position:
       x: 0.0
-      y: -0.0
-      z: 0.00012
+      y: 0.0
+      z: 0.0
     orientation:
       r: 0
       p: 0
