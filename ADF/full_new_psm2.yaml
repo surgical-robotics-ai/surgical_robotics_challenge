@@ -131,7 +131,7 @@ BODY main insertion link:
   friction:
     rolling: 0.0
     static: 0.5
-  restitution: 0.1000000015
+  restitution: 0.0
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
@@ -214,7 +214,7 @@ BODY pitch end link:
   friction:
     rolling: 0.0
     static: 0.5
-  restitution: 0.1000000015
+  restitution: 0.0
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
@@ -510,7 +510,7 @@ BODY tool roll link:
   friction:
     rolling: 0.0
     static: 0.5
-  restitution: 0.1000000015
+  restitution: 0.0
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
