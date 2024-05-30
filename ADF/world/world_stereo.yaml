@@ -90,27 +90,6 @@ cameraL2:
   publish depth resolution: *cam_common_pub_depth_res
   mouse control multipliers: { pan: 0.1, rotate: 1.0, scroll: 0.1, arcball: 0.1 }
   # multipass: True
-  plugins:
-    [
-      {
-        name: shader_plugin,
-        path: "../../build/",
-        filename: "libprepropressing_shader_config.so",
-      },
-    ]
-  preprocessing shaders config:
-    /ambf/env/psm2/: 
-      tool roll link: [0, 255, 0]
-      tool pitch link: [0, 245, 0]
-      tool gripper1 link: [0, 235, 0]
-      tool gripper2 link:  [0, 235, 0]
-    /ambf/env/psm1/:
-      tool roll link: [0, 225, 0]
-      tool pitch link: [0, 215, 0]
-      tool gripper1 link: [0, 195, 0]
-      tool gripper2 link: [0, 195, 0]
-    /ambf/env/:
-      Needle: [255, 0, 0] # If namespace is empty, defaults to "/ambf/env/"
 
 cameraR:
   namespace: cameras/
