@@ -7,7 +7,7 @@ Change log
 * Changes:
    * Rescaled simulation assets to SI units. In the previous release of the SRC assets were scaled by 10.
 * New assets:
-   * New suturing phantom - 3-dmed phantom
+   * New suturing phantom from 3-dmed
    * New robotic instruments based on da Vinci SI large needle driver.     
 
 
