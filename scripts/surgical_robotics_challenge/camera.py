@@ -42,7 +42,7 @@
 #     \version   1.0
 # */
 # //==============================================================================
-from surgical_robotics_challenge.kinematics.psmIK import *
+from surgical_robotics_challenge.kinematics.psmKinematics import *
 from PyKDL import Frame, Rotation, Vector, Twist
 import time
 

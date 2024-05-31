@@ -33,11 +33,12 @@ class ImageSub:
 simulation_manager = SimulationManager('my_example_client')
 time.sleep(0.5)
 world_handle = simulation_manager.get_world_handle()
+tool_id = 400006
 
 # Get a handle to PSM1
-psm1 = PSM(simulation_manager, 'psm1')
+psm1 = PSM(simulation_manager, 'psm1', tool_id=tool_id)
 # Get a handle  to PSM2
-psm2 = PSM(simulation_manager, 'psm2')
+psm2 = PSM(simulation_manager, 'psm2', tool_id=tool_id)
 # Get a handle to ECM
 ecm = ECM(simulation_manager, 'CameraFrame')
 # Get a handle to scene to access its elements, i.e. needle and entry / exit points

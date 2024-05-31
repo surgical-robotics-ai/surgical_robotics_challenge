@@ -43,8 +43,9 @@
 # */
 # //==============================================================================
 
-from surgical_robotics_challenge.kinematics.psmIK import compute_FK, compute_IK, convert_mat_to_frame, round_mat, round_vec
+from surgical_robotics_challenge.kinematics.psmKinematics import PSMKinematicSolver
 from surgical_robotics_challenge.utils.joint_space_trajectory_generator import JointSpaceTrajectory
+from surgical_robotics_challenge.utils.utilities import *
 import numpy as np
 
 
@@ -73,11 +74,13 @@ js_traj = JointSpaceTrajectory(
     num_joints=7, num_traj_points=50, joint_limits=joint_lims)
 num_points = js_traj.get_num_traj_points()
 num_joints = 6
+tool_id = 400006
+psm_solver = PSMKinematicSolver(psm_type=tool_id, tool_id=tool_id)
 for i in range(num_points):
     test_q = js_traj.get_traj_at_point(i)
-    T_7_0 = compute_FK(test_q, 7)
+    T_7_0 = psm_solver.compute_FK(test_q, 7)
 
-    computed_q = compute_IK(convert_mat_to_frame(T_7_0))
+    computed_q = psm_solver.compute_IK(convert_mat_to_frame(T_7_0))
 
     test_q = round_vec(test_q)
     T_7_0 = round_mat(T_7_0, 4, 4, 3)

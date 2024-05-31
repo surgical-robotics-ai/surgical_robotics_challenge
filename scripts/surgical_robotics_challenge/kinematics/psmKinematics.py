@@ -71,6 +71,19 @@ config_folder = os.path.join(dynamic_path, 'kinematics', 'config')
 # You need to provide a list of joint positions. If the list is less that the number of joint
 # i.e. the robot has 6 joints, but only provide 3 joints. The FK till the 3+1 link will be provided
 
+
+# Currently implemented PSMs
+class PSMType:
+    LND = 400006
+    LND_SI = 420006
+
+
+# Currently implemented Tools
+class ToolType:
+    LND = 400006
+    LND_SI = 420006
+
+
 class PSMKinematicSolver:
     def __init__(self, root_dir=config_folder, psm_type=None, tool_id=None):
         self.num_links = 7
@@ -279,6 +292,7 @@ class PSMKinematicSolver:
         j6 = get_angle(T_7_0.M.UnitZ(), T_5_0.M.UnitX(), up_vector=-T_5_0.M.UnitY())
 
         return [j1, j2, j3, j4, j5, j6]
+
 
 if __name__ == "__main__":
     file_folder = os.path.join(dynamic_path, 'kinematics', 'config')

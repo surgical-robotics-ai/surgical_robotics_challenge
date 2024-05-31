@@ -65,8 +65,9 @@ simulation_manager = SimulationManager('my_example_client')
 print(simulation_manager._client.get_obj_names())
 w = simulation_manager.get_world_handle()
 w.reset_bodies()
-psm1 = PSM(simulation_manager, 'psm1')
-psm2 = PSM(simulation_manager, 'psm2')
+tool_id = 400006
+psm1 = PSM(simulation_manager, 'psm1', tool_id=tool_id)
+psm2 = PSM(simulation_manager, 'psm2', tool_id=tool_id)
 ecm = ECM(simulation_manager, 'CameraFrame')
 psms = {"left": psm1,
             "right": psm2}

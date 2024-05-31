@@ -49,6 +49,7 @@ from geometry_msgs.msg import TwistStamped
 import rospy
 import math
 from PyKDL import Rotation
+from surgical_robotics_challenge.units_conversion import *
 
 
 class RobotData:
@@ -86,10 +87,12 @@ servo_cp_pub = rospy.Publisher(servo_cp_name, PoseStamped, queue_size=1)
 rate = rospy.Rate(50)
 
 servo_jp_msg = JointState()
-servo_jp_msg.position = [0., 0., 1.0, 0., 0., 0.]
+servo_jp_msg.position = [0., 0., 0.1 * SimToSI.linear_factor, 0., 0., 0.]
 
 servo_cp_msg = PoseStamped()
-servo_cp_msg.pose.position.z = -1.0
+servo_cp_msg.pose.position.x = 0.0 * SimToSI.linear_factor
+servo_cp_msg.pose.position.y = 0.0 * SimToSI.linear_factor
+servo_cp_msg.pose.position.z = -0.1 * SimToSI.linear_factor
 R_7_0 = Rotation.RPY(3.14, 0.0, 1.57079)
 
 servo_cp_msg.pose.orientation.x = R_7_0.GetQuaternion()[0]
@@ -134,8 +137,8 @@ while not rospy.is_shutdown():
     # ######
     # The following 3 lines move the robot in cartesian space in sinusoidal fashion
     elif key == 3:
-        servo_cp_msg.pose.position.x = 0.2 * math.sin(rospy.Time.now().to_sec())
-        servo_cp_msg.pose.position.y = 0.2 * math.cos(rospy.Time.now().to_sec())
+        servo_cp_msg.pose.position.x = 0.02 * SimToSI.linear_factor * math.sin(rospy.Time.now().to_sec())
+        servo_cp_msg.pose.position.y = 0.02 * SimToSI.linear_factor * math.cos(rospy.Time.now().to_sec())
         servo_cp_pub.publish(servo_cp_msg)
 
     rate.sleep()

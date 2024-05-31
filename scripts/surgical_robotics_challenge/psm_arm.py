@@ -51,6 +51,7 @@ import time
 from threading import Thread, Lock
 from surgical_robotics_challenge.utils.interpolation import Interpolation
 
+
 class PSMJointMapping:
     def __init__(self):
         self.idx_to_name = {0: 'baselink-yawlink',
@@ -69,6 +70,7 @@ class PSMJointMapping:
 
 
 pjm = PSMJointMapping()
+
 
 class PSM:
     def __init__(self, simulation_manager, name, add_joint_errors=False, tool_id=None):
