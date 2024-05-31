@@ -25,6 +25,7 @@ from cv_bridge import CvBridge, CvBridgeError
 import rospy
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.ecm_arm import ECM
+from surgical_robotics_challenge.units_conversion import SimToSI
 
 
 np.set_printoptions(precision=3, suppress=True)
@@ -107,7 +108,7 @@ if __name__ == "__main__":
     theta = np.linspace(np.pi / 3, np.pi, num=8).reshape((-1, 1))
 
     # Scale salient points to match unit conversion in simulation manager
-    radius = 0.1018 / 10
+    radius = 0.01018 / SimToSI.linear_factor
     needle_salient = radius * np.hstack((np.cos(theta), np.sin(theta), theta * 0))
 
     # Project points

@@ -73,7 +73,7 @@ pjm = PSMJointMapping()
 
 
 class PSM:
-    def __init__(self, simulation_manager, name, add_joint_errors=False, tool_id=None):
+    def __init__(self, simulation_manager, name, add_joint_errors=False, tool_id=PSMType.Default):
         self.simulation_manager = simulation_manager
         self.name = name
         assert tool_id is not None, 'Please specify a tool id'

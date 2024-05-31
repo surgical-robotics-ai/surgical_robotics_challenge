@@ -51,6 +51,7 @@ import time
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.simulation_manager import SimulationManager
+from surgical_robotics_challenge.kinematics.psmKinematics import ToolType
 import numpy as np
 import sys
 import signal
@@ -65,7 +66,7 @@ simulation_manager = SimulationManager('my_example_client')
 print(simulation_manager._client.get_obj_names())
 w = simulation_manager.get_world_handle()
 w.reset_bodies()
-tool_id = 400006
+tool_id = ToolType.Default
 psm1 = PSM(simulation_manager, 'psm1', tool_id=tool_id)
 psm2 = PSM(simulation_manager, 'psm2', tool_id=tool_id)
 ecm = ECM(simulation_manager, 'CameraFrame')

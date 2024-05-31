@@ -81,6 +81,7 @@ class PSMController:
             T_t_b = convert_mat_to_frame(self.arm.compute_FK(ik_solution))
             T_t_w = self.arm.get_T_b_w() * T_t_b
             self.arm.target_FK.set_pose(T_t_w)
+
     def run(self):
             self.update_arm_pose()
             self.update_visual_markers()
@@ -107,7 +108,7 @@ if __name__ == "__main__":
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=False)
     parser.add_argument('--ecm', action='store', dest='run_ecm', help='Control ECM', default=True)
-    parser.add_argument('--tool_id', action='store', dest='psm_tool_id', help='PSM Tool ID', default=400006)
+    parser.add_argument('--tool_id', action='store', dest='psm_tool_id', help='PSM Tool ID', default=ToolType.Default)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')

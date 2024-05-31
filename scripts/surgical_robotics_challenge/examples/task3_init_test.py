@@ -3,8 +3,9 @@ import time
 from surgical_robotics_challenge.utils.task3_init import NeedleInitialization
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.simulation_manager import SimulationManager
+from surgical_robotics_challenge.kinematics.psmKinematics import ToolType
 
-tool_id = 400006
+tool_id = ToolType.Default
 
 simulation_manager = SimulationManager('task_3_setup_test')
 time.sleep(0.5)

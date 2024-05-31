@@ -76,16 +76,18 @@ config_folder = os.path.join(dynamic_path, 'kinematics', 'config')
 class PSMType:
     LND = 400006
     LND_SI = 420006
+    Default = LND
 
 
 # Currently implemented Tools
 class ToolType:
     LND = 400006
     LND_SI = 420006
+    Default = LND
 
 
 class PSMKinematicSolver:
-    def __init__(self, root_dir=config_folder, psm_type=None, tool_id=None):
+    def __init__(self, root_dir=config_folder, psm_type=PSMType.Default, tool_id=ToolType.Default):
         self.num_links = 7
         assert root_dir is not None, 'root dir must be provided'
         assert psm_type is not None, 'psm type must be provided'
