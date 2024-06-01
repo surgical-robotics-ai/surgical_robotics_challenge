@@ -6,6 +6,7 @@ from surgical_robotics_challenge.scene import Scene
 import rospy
 from sensor_msgs.msg import Image
 from surgical_robotics_challenge.task_completion_report import TaskCompletionReport, PoseStamped
+from surgical_robotics_challenge.kinematics.psmKinematics import ToolType
 
 from PyKDL import Frame, Rotation, Vector
 import numpy as np
@@ -33,11 +34,12 @@ class ImageSub:
 simulation_manager = SimulationManager('my_example_client')
 time.sleep(0.5)
 world_handle = simulation_manager.get_world_handle()
+tool_id = ToolType.Default
 
 # Get a handle to PSM1
-psm1 = PSM(simulation_manager, 'psm1')
+psm1 = PSM(simulation_manager, 'psm1', tool_id=tool_id)
 # Get a handle  to PSM2
-psm2 = PSM(simulation_manager, 'psm2')
+psm2 = PSM(simulation_manager, 'psm2', tool_id=tool_id)
 # Get a handle to ECM
 ecm = ECM(simulation_manager, 'CameraFrame')
 # Get a handle to scene to access its elements, i.e. needle and entry / exit points

@@ -3,7 +3,7 @@ from surgical_robotics_challenge.kinematics.DH import JointType
 
 
 class SimToSI:
-    linear_factor = 10.0
+    linear_factor = 1.0
     angular_factor = 1.0
 
 

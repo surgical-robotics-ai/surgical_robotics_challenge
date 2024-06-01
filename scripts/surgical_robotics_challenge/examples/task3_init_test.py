@@ -3,6 +3,9 @@ import time
 from surgical_robotics_challenge.utils.task3_init import NeedleInitialization
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.simulation_manager import SimulationManager
+from surgical_robotics_challenge.kinematics.psmKinematics import ToolType
+
+tool_id = ToolType.Default
 
 simulation_manager = SimulationManager('task_3_setup_test')
 time.sleep(0.5)
@@ -10,7 +13,7 @@ w = simulation_manager.get_world_handle()
 time.sleep(0.2)
 w.reset_bodies()
 time.sleep(0.2)
-psm2 = PSM(simulation_manager, 'psm2')
+psm2 = PSM(simulation_manager, 'psm2', tool_id=tool_id)
 time.sleep(0.5)
 # First we shall move the PSM to its initial pose using joint commands OR pose command
 psm2.servo_jp([-0.4, -0.22, 0.139, -1.64, -0.37, -0.11])

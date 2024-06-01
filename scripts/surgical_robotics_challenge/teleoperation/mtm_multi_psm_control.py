@@ -101,7 +101,7 @@ class ControllerInterface:
         else:
             if self.leader.is_active():
                 self.leader.servo_cp(self.leader.pre_coag_pose_msg)
-        twist = self.leader.measured_cv() * 0.0035
+        twist = self.leader.measured_cv() * coordinate_frames.TeleopScale.scale_factor
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         if not self.leader.clutch_button_pressed:
             delta_t = self._T_c_b.M * twist.vel
@@ -140,6 +140,7 @@ class ControllerInterface:
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('-c', action='store', dest='client_name', help='Client Name', default='mtm_sim_teleop')
+    parser.add_argument('-t', action='store', dest='tool_id', help='Surgical Instrument Serial Number', default='400006')
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=False)
@@ -179,12 +180,14 @@ if __name__ == "__main__":
     controllers = []
     psm_arms = []
 
+    tool_id = int(parsed_args.tool_id)
+
     if parsed_args.run_psm_one is True:
         # Initial Target Offset for PSM1
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm1'
         print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(simulation_manager, arm_name, add_joint_errors=False)
+        psm = PSM(simulation_manager, arm_name, add_joint_errors=False, tool_id=tool_id)
         if psm.is_present():
             T_psmtip_c = coordinate_frames.PSM1.T_tip_cam
             T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
@@ -197,7 +200,7 @@ if __name__ == "__main__":
         arm_name = 'psm2'
         print('LOADING CONTROLLER FOR ', arm_name)
         theta_base = -0.7
-        psm = PSM(simulation_manager, arm_name, add_joint_errors=False)
+        psm = PSM(simulation_manager, arm_name, add_joint_errors=False, tool_id=tool_id)
         if psm.is_present():
             T_psmtip_c = coordinate_frames.PSM2.T_tip_cam
             T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
@@ -209,7 +212,7 @@ if __name__ == "__main__":
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm3'
         print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(simulation_manager, arm_name, add_joint_errors=False)
+        psm = PSM(simulation_manager, arm_name, add_joint_errors=False, tool_id=tool_id)
         if psm.is_present():
             T_psmtip_c = coordinate_frames.PSM3.T_tip_cam
             T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c

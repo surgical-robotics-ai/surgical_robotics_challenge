@@ -47,6 +47,8 @@ from PyKDL import Vector, Rotation, Frame, dot
 import numpy as np
 import math
 from geometry_msgs.msg import Pose, PoseStamped
+import json
+import re
 
 PI = np.pi
 PI_2 = np.pi/2
@@ -269,3 +271,18 @@ def FAIL_STR(val):
         val = toStr(val)
     valStr = bcolors.FAIL + val + bcolors.ENDC
     return valStr
+
+
+def load_json_dvrk(file_path:str)->dict:
+    '''
+    Load json files from dVRK repository
+    :param file_path: json file path
+    :return: a dictionary with loaded json file content
+    '''
+    with open(file_path) as f:
+        data = f.read()
+        data = re.sub("//.*?\n", "", data)
+        data = re.sub("/\\*.*?\\*/", "", data)
+        obj = data[data.find('{'): data.rfind('}') + 1]
+        jsonObj = json.loads(obj)
+    return jsonObj

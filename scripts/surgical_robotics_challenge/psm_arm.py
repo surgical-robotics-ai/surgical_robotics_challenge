@@ -43,13 +43,14 @@
 #     \version   1.0
 # */
 # //==============================================================================
-from surgical_robotics_challenge.kinematics.psmIK import *
+from surgical_robotics_challenge.kinematics.psmKinematics import *
 from surgical_robotics_challenge.utils.joint_errors_model import JointErrorsModel
 from surgical_robotics_challenge.utils import coordinate_frames
-
+import rospy
 import time
 from threading import Thread, Lock
 from surgical_robotics_challenge.utils.interpolation import Interpolation
+
 
 class PSMJointMapping:
     def __init__(self):
@@ -70,10 +71,13 @@ class PSMJointMapping:
 
 pjm = PSMJointMapping()
 
+
 class PSM:
-    def __init__(self, simulation_manager, name, add_joint_errors=True):
+    def __init__(self, simulation_manager, name, add_joint_errors=False, tool_id=PSMType.Default):
         self.simulation_manager = simulation_manager
         self.name = name
+        assert tool_id is not None, 'Please specify a tool id'
+        self.tool_id = int(tool_id)
         self.base = self.simulation_manager.get_obj_handle(name + '/baselink')
         self.base.set_joint_types([JointType.REVOLUTE, JointType.REVOLUTE, JointType.PRISMATIC, JointType.REVOLUTE,
                                    JointType.REVOLUTE, JointType.REVOLUTE, JointType.REVOLUTE, JointType.REVOLUTE])
@@ -86,9 +90,8 @@ class PSM:
         time.sleep(0.5)
         self.grasped = [False, False, False]
         self.graspable_objs_prefix = ["Needle", "Thread", "Puzzle"]
-
         self.T_t_b_home = coordinate_frames.PSM.T_t_b_home
-        self._kd = kinematics_data
+        self._kd = PSMKinematicSolver(psm_type=self.tool_id, tool_id=self.tool_id)
 
         # Transform of Base in World
         self._T_b_w = None
@@ -170,7 +173,7 @@ class PSM:
         if type(T_t_b) in [np.matrix, np.array]:
             T_t_b = convert_mat_to_frame(T_t_b)
 
-        ik_solution = compute_IK(T_t_b)
+        ik_solution = self._kd.compute_IK(T_t_b)
         self._ik_solution = enforce_limits(ik_solution, self.get_lower_limits(), self.get_upper_limits())
         self.servo_jp(self._ik_solution)
 
@@ -178,7 +181,7 @@ class PSM:
         if type(T_t_b) in [np.matrix, np.array]:
             T_t_b = convert_mat_to_frame(T_t_b)
 
-        ik_solution = compute_IK(T_t_b)
+        ik_solution = self._kd.compute_IK(T_t_b)
         self._ik_solution = enforce_limits(ik_solution, self.get_lower_limits(), self.get_upper_limits())
         self.move_jp(self._ik_solution, execute_time, control_rate)
 
@@ -240,7 +243,7 @@ class PSM:
     def measured_cp(self):
         jp = self.measured_jp()
         jp.append(0.0)
-        return compute_FK(jp, 7)
+        return self._kd.compute_FK(jp, 7)
 
     def measured_jp(self):
         j0 = self.base.get_joint_pos(0)
