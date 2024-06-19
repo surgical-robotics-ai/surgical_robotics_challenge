@@ -319,7 +319,7 @@ class MTM:
 
         input_val = get_input_in_range(msg.position[0], min, max)
 
-        self.gripper_angle = (msg.position[0] - min) / (max - min)
+        self.gripper_angle = (input_val - min) / (max - min)
         pass
 
     def twist_cb(self, msg):
