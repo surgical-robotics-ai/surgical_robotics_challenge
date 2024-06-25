@@ -7,10 +7,10 @@ multibody configs:
   - "ADF/ghosts.yaml" #0
   - "ADF/3d_med_phantom.yaml" #1
   - "ADF/full_new_psm1.yaml" #2
-  - "ADF/sensors_actuators_psm1.yaml" #3
+  - "ADF/ghosts_actuators_psm1.yaml" #3
   - "ADF/full_new_psm2.yaml" #4
-  - "ADF/sensors_actuators_psm2.yaml" #5
+  - "ADF/ghosts_actuators_psm2.yaml" #5
   - "ADF/full_simple_psm1.yaml" #6
-  - "ADF/sensors_actuators_psm1_simple.yaml" #7
+  - "ADF/ghosts_actuators_psm1_simple.yaml" #7
   - "ADF/full_simple_psm2.yaml" #8
-  - "ADF/sensors_actuators_psm2_simple.yaml" #9
+  - "ADF/ghosts_actuators_psm2_simple.yaml" #9
