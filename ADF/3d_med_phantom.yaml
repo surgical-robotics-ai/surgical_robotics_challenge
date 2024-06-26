@@ -108,6 +108,9 @@ high resolution path: ../assets/3d_med_phantom_scene/high_res/
 low resolution path: ../assets/3d_med_phantom_scene/low_res/
 ignore inter-collision: false
 namespace: /ambf/env/
+
+mass: &thread_mass 0.003
+
 BODY BlackGround:
   name: BlackGround
   mesh: BlackGround.OBJ
@@ -1091,7 +1094,7 @@ BODY Needle:
   mesh: Needle.OBJ
   collision mesh: NeedleCollision.OBJ
   collision mesh type: CONVEX_HULL
-  mass: 0.5
+  mass: 0.05
   collision margin: 0.0001
   scale: 1.0
   location:
@@ -1197,7 +1200,7 @@ BODY phantom:
 BODY Thread:
   name: Thread
   mesh: Thread.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -1265,7 +1268,7 @@ BODY Thread:
 BODY Thread_001:
   name: Thread_001
   mesh: Thread_001.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -1333,7 +1336,7 @@ BODY Thread_001:
 BODY Thread_002:
   name: Thread_002
   mesh: Thread_002.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -1401,7 +1404,7 @@ BODY Thread_002:
 BODY Thread_003:
   name: Thread_003
   mesh: Thread_003.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -1469,7 +1472,7 @@ BODY Thread_003:
 BODY Thread_004:
   name: Thread_004
   mesh: Thread_004.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -1537,7 +1540,7 @@ BODY Thread_004:
 BODY Thread_005:
   name: Thread_005
   mesh: Thread_005.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -1605,7 +1608,7 @@ BODY Thread_005:
 BODY Thread_006:
   name: Thread_006
   mesh: Thread_006.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -1673,7 +1676,7 @@ BODY Thread_006:
 BODY Thread_007:
   name: Thread_007
   mesh: Thread_007.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -1741,7 +1744,7 @@ BODY Thread_007:
 BODY Thread_008:
   name: Thread_008
   mesh: Thread_008.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -1809,7 +1812,7 @@ BODY Thread_008:
 BODY Thread_009:
   name: Thread_009
   mesh: Thread_009.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -1877,7 +1880,7 @@ BODY Thread_009:
 BODY Thread_010:
   name: Thread_010
   mesh: Thread_010.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -1945,7 +1948,7 @@ BODY Thread_010:
 BODY Thread_011:
   name: Thread_011
   mesh: Thread_011.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2013,7 +2016,7 @@ BODY Thread_011:
 BODY Thread_012:
   name: Thread_012
   mesh: Thread_012.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2081,7 +2084,7 @@ BODY Thread_012:
 BODY Thread_013:
   name: Thread_013
   mesh: Thread_013.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2149,7 +2152,7 @@ BODY Thread_013:
 BODY Thread_014:
   name: Thread_014
   mesh: Thread_014.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2217,7 +2220,7 @@ BODY Thread_014:
 BODY Thread_015:
   name: Thread_015
   mesh: Thread_015.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2285,7 +2288,7 @@ BODY Thread_015:
 BODY Thread_016:
   name: Thread_016
   mesh: Thread_016.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2353,7 +2356,7 @@ BODY Thread_016:
 BODY Thread_017:
   name: Thread_017
   mesh: Thread_017.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2421,7 +2424,7 @@ BODY Thread_017:
 BODY Thread_018:
   name: Thread_018
   mesh: Thread_018.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2489,7 +2492,7 @@ BODY Thread_018:
 BODY Thread_019:
   name: Thread_019
   mesh: Thread_019.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2557,7 +2560,7 @@ BODY Thread_019:
 BODY Thread_020:
   name: Thread_020
   mesh: Thread_020.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2625,7 +2628,7 @@ BODY Thread_020:
 BODY Thread_021:
   name: Thread_021
   mesh: Thread_021.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2693,7 +2696,7 @@ BODY Thread_021:
 BODY Thread_022:
   name: Thread_022
   mesh: Thread_022.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2761,7 +2764,7 @@ BODY Thread_022:
 BODY Thread_023:
   name: Thread_023
   mesh: Thread_023.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2829,7 +2832,7 @@ BODY Thread_023:
 BODY Thread_024:
   name: Thread_024
   mesh: Thread_024.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2897,7 +2900,7 @@ BODY Thread_024:
 BODY Thread_025:
   name: Thread_025
   mesh: Thread_025.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -2965,7 +2968,7 @@ BODY Thread_025:
 BODY Thread_026:
   name: Thread_026
   mesh: Thread_026.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3033,7 +3036,7 @@ BODY Thread_026:
 BODY Thread_027:
   name: Thread_027
   mesh: Thread_027.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3101,7 +3104,7 @@ BODY Thread_027:
 BODY Thread_028:
   name: Thread_028
   mesh: Thread_028.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3169,7 +3172,7 @@ BODY Thread_028:
 BODY Thread_029:
   name: Thread_029
   mesh: Thread_029.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3237,7 +3240,7 @@ BODY Thread_029:
 BODY Thread_030:
   name: Thread_030
   mesh: Thread_030.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3305,7 +3308,7 @@ BODY Thread_030:
 BODY Thread_031:
   name: Thread_031
   mesh: Thread_031.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3373,7 +3376,7 @@ BODY Thread_031:
 BODY Thread_032:
   name: Thread_032
   mesh: Thread_032.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3441,7 +3444,7 @@ BODY Thread_032:
 BODY Thread_033:
   name: Thread_033
   mesh: Thread_033.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3509,7 +3512,7 @@ BODY Thread_033:
 BODY Thread_034:
   name: Thread_034
   mesh: Thread_034.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3577,7 +3580,7 @@ BODY Thread_034:
 BODY Thread_035:
   name: Thread_035
   mesh: Thread_035.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3645,7 +3648,7 @@ BODY Thread_035:
 BODY Thread_036:
   name: Thread_036
   mesh: Thread_036.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3713,7 +3716,7 @@ BODY Thread_036:
 BODY Thread_037:
   name: Thread_037
   mesh: Thread_037.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3781,7 +3784,7 @@ BODY Thread_037:
 BODY Thread_038:
   name: Thread_038
   mesh: Thread_038.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05
@@ -3849,7 +3852,7 @@ BODY Thread_038:
 BODY Thread_039:
   name: Thread_039
   mesh: Thread_039.OBJ
-  mass: 0.0300000012
+  mass: *thread_mass
   inertia:
     ix: 5.0e-05
     iy: 5.0e-05

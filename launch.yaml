@@ -1,5 +1,6 @@
 # This is the base file for Coordination Application
-world config: ./ADF/world/world_stereo.yaml
+# world config: ./ADF/world/world_stereo.yaml
+world config: ./ADF/world/world_stereo_test.yaml
 color config: ./ADF/color/colors.yaml
 input devices config: ./ADF/input_devices/input_devices.yaml
 
@@ -14,3 +15,9 @@ multibody configs:
   - "ADF/ghosts_actuators_psm1_simple.yaml" #7
   - "ADF/full_simple_psm2.yaml" #8
   - "ADF/ghosts_actuators_psm2_simple.yaml" #9
+  - "ADF/full_new_psm1_test0.yaml" #10
+  - "ADF/full_new_psm2_test0.yaml" #11
+  - "ADF/full_new_psm1_test1.yaml" #12
+  - "ADF/full_new_psm2_test1.yaml" #13
+  - "ADF/full_new_psm1_test2.yaml" #14
+  - "ADF/full_new_psm2_test2.yaml" #15
