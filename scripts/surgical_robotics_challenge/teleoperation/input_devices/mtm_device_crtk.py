@@ -51,6 +51,7 @@ from std_msgs.msg import Bool
 import rospy, rostopic
 import time
 import numpy as np
+from surgical_robotics_challenge.utils.utilities import get_input_in_range
 
 
 # Utilities
@@ -310,9 +311,15 @@ class MTM:
         return self._active
 
     def gripper_cb(self, msg):
-        min = 0.10
-        max = 0.51
-        self.gripper_angle = msg.position[0] + min / (max - min)
+        '''
+        Map the MTM input to the gripper
+        '''
+        min = -0.698 # ~ -40 deg
+        max = 1.047 # ~60 deg
+
+        input_val = get_input_in_range(msg.position[0], min, max)
+
+        self.gripper_angle = (input_val - min) / (max - min)
         pass
 
     def twist_cb(self, msg):

@@ -84,12 +84,15 @@ class PSM:
         self.target_IK = self.simulation_manager.get_obj_handle(name + '_target_ik')
         self.palm_joint_IK = self.simulation_manager.get_obj_handle(name + '_palm_joint_ik')
         self.target_FK = self.simulation_manager.get_obj_handle(name + '_target_fk')
-        self.sensor = self.simulation_manager._client.get_obj_handle(name + '/Sensor0')
+        self.left_finger_ghost = self.simulation_manager._client.get_obj_handle(name + '/left_finger_ghost')
+        self.right_finger_ghost = self.simulation_manager._client.get_obj_handle(name + '/right_finger_ghost')
         self.actuators = []
         self.actuators.append(self.simulation_manager._client.get_obj_handle(name + '/Actuator0'))
         time.sleep(0.5)
         self.grasped = [False, False, False]
         self.graspable_objs_prefix = ["Needle", "Thread", "Puzzle"]
+        self.grasped_obj_name = None
+        self.grasp_actuation_jaw_angle = 0.1
         self.T_t_b_home = coordinate_frames.PSM.T_t_b_home
         self._kd = PSMKinematicSolver(psm_type=self.tool_id, tool_id=self.tool_id)
 
@@ -149,25 +152,27 @@ class PSM:
             self._base_pose_updated = True
 
     def run_grasp_logic(self, jaw_angle):
-        for i in range(len(self.actuators)):
-            if jaw_angle <= 0.2:
-                if self.sensor is not None:
-                    if self.sensor.is_triggered(i):
-                        sensed_obj = self.sensor.get_sensed_object(i)
-                        for s in self.graspable_objs_prefix:
-                            if s in sensed_obj:
-                                if not self.grasped[i]:
-                                    qualified_name = sensed_obj
-                                    self.actuators[i].actuate(qualified_name)
-                                    self.grasped[i] = True
-                                    print('Grasping Sensed Object Names', sensed_obj)
-            else:
-                if self.actuators[i] is not None:
-                    self.actuators[i].deactuate()
-                    if self.grasped[i] is True:
-                        print('Releasing Grasped Object')
-                    self.grasped[i] = False
-                    # print('Releasing Actuator ', i)
+        if len(self.actuators) == 0:
+            return
+        
+        if jaw_angle < self.grasp_actuation_jaw_angle:
+            if not self.grasped[0]:
+                # if self.left_finger_ghost is not None and self.right_finger_ghost is not None:
+                sensed_object_names = self.left_finger_ghost.get_all_sensed_obj_names()
+                sensed_object_names = sensed_object_names + self.right_finger_ghost.get_all_sensed_obj_names()
+                for gon in self.graspable_objs_prefix:
+                    matches = [son for son in sensed_object_names if gon in son]
+                    if matches:
+                        self.grasped_obj_name = matches[0]
+                        self.actuators[0].actuate(self.grasped_obj_name)
+                        self.grasped[0] = True
+
+        else:
+            self.actuators[0].deactuate()
+            self.grasped_obj_name = False
+            if self.grasped[0] is True:
+                print('Releasing Grasped Object')
+            self.grasped[0] = False
 
     def servo_cp(self, T_t_b):
         if type(T_t_b) in [np.matrix, np.array]:
