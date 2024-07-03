@@ -3,7 +3,7 @@ lights: [light2]
 cameras: [cameraL, cameraR]
 environment: "./checkered_floor.yaml"
 namespace: /ambf/env/
-max iterations: 50
+max iterations: 200
 gravity: { x: 0.0, y: 0.0, z: -9.8 }
 shaders:
   path: ../../../ambf_shaders/

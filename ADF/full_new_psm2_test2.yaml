@@ -24,6 +24,12 @@ joints:
 high resolution path: ../assets/real_psm/high_res/
 low resolution path: ../assets/real_psm/low_res/
 ignore inter-collision: false
+
+controller: &gripper_controller
+    P: 30.0
+    I: 0.0
+    D: 0.4
+
 gravity:
   x: 0.0
   y: 0.0
@@ -789,6 +795,7 @@ JOINT tool pitch link-tool yaw link:
     low: -1.4835299974
   enable feedback: false
   passive: false
+  controller: *gripper_controller
   controller output type: VELOCITY
   type: revolute
   max motor impulse: 500.0
@@ -849,10 +856,7 @@ JOINT tool yaw link-tool gripper left link:
     low: 0.0
   enable feedback: false
   passive: false
-  controller:
-    P: 10.0
-    I: 0.0
-    D: 0.200000003
+  controller: *gripper_controller
   controller output type: VELOCITY
   type: revolute
   max motor impulse: 500.0
@@ -883,10 +887,7 @@ JOINT tool yaw link-tool gripper right link:
     low: 0.0
   enable feedback: false
   passive: false
-  controller:
-    P: 10.0
-    I: 0.0
-    D: 0.200000003
+  controller: *gripper_controller
   controller output type: VELOCITY
   type: revolute
   max motor impulse: 500.0
