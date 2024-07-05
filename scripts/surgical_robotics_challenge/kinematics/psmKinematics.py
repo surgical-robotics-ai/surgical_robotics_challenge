@@ -43,6 +43,7 @@
 # */
 # //==============================================================================
 
+from enum import Enum
 import numpy as np
 from surgical_robotics_challenge.utils.utilities import *
 from surgical_robotics_challenge.kinematics.DH import *
@@ -73,21 +74,21 @@ config_folder = os.path.join(dynamic_path, 'kinematics', 'config')
 
 
 # Currently implemented PSMs
-class PSMType:
+class PSMType(Enum):
     LND = 400006
     LND_SI = 420006
-    Default = LND
 
 
 # Currently implemented Tools
-class ToolType:
+class ToolType(Enum):
     LND = 400006
     LND_SI = 420006
-    Default = LND
 
+PSM_TYPE_DEFAULT = PSMType.LND.value
+TOOL_TYPE_DEFAULT = ToolType.LND.value
 
 class PSMKinematicSolver:
-    def __init__(self, root_dir=config_folder, psm_type=PSMType.Default, tool_id=ToolType.Default):
+    def __init__(self, root_dir=config_folder, psm_type=PSM_TYPE_DEFAULT, tool_id=TOOL_TYPE_DEFAULT):
         self.num_links = 7
         assert root_dir is not None, 'root dir must be provided'
         assert psm_type is not None, 'psm type must be provided'
@@ -137,6 +138,17 @@ class PSMKinematicSolver:
         # self.lower_limits = [np.deg2rad(-91.96), np.deg2rad(-60), -0.0, np.deg2rad(-175), np.deg2rad(-90), np.deg2rad(-85)]
         #
         # self.upper_limits = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
+    
+    @staticmethod
+    def is_tool_definition_available(tool_id: str) -> bool:
+        available = False
+        for tool in list(ToolType):
+            if tool.value == tool_id:
+                available = True
+                break
+        
+        return available
+
 
     @staticmethod
     def load_convention_type(convention_type: str):
@@ -301,6 +313,7 @@ if __name__ == "__main__":
     psm_type = 420006
     tool_id = 420006
 
+    print(f"Checking if tool {tool_id} definition is available: {PSMKinematicSolver.is_tool_definition_available(tool_id)}")
     psm_ks = PSMKinematicSolver(psm_type=psm_type, tool_id=tool_id)
 
     joint_list_ref = [0.1, 0.1, 0.2, 0.1, 0.1, 0.1]
