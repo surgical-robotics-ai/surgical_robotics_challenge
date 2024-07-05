@@ -93,6 +93,6 @@ ACTUATOR Actuator0:
   location:
     orientation: {p: 0.0, r: 0.0, y: 0.0}
     position: {x: 0.0, y: -0.010, z: 0.0}
-  parent: /ambf/env/psm1/BODY tool yaw link
+  parent: /ambf/env/420006/psm1/BODY tool yaw link
   visible: False
   visible size: 0.0005

@@ -34,7 +34,8 @@ gravity:
   x: 0.0
   y: 0.0
   z: 0.0
-namespace: /ambf/env/
+namespace: /ambf/env/420006/psm1/
+
 BODY base link:
   name: base link
   mesh: base link.OBJ
@@ -64,7 +65,6 @@ BODY base link:
       p: 0
       y: 0
   passive: false
-  namespace: /ambf/env/psm1/
   publish children names: false
   publish joint names: false
   publish joint positions: false
@@ -130,7 +130,6 @@ BODY main insertion link:
       p: 0
       y: 0
   passive: true
-  namespace: /ambf/env/psm1/
   publish children names: false
   publish joint names: false
   publish joint positions: false
@@ -213,7 +212,6 @@ BODY pitch end link:
       p: 0
       y: 0
   passive: true
-  namespace: /ambf/env/psm1/
   publish children names: false
   publish joint names: false
   publish joint positions: false
@@ -311,7 +309,6 @@ BODY tool gripper left link:
       p: 0
       y: 0
   passive: true
-  namespace: /ambf/env/psm1/
   publish children names: false
   publish joint names: false
   publish joint positions: false
@@ -377,7 +374,6 @@ BODY tool gripper right link:
       p: 0
       y: 0
   passive: true
-  namespace: /ambf/env/psm1/
   publish children names: false
   publish joint names: false
   publish joint positions: false
@@ -443,7 +439,6 @@ BODY tool pitch link:
       p: 0
       y: 0
   passive: false
-  namespace: /ambf/env/psm1/
   publish children names: false
   publish joint names: false
   publish joint positions: false
@@ -509,7 +504,6 @@ BODY tool roll link:
       p: 0
       y: 0
   passive: true
-  namespace: /ambf/env/psm1/
   publish children names: false
   publish joint names: false
   publish joint positions: false
@@ -575,7 +569,6 @@ BODY tool yaw link:
       p: 0
       y: 0
   passive: false
-  namespace: /ambf/env/psm1/
   publish children names: false
   publish joint names: false
   publish joint positions: false
@@ -641,7 +634,6 @@ BODY yaw link:
       p: 0
       y: 0
   passive: true
-  namespace: /ambf/env/psm1/
   publish children names: false
   publish joint names: false
   publish joint positions: false
