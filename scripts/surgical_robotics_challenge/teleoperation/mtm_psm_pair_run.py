@@ -218,6 +218,7 @@ if __name__ == "__main__":
         arm_name = 'psm1'
         print('LOADING CONTROLLER FOR ', arm_name)
         psm1 = PSM(simulation_manager, arm_name, add_joint_errors=False, tool_id=tool_id)
+        print(f"running psm1. {psm1.get_rostopic_name()}")
         if psm1.is_present():
             T_psmtip_c = coordinate_frames.PSM1.T_tip_cam
             T_psmtip_b = psm1.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
