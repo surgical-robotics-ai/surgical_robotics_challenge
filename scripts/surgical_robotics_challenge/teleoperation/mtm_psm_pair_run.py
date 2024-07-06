@@ -204,7 +204,7 @@ if __name__ == "__main__":
 
     simulation_manager = SimulationManager(parsed_args.client_name)
 
-    tool_id = int(parsed_args.tool_id)
+    # tool_id = int(parsed_args.tool_id)
 
     cam = ECM(simulation_manager, 'CameraFrame')
     time.sleep(0.5)
@@ -217,8 +217,7 @@ if __name__ == "__main__":
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm1'
         print('LOADING CONTROLLER FOR ', arm_name)
-        psm1 = PSM(simulation_manager, arm_name, add_joint_errors=False, tool_id=tool_id)
-        print(f"running psm1. {psm1.get_rostopic_name()}")
+        psm1 = PSM(simulation_manager, arm_name, add_joint_errors=False)
         if psm1.is_present():
             T_psmtip_c = coordinate_frames.PSM1.T_tip_cam
             T_psmtip_b = psm1.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
@@ -231,7 +230,7 @@ if __name__ == "__main__":
         arm_name = 'psm2'
         print('LOADING CONTROLLER FOR ', arm_name)
         theta_base = -0.7
-        psm2 = PSM(simulation_manager, arm_name, add_joint_errors=False, tool_id=tool_id)
+        psm2 = PSM(simulation_manager, arm_name, add_joint_errors=False)
         if psm2.is_present():
             T_psmtip_c = coordinate_frames.PSM2.T_tip_cam
             T_psmtip_b = psm2.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
@@ -243,7 +242,7 @@ if __name__ == "__main__":
         # init_xyz = [0.1, -0.85, -0.15]
         arm_name = 'psm3'
         print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(simulation_manager, arm_name, add_joint_errors=False, tool_id=tool_id)
+        psm = PSM(simulation_manager, arm_name, add_joint_errors=False)
         if psm.is_present():
             T_psmtip_c = coordinate_frames.PSM3.T_tip_cam
             T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c

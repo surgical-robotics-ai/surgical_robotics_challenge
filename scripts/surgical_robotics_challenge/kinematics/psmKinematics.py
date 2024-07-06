@@ -44,6 +44,7 @@
 # //==============================================================================
 
 from enum import Enum
+from typing import Union
 import numpy as np
 from surgical_robotics_challenge.utils.utilities import *
 from surgical_robotics_challenge.kinematics.DH import *
@@ -140,7 +141,8 @@ class PSMKinematicSolver:
         # self.upper_limits = [np.deg2rad(91.96), np.deg2rad(60), 0.240, np.deg2rad(175), np.deg2rad(90), np.deg2rad(85)]
     
     @staticmethod
-    def is_tool_definition_available(tool_id: str) -> bool:
+    def is_tool_definition_available(tool_id: Union[str, int]) -> bool:
+        tool_id = int(tool_id)
         available = False
         for tool in list(ToolType):
             if tool.value == tool_id:
