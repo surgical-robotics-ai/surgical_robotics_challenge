@@ -21,8 +21,8 @@ joints:
 - JOINT tool pitch link-tool yaw link
 - JOINT tool yaw link-tool gripper1 link
 - JOINT tool yaw link-tool gripper2 link
-high resolution path: ../assets/simple_psm/high_res/
-low resolution path: ../assets/simple_psm/low_res/
+high resolution path: ../assets/psm_LND_400006_simple/high_res/
+low resolution path: ../assets/psm_LND_400006_simple/low_res/
 ignore inter-collision: false
 gravity:
   x: 0.0
