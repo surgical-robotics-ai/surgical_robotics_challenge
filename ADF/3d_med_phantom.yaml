@@ -110,6 +110,7 @@ ignore inter-collision: false
 namespace: /ambf/env/
 
 mass: &thread_mass 0.03
+
 stiffness: &thread_stiffness
     angular:
       x: 0.02
@@ -129,6 +130,13 @@ damping: &thread_damping
       x: 0.0
       y: 0.0
       z: 0.0
+
+erp: &thread_erp 0.95
+cfm: &thread_cfm 0.05
+
+friction: &thread_friction
+    rolling: 0.0 
+    static: 0.5
 
 BODY BlackGround:
   name: BlackGround
@@ -251,7 +259,7 @@ BODY Entry1:
   friction:
     rolling: 0.0
     static: 0.0
-  restitution: 0.1000000015
+  restitution: 0.0
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
@@ -362,7 +370,7 @@ BODY Entry2:
   friction:
     rolling: 0.0
     static: 0.0
-  restitution: 0.1000000015
+  restitution: 0.0
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
@@ -473,7 +481,7 @@ BODY Entry3:
   friction:
     rolling: 0.0
     static: 0.0
-  restitution: 0.1000000015
+  restitution: 0.0
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
@@ -584,7 +592,7 @@ BODY Entry4:
   friction:
     rolling: 0.0
     static: 0.0
-  restitution: 0.1000000015
+  restitution: 0.0
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
@@ -695,7 +703,7 @@ BODY Exit1:
   friction:
     rolling: 0.0
     static: 0.0
-  restitution: 0.1000000015
+  restitution: 0.0
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
@@ -806,7 +814,7 @@ BODY Exit2:
   friction:
     rolling: 0.0
     static: 0.0
-  restitution: 0.1000000015
+  restitution: 0.0
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
@@ -917,7 +925,7 @@ BODY Exit3:
   friction:
     rolling: 0.0
     static: 0.0
-  restitution: 0.1000000015
+  restitution: 0.0
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
@@ -1028,7 +1036,7 @@ BODY Exit4:
   friction:
     rolling: 0.0
     static: 0.0
-  restitution: 0.1000000015
+  restitution: 0.0
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
@@ -1248,9 +1256,7 @@ BODY Thread:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -1316,9 +1322,7 @@ BODY Thread_001:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -1384,9 +1388,7 @@ BODY Thread_002:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -1452,9 +1454,7 @@ BODY Thread_003:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -1520,9 +1520,7 @@ BODY Thread_004:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -1588,9 +1586,7 @@ BODY Thread_005:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -1656,9 +1652,7 @@ BODY Thread_006:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -1724,9 +1718,7 @@ BODY Thread_007:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -1792,9 +1784,7 @@ BODY Thread_008:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -1860,9 +1850,7 @@ BODY Thread_009:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -1928,9 +1916,7 @@ BODY Thread_010:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -1996,9 +1982,7 @@ BODY Thread_011:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2064,9 +2048,7 @@ BODY Thread_012:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2132,9 +2114,7 @@ BODY Thread_013:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2200,9 +2180,7 @@ BODY Thread_014:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2268,9 +2246,7 @@ BODY Thread_015:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2336,9 +2312,7 @@ BODY Thread_016:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2404,9 +2378,7 @@ BODY Thread_017:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2472,9 +2444,7 @@ BODY Thread_018:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2540,9 +2510,7 @@ BODY Thread_019:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2608,9 +2576,7 @@ BODY Thread_020:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2676,9 +2642,7 @@ BODY Thread_021:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2744,9 +2708,7 @@ BODY Thread_022:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2812,9 +2774,7 @@ BODY Thread_023:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2880,9 +2840,7 @@ BODY Thread_024:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -2948,9 +2906,7 @@ BODY Thread_025:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3016,9 +2972,7 @@ BODY Thread_026:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3084,9 +3038,7 @@ BODY Thread_027:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3152,9 +3104,7 @@ BODY Thread_028:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3220,9 +3170,7 @@ BODY Thread_029:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3288,9 +3236,7 @@ BODY Thread_030:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3356,9 +3302,7 @@ BODY Thread_031:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3424,9 +3368,7 @@ BODY Thread_032:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3492,9 +3434,7 @@ BODY Thread_033:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3560,9 +3500,7 @@ BODY Thread_034:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3628,9 +3566,7 @@ BODY Thread_035:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3696,9 +3632,7 @@ BODY Thread_036:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3764,9 +3698,7 @@ BODY Thread_037:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3832,9 +3764,7 @@ BODY Thread_038:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -3900,9 +3830,7 @@ BODY Thread_039:
   publish children names: false
   publish joint names: false
   publish joint positions: false
-  friction:
-    rolling: 0.0
-    static: 0.5
+  friction: *thread_friction
   restitution: 0.1000000015
   damping:
     angular: 0.8999999762
@@ -4008,6 +3936,8 @@ JOINT Thread-Thread_001:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4062,6 +3992,8 @@ JOINT Thread_001-Thread_002:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4116,6 +4048,8 @@ JOINT Thread_002-Thread_003:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4170,6 +4104,8 @@ JOINT Thread_003-Thread_004:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4224,6 +4160,8 @@ JOINT Thread_004-Thread_005:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4278,6 +4216,8 @@ JOINT Thread_005-Thread_006:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4332,6 +4272,8 @@ JOINT Thread_006-Thread_007:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4386,6 +4328,8 @@ JOINT Thread_007-Thread_008:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4440,6 +4384,8 @@ JOINT Thread_008-Thread_009:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4494,6 +4440,8 @@ JOINT Thread_009-Thread_010:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4548,6 +4496,8 @@ JOINT Thread_010-Thread_011:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4602,6 +4552,8 @@ JOINT Thread_011-Thread_012:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4656,6 +4608,8 @@ JOINT Thread_012-Thread_013:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4710,6 +4664,8 @@ JOINT Thread_013-Thread_014:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4764,6 +4720,8 @@ JOINT Thread_014-Thread_015:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4818,6 +4776,8 @@ JOINT Thread_015-Thread_016:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4872,6 +4832,8 @@ JOINT Thread_016-Thread_017:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4926,6 +4888,8 @@ JOINT Thread_017-Thread_018:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -4980,6 +4944,8 @@ JOINT Thread_018-Thread_019:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5034,6 +5000,8 @@ JOINT Thread_019-Thread_020:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5088,6 +5056,8 @@ JOINT Thread_020-Thread_021:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5142,6 +5112,8 @@ JOINT Thread_021-Thread_022:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5196,6 +5168,8 @@ JOINT Thread_022-Thread_023:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5250,6 +5224,8 @@ JOINT Thread_023-Thread_024:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5304,6 +5280,8 @@ JOINT Thread_024-Thread_025:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5358,6 +5336,8 @@ JOINT Thread_025-Thread_026:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5412,6 +5392,8 @@ JOINT Thread_026-Thread_027:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5466,6 +5448,8 @@ JOINT Thread_027-Thread_028:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5520,6 +5504,8 @@ JOINT Thread_028-Thread_029:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5574,6 +5560,8 @@ JOINT Thread_029-Thread_030:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5628,6 +5616,8 @@ JOINT Thread_030-Thread_031:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5682,6 +5672,8 @@ JOINT Thread_031-Thread_032:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5736,6 +5728,8 @@ JOINT Thread_032-Thread_033:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5790,6 +5784,8 @@ JOINT Thread_033-Thread_034:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5844,6 +5840,8 @@ JOINT Thread_034-Thread_035:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5898,6 +5896,8 @@ JOINT Thread_035-Thread_036:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -5952,6 +5952,8 @@ JOINT Thread_036-Thread_037:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -6006,6 +6008,8 @@ JOINT Thread_037-Thread_038:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
@@ -6060,6 +6064,8 @@ JOINT Thread_038-Thread_039:
   controller output type: VELOCITY
   type: six dof spring
   stiffness: *thread_stiffness
+  erp: *thread_erp
+  cfm: *thread_cfm
   equilibrium point:
     angular:
       x: 0.0
