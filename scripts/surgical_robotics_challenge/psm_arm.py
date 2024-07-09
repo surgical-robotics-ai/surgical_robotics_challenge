@@ -79,6 +79,7 @@ class PSM:
         self.base = self.get_base_object() 
 
         if detect_tool_id:
+            self.validate_ros_namespace()
             self.tool_id = self.get_tool_id()
             tool_id = self.tool_id
         else:
@@ -144,12 +145,21 @@ class PSM:
         rostopic_name = self.get_rostopic_name()
         tool_id = rostopic_name.split('/')[3]
         return tool_id
-    
+
+    def validate_ros_namespace(self): 
+        rostopic_name = self.get_rostopic_name()
+        split = rostopic_name.split('/')
+        if split[1] !='ambf' or split[2] !='env' or split[4] != self.name:
+            err_msg = f"The wrong namespace is being used for the {self.name}. " \
+                      f"The namespace should be in the format '/ambf/env/<tool-id>/{self.name}/baselink'. " \
+                      f"However, the current namespace is '{rostopic_name}'"
+            print(err_msg, file=sys.stderr)
+            raise RuntimeError
+
     def validate_tool_id(self):
         status = PSMKinematicSolver.is_tool_definition_available(self.tool_id)
         if not status:
             print(f"ERROR: Tool ID '{self.tool_id}' is not available in the kinematic solver", file=sys.stderr)
-            print(f"Check namespace of your psm.", file=sys.stderr)
             raise RuntimeError
 
 
