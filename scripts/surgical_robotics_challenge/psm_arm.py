@@ -50,7 +50,7 @@ import rospy
 import time
 from threading import Thread, Lock
 from surgical_robotics_challenge.utils.interpolation import Interpolation
-
+from surgical_robotics_challenge.simulation_manager import SimulationManager, SimulationObject
 
 class PSMJointMapping:
     def __init__(self):
@@ -73,7 +73,7 @@ pjm = PSMJointMapping()
 
 
 class PSM:
-    def __init__(self, simulation_manager, name, add_joint_errors=False, tool_id=PSMType.Default):
+    def __init__(self, simulation_manager, name, add_joint_errors=False, detect_tool_id=True, tool_id=PSMType.Default):
         self.simulation_manager = simulation_manager
         self.name = name
         self.base = self.get_base_object() 
