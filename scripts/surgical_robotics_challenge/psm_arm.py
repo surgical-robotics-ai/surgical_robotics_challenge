@@ -76,9 +76,18 @@ class PSM:
     def __init__(self, simulation_manager, name, add_joint_errors=False, tool_id=PSMType.Default):
         self.simulation_manager = simulation_manager
         self.name = name
-        assert tool_id is not None, 'Please specify a tool id'
-        self.tool_id = int(tool_id)
-        self.base = self.simulation_manager.get_obj_handle(name + '/baselink')
+        self.base = self.get_base_object() 
+
+        if detect_tool_id:
+            self.validate_ros_namespace()
+            self.tool_id = self.get_tool_id()
+            tool_id = self.tool_id
+        else:
+            self.tool_id = tool_id
+
+        self.tool_id = int(self.tool_id)
+        self.validate_tool_id()
+
         self.base.set_joint_types([JointType.REVOLUTE, JointType.REVOLUTE, JointType.PRISMATIC, JointType.REVOLUTE,
                                    JointType.REVOLUTE, JointType.REVOLUTE, JointType.REVOLUTE, JointType.REVOLUTE])
         self.target_IK = self.simulation_manager.get_obj_handle(name + '_target_ik')
@@ -118,6 +127,41 @@ class PSM:
 
         # Initialize Jaw Angle
         self.set_jaw_angle(0.5)
+
+    def get_base_object(self) -> SimulationObject:
+        search_name = self.name + '/baselink'
+        handle = self.simulation_manager.get_obj_handle(search_name)
+        if handle is None:
+            print(f"{search_name} Not Found")
+            raise RuntimeError
+
+        return handle
+
+    def get_rostopic_name(self):
+        return self.base.get_ros_name()
+    
+    def get_tool_id(self):
+        # Assuming the rostopic name is in the format /ambf/env/420006/psm1/baselink
+        rostopic_name = self.get_rostopic_name()
+        tool_id = rostopic_name.split('/')[3]
+        return tool_id
+
+    def validate_ros_namespace(self): 
+        rostopic_name = self.get_rostopic_name()
+        split = rostopic_name.split('/')
+        if split[1] !='ambf' or split[2] !='env' or split[4] != self.name:
+            err_msg = f"The wrong namespace is being used for the {self.name}. " \
+                      f"The namespace should be in the format '/ambf/env/<tool-id>/{self.name}/baselink'. " \
+                      f"However, the current namespace is '{rostopic_name}'"
+            print(err_msg, file=sys.stderr)
+            raise RuntimeError
+
+    def validate_tool_id(self):
+        status = PSMKinematicSolver.is_tool_definition_available(self.tool_id)
+        if not status:
+            print(f"ERROR: Tool ID '{self.tool_id}' is not available in the kinematic solver", file=sys.stderr)
+            raise RuntimeError
+
 
     def set_home_pose(self, pose):
         self.T_t_b_home = pose
