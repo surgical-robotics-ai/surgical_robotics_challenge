@@ -76,10 +76,10 @@ class PSM:
     def __init__(self, simulation_manager:SimulationManager, name, add_joint_errors=False, detect_tool_id=True, tool_id=PSM_TYPE_DEFAULT):
         self.simulation_manager = simulation_manager
         self.name = name
-        self.base = self.get_base_object() 
+        self.base = self.simulation_manager.get_obj_handle(self.name + '/baselink', required=True) 
+        self.tool_id_body = self.simulation_manager.get_obj_handle(name + '/tool_id', required=True)
 
         if detect_tool_id:
-            self.validate_ros_namespace()
             self.tool_id = self.get_tool_id()
             tool_id = self.tool_id
         else:
@@ -93,6 +93,7 @@ class PSM:
         self.target_IK = self.simulation_manager.get_obj_handle(name + '_target_ik')
         self.palm_joint_IK = self.simulation_manager.get_obj_handle(name + '_palm_joint_ik')
         self.target_FK = self.simulation_manager.get_obj_handle(name + '_target_fk')
+
         self.left_finger_ghost = self.simulation_manager._client.get_obj_handle(name + '/left_finger_ghost')
         self.right_finger_ghost = self.simulation_manager._client.get_obj_handle(name + '/right_finger_ghost')
         self.actuators = []
@@ -128,33 +129,14 @@ class PSM:
         # Initialize Jaw Angle
         self.set_jaw_angle(0.5)
 
-    def get_base_object(self) -> SimulationObject:
-        search_name = self.name + '/baselink'
-        handle = self.simulation_manager.get_obj_handle(search_name)
-        if handle is None:
-            print(f"{search_name} Not Found")
-            raise RuntimeError
-
-        return handle
-
     def get_rostopic_name(self):
         return self.base.get_ros_name()
     
-    def get_tool_id(self):
-        # Assuming the rostopic name is in the format /ambf/env/420006/psm1/baselink
-        rostopic_name = self.get_rostopic_name()
-        tool_id = rostopic_name.split('/')[3]
+    def get_tool_id(self) -> int:
+        # Assuming the rostopic name is in the format /ambf/env/psm1/tool_id/420006
+        rostopic_name = self.tool_id_body.get_ros_name()
+        tool_id = int(rostopic_name.split('/')[-1])
         return tool_id
-
-    def validate_ros_namespace(self): 
-        rostopic_name = self.get_rostopic_name()
-        split = rostopic_name.split('/')
-        if split[1] !='ambf' or split[2] !='env' or split[4] != self.name:
-            err_msg = f"The wrong namespace is being used for the {self.name}. " \
-                      f"The namespace should be in the format '/ambf/env/<tool-id>/{self.name}/baselink'. " \
-                      f"However, the current namespace is '{rostopic_name}'"
-            print(err_msg, file=sys.stderr)
-            raise RuntimeError
 
     def validate_tool_id(self):
         status = PSMKinematicSolver.is_tool_definition_available(self.tool_id)
