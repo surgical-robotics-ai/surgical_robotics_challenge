@@ -12,6 +12,7 @@ bodies:
 - BODY tool roll link
 - BODY tool yaw link
 - BODY yaw link
+- BODY tool id
 joints:
 - JOINT base link-yaw link
 - JOINT yaw link-pitch end link
@@ -34,7 +35,15 @@ gravity:
   x: 0.0
   y: 0.0
   z: 0.0
-namespace: /ambf/env/420006/psm1/
+namespace: /ambf/env/psm1/
+
+BODY tool id:
+  name: tool_id/420006
+  mesh: ''
+  collision mesh: ''
+  collision mesh type: ''
+  passive: false
+  mass: 0.0
 
 BODY base link:
   name: base link
