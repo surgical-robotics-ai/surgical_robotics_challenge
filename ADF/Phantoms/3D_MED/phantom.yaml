@@ -107,7 +107,7 @@ joints:
 high resolution path: ../../../assets/3d_med_phantom_scene/high_res/
 low resolution path: ../../../assets/3d_med_phantom_scene/low_res/
 ignore inter-collision: false
-namespace: /ambf/env/
+namespace: /ambf/env/phantom/
 
 mass: &thread_mass 0.03
 
