@@ -108,7 +108,6 @@ if __name__ == "__main__":
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=False)
     parser.add_argument('--ecm', action='store', dest='run_ecm', help='Control ECM', default=True)
-    parser.add_argument('--tool_id', action='store', dest='psm_tool_id', help='PSM Tool ID', default=ToolType.Default)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
@@ -118,7 +117,6 @@ if __name__ == "__main__":
     parsed_args.run_psm_two = get_boolean_from_opt(parsed_args.run_psm_two)
     parsed_args.run_psm_three = get_boolean_from_opt(parsed_args.run_psm_three)
     parsed_args.run_ecm = get_boolean_from_opt(parsed_args.run_ecm)
-    tool_id = int(parsed_args.psm_tool_id)
     simulation_manager = SimulationManager(parsed_args.client_name)
 
     time.sleep(0.5)
@@ -126,7 +124,7 @@ if __name__ == "__main__":
 
     if parsed_args.run_psm_one is True:
         arm_name = 'psm1'
-        psm = PSM(simulation_manager, arm_name, tool_id=tool_id)
+        psm = PSM(simulation_manager, arm_name)
         if psm.base is not None:
             print('LOADING CONTROLLER FOR ', arm_name)
             # Initial Target Offset for PSM1
@@ -139,7 +137,7 @@ if __name__ == "__main__":
 
     if parsed_args.run_psm_two is True:
         arm_name = 'psm2'
-        psm = PSM(simulation_manager, arm_name, tool_id=tool_id)
+        psm = PSM(simulation_manager, arm_name)
         if psm.base is not None:
             print('LOADING CONTROLLER FOR ', arm_name)
             # Initial Target Offset for PSM2
@@ -151,7 +149,7 @@ if __name__ == "__main__":
 
     if parsed_args.run_psm_three is True:
         arm_name = 'psm3'
-        psm = PSM(simulation_manager, arm_name, tool_id=tool_id)
+        psm = PSM(simulation_manager, arm_name)
         if psm.base is not None:
             print('LOADING CONTROLLER FOR ', arm_name)
             # Initial Target Offset for PSM2

@@ -286,3 +286,17 @@ def load_json_dvrk(file_path:str)->dict:
         obj = data[data.find('{'): data.rfind('}') + 1]
         jsonObj = json.loads(obj)
     return jsonObj
+
+def get_input_in_range(input_val:float, min:float, max:float):
+    '''
+    Get the input number in a certain range
+    :param input_val: input values
+    :param max: the upper threshold
+    :param min: the lower threshold
+    '''
+    if input_val < min:
+        return min
+    elif input_val > max:
+        return max
+    else:
+        return input_val

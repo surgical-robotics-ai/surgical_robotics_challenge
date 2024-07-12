@@ -63,14 +63,13 @@ class Options:
     run_scene = True
     namespace = '/CRTK'
     rate = 120
-    tool_id = 400006
 
 
 class PSMCRTKWrapper:
-    def __init__(self, client, name, namespace, tool_id):
+    def __init__(self, client, name, namespace):
         self.arm_name = name
         self.namespace = namespace
-        self.arm = psm_arm.PSM(client, name, add_joint_errors=True, tool_id=tool_id)
+        self.arm = psm_arm.PSM(client, name, add_joint_errors=True)
         time.sleep(0.1)
 
         self.measured_js_pub = rospy.Publisher(namespace + '/' + name + '/' + 'measured_js', JointState,
@@ -264,15 +263,15 @@ class SceneManager:
         self._components = []
         if options.run_psm_one is True:
             print("Launching CRTK-ROS Interface for PSM1 ")
-            self.psm1 = PSMCRTKWrapper(self.simulation_manager, 'psm1', options.namespace, options.tool_id)
+            self.psm1 = PSMCRTKWrapper(self.simulation_manager, 'psm1', options.namespace)
             self._components.append(self.psm1)
         if options.run_psm_two is True:
             print("Launching CRTK-ROS Interface for PSM2 ")
-            self.psm2 = PSMCRTKWrapper(self.simulation_manager, 'psm2', options.namespace, options.tool_id)
+            self.psm2 = PSMCRTKWrapper(self.simulation_manager, 'psm2', options.namespace)
             self._components.append(self.psm2)
         if options.run_psm_three is True:
             print("Launching CRTK-ROS Interface for PSM3 ")
-            self.psm3 = PSMCRTKWrapper(self.simulation_manager, 'psm3', options.namespace, options.tool_id)
+            self.psm3 = PSMCRTKWrapper(self.simulation_manager, 'psm3', options.namespace)
             self._components.append(self.psm3)
         if options.run_ecm:
             print("Launching CRTK-ROS Interface for ECM ")
@@ -311,7 +310,6 @@ if __name__ == "__main__":
     parser.add_argument('--scene', action='store', dest='run_scene', help='RUN Scene', default=True)
     parser.add_argument('--ns', action='store', dest='namespace', help='Namespace', default='/CRTK')
     parser.add_argument('--rate', action='store', dest='rate', help='Rate of Publishing', default=120)
-    parser.add_argument('--tool_id', action='store', dest='psm_tool_id', help='PSM Tool IDS', default=400006)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
@@ -326,7 +324,6 @@ if __name__ == "__main__":
 
     options.namespace = parsed_args.namespace
     options.rate = parsed_args.rate
-    options.tool_id = parsed_args.psm_tool_id
 
     sceneManager = SceneManager(options)
     sceneManager.run()

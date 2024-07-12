@@ -54,14 +54,14 @@ class Scene:
     def __init__(self, simulation_manager):
         self.simulation_manager = simulation_manager
         self._needle = self.simulation_manager.get_obj_handle("Needle")
-        self._entry1 = self.simulation_manager.get_obj_handle("Entry1")
-        self._entry2 = self.simulation_manager.get_obj_handle("Entry2")
-        self._entry3 = self.simulation_manager.get_obj_handle("Entry3")
-        self._entry4 = self.simulation_manager.get_obj_handle("Entry4")
-        self._exit1 = self.simulation_manager.get_obj_handle("Exit1")
-        self._exit2 = self.simulation_manager.get_obj_handle("Exit2")
-        self._exit3 = self.simulation_manager.get_obj_handle("Exit3")
-        self._exit4 = self.simulation_manager.get_obj_handle("Exit4")
+        self._entry1 = self.simulation_manager.get_obj_handle("phantom/Entry1")
+        self._entry2 = self.simulation_manager.get_obj_handle("phantom/Entry2")
+        self._entry3 = self.simulation_manager.get_obj_handle("phantom/Entry3")
+        self._entry4 = self.simulation_manager.get_obj_handle("phantom/Entry4")
+        self._exit1 = self.simulation_manager.get_obj_handle("phantom/Exit1")
+        self._exit2 = self.simulation_manager.get_obj_handle("phantom/Exit2")
+        self._exit3 = self.simulation_manager.get_obj_handle("phantom/Exit3")
+        self._exit4 = self.simulation_manager.get_obj_handle("phantom/Exit4")
         time.sleep(0.1)
 
     def needle_measured_cp(self):
