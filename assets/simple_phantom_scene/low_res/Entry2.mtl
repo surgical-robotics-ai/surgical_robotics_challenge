@@ -1,0 +1,13 @@
+# Blender MTL File: 'phantom.blend'
+# Material Count: 1
+
+newmtl Material.022
+Ns 224.999983
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd /home/adnanmunawar/Desktop/SRC OLD ASSETS/ADF/high_res/entry_exit.png
