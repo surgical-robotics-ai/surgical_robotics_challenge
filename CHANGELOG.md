@@ -28,6 +28,7 @@ Change log
   * Set the model level gravity to zero in order to improve the control accuracy
   * Rescaled simulation assets to SI units and tune the physical properties of the objects.(In version 1.0.0, the assets were scaled by 10)
   * Redo the mapping between the MTM gripper angles to the simulated PSM gripper angles
+  * Cleaned up and reorganized file structure
 
 1.0.0 (2022-08-19)
 ==================
