@@ -104,8 +104,8 @@ joints:
 - JOINT phantom-Entry1
 - JOINT phantom-Entry3
 - JOINT phantom-Entry4
-high resolution path: ../assets/3d_med_phantom_scene/high_res/
-low resolution path: ../assets/3d_med_phantom_scene/low_res/
+high resolution path: ../../../assets/3d_med_phantom_scene/high_res/
+low resolution path: ../../../assets/3d_med_phantom_scene/low_res/
 ignore inter-collision: false
 namespace: /ambf/env/
 

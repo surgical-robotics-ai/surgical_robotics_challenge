@@ -14,8 +14,8 @@ ghost objects:
 - BODY ghostEntry4
 - BODY ghostExit4
 joints: []
-high resolution path: ../assets/3d_med_phantom_scene/high_res/
-low resolution path: ../assets/3d_med_phantom_scene/low_res/
+high resolution path: ../../../assets/3d_med_phantom_scene/high_res/
+low resolution path: ../../../assets/3d_med_phantom_scene/low_res/
 ignore inter-collision: true
 namespace: /ambf/env/phantom/
 

@@ -2,8 +2,8 @@
 ghost objects: [GHOST right finger, GHOST left finger]
 actuators: [ACTUATOR Actuator0]
 joints: []
-high resolution path: ../assets/psm_ghosts/high_res/
-low resolution path: ../assets/psm_ghosts/low_res/
+high resolution path: ../../../assets/psm_ghosts/high_res/
+low resolution path: ../../../assets/psm_ghosts/low_res/
 ignore inter-collision: true
 namespace: /ambf/env/ghosts/psm2/
 
@@ -19,7 +19,7 @@ shape geometry: &shape_geometry
 
 GHOST right finger:
   name: right_finger_ghost
-  parent: psm2/BODY tool gripper right link
+  parent: psm2/BODY tool gripper1 simple
   # mesh: ghost.STL
   shape: BOX
   geometry: *shape_geometry
@@ -54,7 +54,7 @@ GHOST right finger:
 
 GHOST left finger:
   name: left_finger_ghost
-  parent: psm2/BODY tool gripper left link
+  parent: psm2/BODY tool gripper2 simple
   # mesh: ghost.STL
   shape: BOX
   geometry: *shape_geometry
@@ -93,6 +93,6 @@ ACTUATOR Actuator0:
   location:
     orientation: {p: 0.0, r: 0.0, y: 0.0}
     position: {x: 0.0, y: -0.010, z: 0.0}
-  parent: /ambf/env/psm2/BODY tool yaw link
+  parent: /ambf/env/psm2/BODY tool yaw link simple
   visible: False
   visible size: 0.0005
