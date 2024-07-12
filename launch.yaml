@@ -6,8 +6,8 @@ input devices config: ./ADF/input_devices/input_devices.yaml
 
 multibody configs:
   #3D MED PHANTOM
-  - "ADF/Phantoms/3D_MED/ghosts.yaml" #0
-  - "ADF/Phantoms/3D_MED/phantom.yaml" #1
+  - "ADF/Phantoms/3D_MED/phantom.yaml" #0
+  - "ADF/Phantoms/3D_MED/ghosts.yaml" #1
   #PSM LND 420006
   - "ADF/PSMs/LND_420006/psm1.yaml" #2
   - "ADF/PSMs/LND_420006/ghosts_actuators_psm1.yaml" #3
@@ -18,3 +18,6 @@ multibody configs:
   - "ADF/PSMs/LND_400006_SIMPLE/ghosts_actuators_psm1.yaml" #7
   - "ADF/PSMs/LND_400006_SIMPLE/psm2.yaml" #8
   - "ADF/PSMs/LND_400006_SIMPLE/ghosts_actuators_psm2.yaml" #9
+  #SIMPLE PHANTOM
+  - "ADF/Phantoms/Simple/phantom.yaml" #10
+  - "ADF/Phantoms/Simple/ghosts.yaml" #11
