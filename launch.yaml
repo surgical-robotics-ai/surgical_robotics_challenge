@@ -1,6 +1,6 @@
 # This is the base file for Coordination Application
+# world config: ./ADF/world/world_stereo.yaml
 world config: ./ADF/world/world_stereo.yaml
-# world config: ./ADF/world/world_stereo_test.yaml
 color config: ./ADF/color/colors.yaml
 input devices config: ./ADF/input_devices/input_devices.yaml
 
@@ -21,3 +21,6 @@ multibody configs:
   #SIMPLE PHANTOM
   - "ADF/Phantoms/Simple/phantom.yaml" #10
   - "ADF/Phantoms/Simple/ghosts.yaml" #11
+  #3D MED STRAIGHT PHANTOM
+  - "ADF/Phantoms/3D_MED_STRAIGHT/phantom.yaml" #12
+  - "ADF/Phantoms/3D_MED_STRAIGHT/ghosts.yaml" #13
