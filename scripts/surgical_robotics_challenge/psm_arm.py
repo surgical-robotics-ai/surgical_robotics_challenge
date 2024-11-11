@@ -102,7 +102,7 @@ class PSM:
         self.grasped = [False, False, False]
         self.graspable_objs_prefix = ["Needle", "Thread", "Puzzle"]
         self.grasped_obj_name = None
-        self.grasp_actuation_jaw_angle = 0.1
+        self.grasp_actuation_jaw_angle = 0.05
         self.T_t_b_home = coordinate_frames.PSM.T_t_b_home
         self._kd = PSMKinematicSolver(psm_type=self.tool_id, tool_id=self.tool_id)
 
