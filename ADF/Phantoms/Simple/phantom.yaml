@@ -106,8 +106,8 @@ joints:
 - JOINT Phantom-Exit2
 - JOINT Phantom-Exit3
 - JOINT Phantom-Exit4
-high resolution path: ../../../assets/simple_phantom_scene/high_res/
-low resolution path: ../../../assets/simple_phantom_scene/low_res/
+high resolution path: ./high_res/
+low resolution path: ./low_res/
 ignore inter-collision: false
 namespace: /ambf/env/phantom/
 BODY Barrier:
