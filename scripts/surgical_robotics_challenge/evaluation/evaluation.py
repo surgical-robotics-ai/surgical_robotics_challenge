@@ -1,6 +1,7 @@
 import time
 
 from surgical_robotics_challenge.utils.utilities import *
+from surgical_robotics_challenge.utils.coordinate_frames import *
 from ambf_msgs.msg import RigidBodyState
 from PyKDL import Frame, Rotation, Vector
 import rospy
@@ -70,12 +71,11 @@ class GlobalParams:
 
 class NeedleKinematics:
     # Base in Needle Origin
-    T_bINn = Frame(Rotation.RPY(0., 0., 0.), Vector(-0.102, 0., 0.) / units_conversion.SimToSI.linear_factor)
+    T_bINn = Needle.T_base_origin
     # Mid in Needle Origin
-    T_mINn = Frame(Rotation.RPY(0., 0., -1.091), Vector(-0.048, 0.093, 0.) / units_conversion.SimToSI.linear_factor)
+    T_mINn = Needle.T_mid_origin
     # Tip in Needle Origin
-    T_tINn = Frame(Rotation.RPY(0., 0., -0.585), Vector(0.056, 0.085, 0.) / units_conversion.SimToSI.linear_factor)
-
+    T_tINn = Needle.T_tip_origin
     def __init__(self):
         """
 
