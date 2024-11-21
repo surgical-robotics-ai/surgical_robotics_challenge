@@ -1,13 +1,12 @@
-# Blender MTL File: 'full_scene_new_instruments_15.blend'
+# Blender MTL File: 'full_scene_new_instruments.blend'
 # Material Count: 1
 
-newmtl Needlemat
-Ns 440.413214
-Ka 0.531818 0.531818 0.531818
+newmtl Needlemat.002
+Ns 359.999993
+Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
-Ni 1.450000
+Ni 1.000000
 d 1.000000
-illum 3
-map_Kd worn-shiny-metal-albedo.png
+illum 2
