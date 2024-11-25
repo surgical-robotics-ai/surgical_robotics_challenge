@@ -1,8 +1,8 @@
-# Blender MTL File: 'phantom.blend'
+# Blender MTL File: 'simple_phantom_scene.blend'
 # Material Count: 1
 
-newmtl BlackGroundmat
-Ns 323.999982
+newmtl BlackGroundmat.002
+Ns 359.999993
 Ka 1.000000 1.000000 1.000000
 Kd 0.581500 0.581500 0.581500
 Ks 0.499914 0.499914 0.499914
@@ -10,4 +10,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd black.png
+map_Kd surgical_drape.png
