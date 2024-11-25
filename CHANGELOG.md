@@ -1,6 +1,12 @@
 Change log
 ==========
 
+2.1.0 (2024-11-25)
+==================
+* Added back the simple phantom scene from SRC 2021-2022
+* Updated needle shape to represent a real needle
+* Cleaned up assets by moving meshes from **assets** folder to respective ADF folders
+
 2.0.0 (2024-07-11)
 ==================
 

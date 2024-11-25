@@ -22,8 +22,8 @@ joints:
 - JOINT tool pitch link-tool yaw link
 - JOINT tool yaw link-tool gripper left link
 - JOINT tool yaw link-tool gripper right link
-high resolution path: ../../../assets/psm_LND_420006/high_res/
-low resolution path: ../../../assets/psm_LND_420006/low_res/
+high resolution path: ./high_res/
+low resolution path: ./low_res/
 ignore inter-collision: false
 
 controller: &gripper_controller
@@ -829,7 +829,7 @@ JOINT tool roll link-tool pitch link:
   passive: false
   controller output type: VELOCITY
   type: revolute
-  max motor impulse: 50.0
+  max motor impulse: 200.0
   damping: 0.0500000007
   offset: -1.5706601143
 JOINT tool yaw link-tool gripper left link:
@@ -860,7 +860,7 @@ JOINT tool yaw link-tool gripper left link:
   controller: *gripper_controller
   controller output type: VELOCITY
   type: revolute
-  max motor impulse: 500.0
+  max motor impulse: 200.0
   damping: 0.0049999999
   offset: -3.1415903568
 JOINT tool yaw link-tool gripper right link:
@@ -921,6 +921,6 @@ JOINT yaw link-pitch end link:
   passive: false
   controller output type: VELOCITY
   type: revolute
-  max motor impulse: 0.05000000074505806
+  max motor impulse: 200.0
   damping: 0.0
   offset: -1.5707997084
