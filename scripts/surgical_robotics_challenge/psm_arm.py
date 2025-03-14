@@ -110,7 +110,6 @@ class PSM:
         self._T_b_w = None
         # Transform of World in Base
         self._T_w_b = None
-        self._base_pose_updated = False
         self._num_joints = 6
         self._ik_solution = np.zeros([self._num_joints])
         self._last_jp = np.zeros([self._num_joints])
@@ -172,10 +171,8 @@ class PSM:
         return self._T_w_b
 
     def _update_base_pose(self):
-        if not self._base_pose_updated:
             self._T_b_w = self.base.get_pose()
             self._T_w_b = self._T_b_w.Inverse()
-            self._base_pose_updated = True
 
     def run_grasp_logic(self, jaw_angle):
         if len(self.actuators) == 0:
