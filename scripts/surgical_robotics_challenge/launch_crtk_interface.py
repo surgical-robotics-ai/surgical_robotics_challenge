@@ -326,4 +326,5 @@ if __name__ == "__main__":
     options.rate = parsed_args.rate
 
     sceneManager = SceneManager(options)
+    time.sleep(2.0)
     sceneManager.run()
