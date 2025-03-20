@@ -43,7 +43,6 @@
 # */
 # //==============================================================================
 
-import rospy
 from PyKDL import Rotation, Frame, Vector
 import socket
 import json
@@ -100,14 +99,14 @@ print("Starting TeleOp")
 print("Comment out pose print statements for better performance")
 
 
-rate = rospy.Rate(60)
+rate = simulation_manager.get_ral().create_rate(60)
 
 end_effector_left = 0.5
 end_effector_right = 0.5
 translation_right = Vector(0.1, 0.5, -1.3)
 translation_left = Vector(0, 0, -1.3)
 
-while not rospy.is_shutdown():
+while not simulation_manager.is_shutdown():
     data,_ = sock.recvfrom(1024)
     if data is not None:
         print(data)

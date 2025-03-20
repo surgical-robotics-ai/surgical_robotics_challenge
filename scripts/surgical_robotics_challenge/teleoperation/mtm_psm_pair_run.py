@@ -48,7 +48,6 @@ import sys
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.psm_arm import PSM
 import time
-import rospy
 from PyKDL import Frame, Rotation, Vector, Wrench
 from argparse import ArgumentParser
 from input_devices.mtm_device_crtk import MTM
@@ -61,7 +60,7 @@ from std_msgs.msg import Float64MultiArray
 
 
 class ControllerInterface:
-    def __init__(self, leader_l, leader_r, psm_arm_l, psm_arm_r, ecm):
+    def __init__(self, ral, leader_l, leader_r, psm_arm_l, psm_arm_r, ecm):
         self.counter = 0
         self.leader_1 = leader_l
         self.leader_2 = leader_r
@@ -80,7 +79,7 @@ class ControllerInterface:
         self._T1_c_b = None
         self._T2_c_b = None
         self._update_T_c_b = True
-        self._pub_ecm = rospy.Publisher('/ecm/setpoint_js', Float64MultiArray, queue_size=1)
+        self._pub_ecm = ral.publisher('/ecm/setpoint_js', Float64MultiArray, queue_size=1)
         self.leader_1.enable_gravity_comp()
         self.leader_2.enable_gravity_comp()
 
@@ -258,13 +257,13 @@ if __name__ == "__main__":
         leader_r = MTM('/MTMR/')
         leader_l.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
         leader_r.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
-        controller1 = ControllerInterface(leader_l, leader_r, psm1, psm2, cam)
+        controller1 = ControllerInterface(simulation_manager.get_ral(), leader_l, leader_r, psm1, psm2, cam)
         controllers.append(controller1)
 
-        rate = rospy.Rate(200)
+        rate = simulation_manager.create_rate(200)
 
         try:
-            while not rospy.is_shutdown():
+            while not simulation_manager.is_shutdown():
                 for cont in controllers:
                     cont.run()
                 rate.sleep()

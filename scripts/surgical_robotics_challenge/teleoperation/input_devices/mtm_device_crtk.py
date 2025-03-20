@@ -48,7 +48,7 @@ from PyKDL import Frame, Rotation, Vector
 from geometry_msgs.msg import Pose, PoseStamped, TransformStamped, TwistStamped, WrenchStamped, Wrench
 from sensor_msgs.msg import Joy, JointState
 from std_msgs.msg import Bool
-import rospy, rostopic
+from ros_abstraction_layer import ral
 import time
 import numpy as np
 from surgical_robotics_challenge.utils.utilities import get_input_in_range
@@ -160,7 +160,8 @@ def get_crtk_cp_msg_type_from_str(msg_type_str):
 # Init everything related to Geomagic
 class MTM:
     # The name should include the full qualified prefix. I.e. '/Geomagic/', or '/omniR_' etc.
-    def __init__(self, name):
+    def __init__(self, ral, name):
+        self.ral = ral
         pose_sub_topic_name = name + 'measured_cp'
         twist_topic_name = name + 'measured_cv'
         joint_state_sub_topic_name = name + 'measured_js'
@@ -189,8 +190,8 @@ class MTM:
         self.gripper_angle = 0
 
         self.switch_psm = False
-        self._button_msg_time = rospy.Time.now()
-        self._switch_psm_duration = rospy.Duration(0.5)
+        self._button_msg_time = self.ral.now()
+        self._switch_psm_duration = self.ral.create_duration(0.5)
 
         self._arm_publishing = False
 
@@ -198,31 +199,29 @@ class MTM:
         self._jv = []
         self._jf = []
 
-        print(rostopic.get_topic_type(pose_sub_topic_name))
-        print(rostopic.get_topic_type(pose_pub_topic_name))
-        self.MEASURED_CP_MESSAGE_TYPE = get_crtk_cp_msg_type_from_str(rostopic.get_topic_type(pose_sub_topic_name)[0])
-        self.SERVO_CP_MESSAGE_TYPE = get_crtk_cp_msg_type_from_str(rostopic.get_topic_type(pose_pub_topic_name)[0])
+        self.MEASURED_CP_MESSAGE_TYPE = PoseStamped
+        self.SERVO_CP_MESSAGE_TYPE = PoseStamped
 
-        self._pose_sub = rospy.Subscriber(
+        self._pose_sub = self.ral.subscriber(
             pose_sub_topic_name, self.MEASURED_CP_MESSAGE_TYPE, self.pose_cb, queue_size=1)
-        self._state_sub = rospy.Subscriber(
+        self._state_sub = self.ral.subscriber(
             joint_state_sub_topic_name, JointState, self.state_cb, queue_size=1)
-        self._gripper_sub = rospy.Subscriber(
+        self._gripper_sub = self.ral.subscriber(
             gripper_topic_name, JointState, self.gripper_cb, queue_size=1)
-        self._twist_sub = rospy.Subscriber(
+        self._twist_sub = self.ral.subscriber(
             twist_topic_name, TwistStamped, self.twist_cb, queue_size=1)
-        self._clutch_button_sub = rospy.Subscriber(
+        self._clutch_button_sub = self.ral.subscriber(
             clutch_topic_name, Joy, self.clutch_buttons_cb, queue_size=1)
-        self._coag_button_sub = rospy.Subscriber(
+        self._coag_button_sub = self.ral.subscriber(
             coag_topic_name, Joy, self.coag_buttons_cb, queue_size=1)
 
-        self._pos_pub = rospy.Publisher(
+        self._pos_pub = self.ral.publisher(
             pose_pub_topic_name, self.SERVO_CP_MESSAGE_TYPE, queue_size=1)
-        self._wrench_pub = rospy.Publisher(
+        self._wrench_pub = self.ral.publisher(
             wrench_pub_topic_name, WrenchStamped, queue_size=1)
-        self._effort_pub = rospy.Publisher(
+        self._effort_pub = self.ral.publisher(
             effort_pub_topic_name, JointState, queue_size=1)
-        self._gravity_comp_pub = rospy.Publisher(
+        self._gravity_comp_pub = self.ral.publisher(
             grav_comp_topic_name, Bool, queue_size=1)
 
         print('Creating MTM Device Named: ', name, ' From ROS Topics')
@@ -338,11 +337,11 @@ class MTM:
         self.clutch_button_pressed = msg.buttons[0]
         self.pre_coag_pose_msg = self.cur_pos_msg
         if self.clutch_button_pressed:
-            time_diff = rospy.Time.now() - self._button_msg_time
+            time_diff = self.ral.now() - self._button_msg_time
             if time_diff.to_sec() < self._switch_psm_duration.to_sec():
                 print('Allow PSM Switch')
                 self.switch_psm = True
-            self._button_msg_time = rospy.Time.now()
+            self._button_msg_time = self.ral.now()
 
     def coag_buttons_cb(self, msg):
         self.coag_button_pressed = msg.buttons[0]
@@ -408,15 +407,16 @@ class MTM:
 
 
 def test():
-    rospy.init_node('test_mtm')
+    g_ral = ral('test_mtm')
 
-    d = MTM('/dvrk/MTMR/')
+    d = MTM(g_ral, '/dvrk/MTMR/')
     d.set_base_frame(Frame(Rotation.RPY(np.pi/2, 0, 0), Vector()))
     # rot_offset = Rotation.RPY(np.pi, np.pi/2, 0).Inverse()
     # tip_offset = Frame(rot_offset, Vector(0, 0, 0))
     # d.set_tip_frame(tip_offset)
     err_last = 0.0
-    while not rospy.is_shutdown():
+    g_ral.spin()
+    while not g_ral.is_shutdown():
         if d.coag_button_pressed:
             d.optimize_wrist_platform()
         else:

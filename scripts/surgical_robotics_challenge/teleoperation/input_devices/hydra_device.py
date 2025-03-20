@@ -49,7 +49,7 @@ import PyKDL
 from PyKDL import Frame, Rotation, Vector
 from razer_hydra.msg import Hydra
 from geometry_msgs.msg import PoseStamped, Twist
-import rospy
+from ros_abstraction_layer import ral
 import time
 from scipy.spatial.transform import Rotation as Rot
 import numpy as np
@@ -104,8 +104,9 @@ def hydra_msg_to_kdl_frame(msg_hydra):
 # Init everything related to Geomagic
 class HydraDevice:
     # The name should include the full qualified prefix. I.e. '/Geomagic/', or '/omniR_' etc.
-    def __init__(self, name='hydra_calib', hydra_idx=0):
+    def __init__(self, ral, name='hydra_calib', hydra_idx=0):
         ### hydra_idx=0 --> left, hydra_idx=1 --> right
+        self.ral = ral
         self.pose_topic_name = name
         assert (hydra_idx == 0) or (hydra_idx == 1), 'Incorrect hydra controller index'
         self.hydra_idx = hydra_idx
@@ -117,11 +118,11 @@ class HydraDevice:
         self.reset_pos = [0.0, 0.0, 0.0]
         self.reset_mtx = np.eye(3)
         ### if you would like to init the device before picking up, you may uncomment following lines. 
-        # init_msg = rospy.wait_for_message(self.pose_topic_name, Hydra, timeout=1)
+        # init_msg = self.ral.wait_for_message(self.pose_topic_name, Hydra, timeout=1) ## WILL NOT WORK WITH RAL
         # self.set_reset_pos(init_msg)
         self.is_reset_rot = False
-        self._pose_sub = rospy.Subscriber(self.pose_topic_name, Hydra, self.pose_cb, queue_size=1)
-        self._twist_sub = rospy.Subscriber(self.pose_topic_name, Hydra, self.twist_cb, queue_size=1)
+        self._pose_sub = self.ral.subscriber(self.pose_topic_name, Hydra, self.pose_cb, queue_size=1)
+        self._twist_sub = self.ral.subscriber(self.pose_topic_name, Hydra, self.twist_cb, queue_size=1)
         self.pose = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.jaw = 0.0
         self.reset_button = False
@@ -136,8 +137,8 @@ class HydraDevice:
         self._T_baseoffset = Frame(R_off, Vector(0, 0, 0))
         self._T_baseoffset_inverse = self._T_baseoffset.Inverse()
         self._T_tipoffset = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
-        self._button_msg_time = rospy.Time.now()
-        self._switch_psm_duration = rospy.Duration(0.5)
+        self._button_msg_time = self.ral.now()
+        self._switch_psm_duration = self.ral.create_duration(0.5)
 
         if hydra_idx == 0:
             hydra_name = 'Left Paddle'
@@ -255,11 +256,11 @@ class HydraDevice:
     #     self.clutch_button_pressed = msg.grey_button
     #
     #     if self.clutch_button_pressed:
-    #         time_diff = rospy.Time.now() - self._button_msg_time
+    #         time_diff = self.ral.now() - self._button_msg_time
     #         if time_diff.to_sec() < self._switch_psm_duration.to_sec():
     #             print('Allow PSM Switch')
     #             self.switch_psm = True
-    #         self._button_msg_time = rospy.Time.now()
+    #         self._button_msg_time = self.ral.now()
 
     def hydra_pose_to_kdl_frame(self):
         cur_frame = PyKDL.Frame()
@@ -289,11 +290,12 @@ class HydraDevice:
 
 
 def test():
-    rospy.init_node('test_hydra')
+    g_ral = ral('test_hydra')
 
-    d = HydraDevice()
+    d = HydraDevice(g_ral)
 
-    while not rospy.is_shutdown():
+    g_ral.spin()
+    while not g_ral.is_shutdown():
         [r, p, y] = d.measured_cp().M.GetRPY()
         [p_x, p_y, p_z] = d.measured_cp().p
         print('x: ', p_x, ', Y: ', p_y, ', Z: ', p_z)
@@ -309,11 +311,11 @@ def test():
 
 
 def test_np():
-    rospy.init_node('test_hydra')
+    g_ral = ral('test_hydra')
 
-    d = HydraDevice()
+    d = HydraDevice(g_ral)
 
-    while not rospy.is_shutdown():
+    while not g_ral.is_shutdown():
         pose = d.measured_cp()
         print(pose)
         time.sleep(0.5)

@@ -57,8 +57,6 @@ from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.ecm_arm import ECM
 import time
-import rospy
-import PyKDL
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
 from input_devices.hydra_device import HydraDevice
@@ -226,10 +224,10 @@ if __name__ == "__main__":
         controller = ControllerInterface(leader, psm_arms, cam)
         controllers.append(controller)
 
-        rate = rospy.Rate(200)
+        rate = simulation_manager.get_ral().create_rate(200)
 
         try:
-            while not rospy.is_shutdown():
+            while not simulation_manager.is_shutdown():
                 for cont in controllers:
                         cont.run()
                 rate.sleep()

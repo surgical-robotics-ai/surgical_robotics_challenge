@@ -67,7 +67,7 @@ class SimulationManager:
         ambf_object = self._client.get_obj_handle(name)
         
         if required and ambf_object is None:
-            raise RuntimeError(f"SimulationObject {name} is required not found in the simulation")
+            raise RuntimeError(f"SimulationObject {name} is but required not found in the simulation")
 
         if ambf_object:
             return SimulationObject(ambf_object)
@@ -76,3 +76,16 @@ class SimulationManager:
 
     def get_world_handle(self):
         return self._client.get_world_handle()
+        
+
+    def is_shutdown(self):
+        return self._client.is_shutdown()
+
+    def get_time(self):
+        return self._client.get_time()
+
+    def create_rate(self, rate):
+        return self._client.create_rate(rate)
+
+    def get_ral(self):
+        return self._client.ral()

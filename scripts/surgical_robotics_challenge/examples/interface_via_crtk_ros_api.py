@@ -1,5 +1,5 @@
 # Import the relevant classes
-import rospy
+from ros_abstraction_layer import ral 
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
 from PyKDL import Frame, Rotation, Vector
@@ -18,8 +18,8 @@ def add_break(s):
 
 
 class ImageSub:
-    def __init__(self, image_topic):
-        self.image_sub = rospy.Subscriber(image_topic, Image, self.image_cb)
+    def __init__(self, ral, image_topic):
+        self.image_sub = ral.subscriber(image_topic, Image, self.image_cb)
         self.image_msg = Image()
 
     def image_cb(self, image_msg):
@@ -39,7 +39,7 @@ def list_to_sensor_msg_position(jp_list):
 
 
 class ARMInterface:
-    def __init__(self, arm_type):
+    def __init__(self, ral, arm_type):
         if arm_type == ArmType.PSM1:
             arm_name = '/CRTK/psm1'
         elif arm_type == ArmType.PSM2:
@@ -49,12 +49,14 @@ class ARMInterface:
         else:
             raise ("Error! Invalid Arm Type")
 
-        self._cp_sub = rospy.Subscriber(arm_name + "/measured_cp", PoseStamped, self.cp_cb, queue_size=1)
-        self._T_b_w_sub = rospy.Subscriber(arm_name + "/T_b_w", PoseStamped, self.T_b_w_cb, queue_size=1)
-        self._jp_sub = rospy.Subscriber(arm_name + "/measured_js", JointState, self.jp_cb, queue_size=1)
-        self.cp_pub = rospy.Publisher(arm_name + "/servo_cp", PoseStamped, queue_size=1)
-        self.jp_pub = rospy.Publisher(arm_name + "/servo_jp", JointState, queue_size=1)
-        self.jaw_jp_pub = rospy.Publisher(arm_name + '/jaw/' + 'servo_jp', JointState, queue_size=1)
+        self.ral = ral
+
+        self._cp_sub = self.ral.subscriber(arm_name + "/measured_cp", PoseStamped, self.cp_cb, queue_size=1)
+        self._T_b_w_sub = self.ral.subscriber(arm_name + "/T_b_w", PoseStamped, self.T_b_w_cb, queue_size=1)
+        self._jp_sub = self.ral.subscriber(arm_name + "/measured_js", JointState, self.jp_cb, queue_size=1)
+        self.cp_pub = self.ral.publisher(arm_name + "/servo_cp", PoseStamped, queue_size=1)
+        self.jp_pub = self.ral.publisher(arm_name + "/servo_jp", JointState, queue_size=1)
+        self.jaw_jp_pub = self.ral.publisher(arm_name + '/jaw/' + 'servo_jp', JointState, queue_size=1)
 
         self.measured_cp_msg = None
         self.T_b_w_msg = None
@@ -110,7 +112,7 @@ class SceneObjectType(Enum):
 
 
 class SceneInterface:
-    def __init__(self):
+    def __init__(self, ral):
         self._scene_object_poses = dict()
         self._scene_object_poses[SceneObjectType.Needle] = None
         self._scene_object_poses[SceneObjectType.Entry1] = None
@@ -123,16 +125,17 @@ class SceneInterface:
         self._scene_object_poses[SceneObjectType.Exit4] = None
         self._subs = []
 
+        self.ral = ral
         namespace = '/CRTK/'
         suffix = '/measured_cp'
         for k, i in self._scene_object_poses.items():
-            self._subs.append(rospy.Subscriber(namespace + k.name + suffix, PoseStamped,
+            self._subs.append(self.ral.subscriber(namespace + k.name + suffix, PoseStamped,
                                                self.state_cb, callback_args=k, queue_size=1))
 
         self._task_3_ready = False
-        self._task_3_setup_init_pub = rospy.Publisher('/CRTK/scene/task_3_setup/init', Empty, queue_size=1)
+        self._task_3_setup_init_pub = self.ral.publisher('/CRTK/scene/task_3_setup/init', Empty, queue_size=1)
 
-        self._task_3_setup_ready_sub = rospy.Subscriber('/CRTK/scene/task_3_setup/ready',
+        self._task_3_setup_ready_sub = self.ral.subscriber('/CRTK/scene/task_3_setup/ready',
                                                         Empty, self.task_3_setup_ready_cb, queue_size=1)
 
     def state_cb(self, msg, key):
@@ -152,9 +155,9 @@ class SceneInterface:
 
 
 class WorldInterface:
-    def __init__(self):
-        self._reset_world_pub = rospy.Publisher('/ambf/env/World/Command/Reset', Empty, queue_size=1)
-        self._reset_bodies_pub = rospy.Publisher('/ambf/env/World/Command/ResetBodies', Empty, queue_size=1)
+    def __init__(self, ral):
+        self._reset_world_pub = ral.publisher('/ambf/env/World/Command/Reset', Empty, queue_size=1)
+        self._reset_bodies_pub = ral.publisher('/ambf/env/World/Command/ResetBodies', Empty, queue_size=1)
 
     def reset(self):
         self._reset_world_pub.publish(Empty())
@@ -164,26 +167,26 @@ class WorldInterface:
 
 
 # Create an instance of the client
-rospy.init_node('your_name_node')
+g_ral = ral('crtk_ros_api')
 time.sleep(0.5)
 world_handle = WorldInterface()
 
 # Get a handle to PSM1
-psm1 = ARMInterface(ArmType.PSM1)
+psm1 = ARMInterface(g_ral, ArmType.PSM1)
 # Get a handle  to PSM2
-psm2 = ARMInterface(ArmType.PSM2)
+psm2 = ARMInterface(g_ral, ArmType.PSM2)
 # Get a handle to ECM
-ecm = ARMInterface(ArmType.ECM)
+ecm = ARMInterface(g_ral, ArmType.ECM)
 # Get a handle to scene to access its elements, i.e. needle and entry / exit points
-scene = SceneInterface()
+scene = SceneInterface(g_ral)
 # Create an instance of task completion report with you team name
 task_report = TaskCompletionReport(team_name='my_team_name')
 # Small sleep to let the handles initialize properly
 add_break(0.5)
 
 # Add you camera stream subs
-cameraL_sub = ImageSub('/ambf/env/cameras/cameraL/ImageData')
-cameraR_sub = ImageSub('/ambf/env/cameras/cameraR/ImageData')
+cameraL_sub = ImageSub(g_ral, '/ambf/env/cameras/cameraL/ImageData')
+cameraR_sub = ImageSub(g_ral, '/ambf/env/cameras/cameraR/ImageData')
 
 print("Resetting the world")
 world_handle.reset()
