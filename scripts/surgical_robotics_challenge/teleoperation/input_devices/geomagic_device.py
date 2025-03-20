@@ -194,7 +194,7 @@ def test():
     g_ral = ral('test_geomagic')
 
     d = GeomagicDevice(ral, '/Geomagic/')
-
+    g_ral.spin()
     while not g_ral.is_shutdown():
         [r, p, y] = d.measured_cp().M.GetRPY()
         f = 180.0 / 3.1404

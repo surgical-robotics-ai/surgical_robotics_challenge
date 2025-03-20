@@ -414,7 +414,6 @@ def test():
     # rot_offset = Rotation.RPY(np.pi, np.pi/2, 0).Inverse()
     # tip_offset = Frame(rot_offset, Vector(0, 0, 0))
     # d.set_tip_frame(tip_offset)
-    err_last = 0.0
     g_ral.spin()
     while not g_ral.is_shutdown():
         if d.coag_button_pressed:

@@ -314,7 +314,7 @@ def test_np():
     g_ral = ral('test_hydra')
 
     d = HydraDevice(g_ral)
-
+    g_ral.spin()
     while not g_ral.is_shutdown():
         pose = d.measured_cp()
         print(pose)
