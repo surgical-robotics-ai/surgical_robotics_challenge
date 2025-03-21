@@ -338,7 +338,7 @@ class MTM:
         self.pre_coag_pose_msg = self.cur_pos_msg
         if self.clutch_button_pressed:
             time_diff = self.ral.now() - self._button_msg_time
-            if time_diff.to_sec() < self._switch_psm_duration.to_sec():
+            if self.ral.to_sec(time_diff) < self.ral.to_sec(self._switch_psm_duration):
                 print('Allow PSM Switch')
                 self.switch_psm = True
             self._button_msg_time = self.ral.now()
