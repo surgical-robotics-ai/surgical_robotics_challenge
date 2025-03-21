@@ -223,7 +223,7 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        leader = MTM(parsed_args.mtm_name)
+        leader = MTM(simulation_manager.get_ral(), parsed_args.mtm_name)
         leader.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
         controller1 = ControllerInterface(leader, psm_arms, cam)
         controllers.append(controller1)

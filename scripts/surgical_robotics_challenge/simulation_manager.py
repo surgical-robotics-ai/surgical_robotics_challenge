@@ -1,5 +1,6 @@
 from ambf_client import Client
 import surgical_robotics_challenge.units_conversion as units_conversion
+import time
 
 
 class SimulationObject:
@@ -62,12 +63,13 @@ class SimulationManager:
     def __init__(self, name):
         self._client = Client(name)
         self._client.connect()
+        time.sleep(1.0)
 
     def get_obj_handle(self, name, required: bool= False)->SimulationObject:
         ambf_object = self._client.get_obj_handle(name)
         
         if required and ambf_object is None:
-            raise RuntimeError(f"SimulationObject {name} is but required not found in the simulation")
+            raise RuntimeError(f"SimulationObject {name} is required but not found in the simulation")
 
         if ambf_object:
             return SimulationObject(ambf_object)
@@ -88,4 +90,4 @@ class SimulationManager:
         return self._client.create_rate(rate)
 
     def get_ral(self):
-        return self._client.ral()
+        return self._client.ral

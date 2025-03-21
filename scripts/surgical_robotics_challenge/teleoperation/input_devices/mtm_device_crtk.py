@@ -400,10 +400,14 @@ class MTM:
         return self.gripper_angle
 
     def enable_gravity_comp(self):
-        self._gravity_comp_pub.publish(True)
+        msg = Bool()
+        msg.data = True
+        self._gravity_comp_pub.publish(msg)
 
     def disable_gravity_comp(self):
-        self._gravity_comp_pub.publish(False)
+        msg = Bool()
+        msg.data = False
+        self._gravity_comp_pub.publish(msg)
 
 
 def test():

@@ -253,8 +253,8 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        leader_l = MTM('/MTML/')
-        leader_r = MTM('/MTMR/')
+        leader_l = MTM(simulation_manager.get_ral(), '/MTML/')
+        leader_r = MTM(simulation_manager.get_ral(), '/MTMR/')
         leader_l.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
         leader_r.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
         controller1 = ControllerInterface(simulation_manager.get_ral(), leader_l, leader_r, psm1, psm2, cam)
