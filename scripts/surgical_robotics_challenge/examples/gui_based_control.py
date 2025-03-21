@@ -171,7 +171,13 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
+        rate = simulation_manager.create_rate(200)
         while not simulation_manager.is_shutdown():
-            for cont in controllers:
-                cont.run()
-            time.sleep(0.005)
+            try:
+                for cont in controllers:
+                    cont.run()
+                rate.sleep()
+            except Exception as e:
+                print(e)
+                print('Goodbye')
+                break

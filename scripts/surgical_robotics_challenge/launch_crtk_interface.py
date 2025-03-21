@@ -301,9 +301,14 @@ class SceneManager:
 
     def run(self):
         while not self.simulation_manager.is_shutdown():
-            for comp in self._components:
-                comp.run()
-            self._rate.sleep()
+            try:
+                for comp in self._components:
+                    comp.run()
+                self._rate.sleep()
+            except Exception as e:
+                print(e)
+                print('Goodbye')
+                break
 
 
 if __name__ == "__main__":

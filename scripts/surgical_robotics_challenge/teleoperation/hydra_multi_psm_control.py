@@ -226,11 +226,13 @@ if __name__ == "__main__":
 
         rate = simulation_manager.get_ral().create_rate(200)
 
-        try:
-            while not simulation_manager.is_shutdown():
+        while not simulation_manager.is_shutdown():
+            try:
                 for cont in controllers:
                         cont.run()
                 rate.sleep()
-        except:
-            print('Exception! Goodbye')
+            except Exception as e:
+                print(e)
+                print('Goodbye')
+                break
 

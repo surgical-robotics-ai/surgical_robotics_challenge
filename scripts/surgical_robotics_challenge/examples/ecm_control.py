@@ -58,6 +58,11 @@ gui = JointGUI("ECM JOINTS", 4, ["j0", "j1", "j2", "j3"], resolution=0.00001, lo
                upper_lims=ecm.get_upper_limits())
 dt = 0.005
 while not simulation_manager.is_shutdown():
-    gui.App.update()
-    ecm.servo_jp(gui.jnt_cmds)
-    time.sleep(dt)
+    try:
+        gui.App.update()
+        ecm.servo_jp(gui.jnt_cmds)
+        time.sleep(dt)
+    except Exception as e:
+        print(e)
+        print('Goodbye')
+        break

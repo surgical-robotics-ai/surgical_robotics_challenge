@@ -296,18 +296,23 @@ def test():
 
     g_ral.spin()
     while not g_ral.is_shutdown():
-        [r, p, y] = d.measured_cp().M.GetRPY()
-        [p_x, p_y, p_z] = d.measured_cp().p
-        print('x: ', p_x, ', Y: ', p_y, ', Z: ', p_z)
+        try:
+            [r, p, y] = d.measured_cp().M.GetRPY()
+            [p_x, p_y, p_z] = d.measured_cp().p
+            print('x: ', p_x, ', Y: ', p_y, ', Z: ', p_z)
 
-        f = 180.0 / 3.1404
-        r = round(r * f, 2)
-        p = round(p * f, 2)
-        y = round(y * f, 2)
-        print('Roll: ', r, ', Pitch: ', p, ', Yaw: ', y)
-        # tst = d.measured_cv()
-        # print(tst.vel)
-        time.sleep(1)
+            f = 180.0 / 3.1404
+            r = round(r * f, 2)
+            p = round(p * f, 2)
+            y = round(y * f, 2)
+            print('Roll: ', r, ', Pitch: ', p, ', Yaw: ', y)
+            # tst = d.measured_cv()
+            # print(tst.vel)
+            time.sleep(1)
+        except Exception as e:
+            print(e)
+            print('Goodbye')
+            break
 
 
 def test_np():
@@ -316,9 +321,14 @@ def test_np():
     d = HydraDevice(g_ral)
     g_ral.spin()
     while not g_ral.is_shutdown():
-        pose = d.measured_cp()
-        print(pose)
-        time.sleep(0.5)
+        try:
+            pose = d.measured_cp()
+            print(pose)
+            time.sleep(0.5)
+        except Exception as e:
+            print(e)
+            print('Goodbye')
+            break
 
 
 if __name__ == '__main__':

@@ -196,13 +196,18 @@ def test():
     d = GeomagicDevice(ral, '/Geomagic/')
     g_ral.spin()
     while not g_ral.is_shutdown():
-        [r, p, y] = d.measured_cp().M.GetRPY()
-        f = 180.0 / 3.1404
-        r = round(r * f, 2)
-        p = round(p * f, 2)
-        y = round(y * f, 2)
-        print('Roll: ', r, ', Pitch: ', p, ', Yaw: ', y)
-        time.sleep(0.05)
+        try:
+            [r, p, y] = d.measured_cp().M.GetRPY()
+            f = 180.0 / 3.1404
+            r = round(r * f, 2)
+            p = round(p * f, 2)
+            y = round(y * f, 2)
+            print('Roll: ', r, ', Pitch: ', p, ', Yaw: ', y)
+            time.sleep(0.05)
+        except Exception as e:
+            print(e)
+            print('Goodbye')
+            break
 
 
 if __name__ == '__main__':

@@ -120,25 +120,30 @@ while not valid_key:
         print("Invalid Entry")
 
 while not g_ral.is_shutdown():
-    # ######
-    # The following 3 lines display the joint positions and Cartesian pose state
-    if key == 1:
-        print("measured_js: ", robData.measured_js)
-        print("------------------------------------")
-        print("measured_cp: ", robData.measured_cp.pose)
+    try:
+        # ######
+        # The following 3 lines display the joint positions and Cartesian pose state
+        if key == 1:
+            print("measured_js: ", robData.measured_js)
+            print("------------------------------------")
+            print("measured_cp: ", robData.measured_cp.pose)
 
-    # ######
-    # The following 3 lines move the first two joints in a sinusoidal pattern
-    elif key == 2:
-        servo_jp_msg.position[0] = 0.2 * math.sin(g_ral.to_sec(g_ral.now()))
-        servo_jp_msg.position[1] = 0.2 * math.cos(g_ral.to_sec(g_ral.now()))
-        servo_jp_pub.publish(servo_jp_msg)
+        # ######
+        # The following 3 lines move the first two joints in a sinusoidal pattern
+        elif key == 2:
+            servo_jp_msg.position[0] = 0.2 * math.sin(g_ral.to_sec(g_ral.now()))
+            servo_jp_msg.position[1] = 0.2 * math.cos(g_ral.to_sec(g_ral.now()))
+            servo_jp_pub.publish(servo_jp_msg)
 
-    # ######
-    # The following 3 lines move the robot in cartesian space in sinusoidal fashion
-    elif key == 3:
-        servo_cp_msg.pose.position.x = 0.02 * SimToSI.linear_factor * math.sin(g_ral.to_sec(g_ral.now()))
-        servo_cp_msg.pose.position.y = 0.02 * SimToSI.linear_factor * math.cos(g_ral.to_sec(g_ral.now()))
-        servo_cp_pub.publish(servo_cp_msg)
+        # ######
+        # The following 3 lines move the robot in cartesian space in sinusoidal fashion
+        elif key == 3:
+            servo_cp_msg.pose.position.x = 0.02 * SimToSI.linear_factor * math.sin(g_ral.to_sec(g_ral.now()))
+            servo_cp_msg.pose.position.y = 0.02 * SimToSI.linear_factor * math.cos(g_ral.to_sec(g_ral.now()))
+            servo_cp_pub.publish(servo_cp_msg)
 
-    rate.sleep()
+        rate.sleep()
+    except Exception as e:
+        print(e)
+        print('Goodbye')
+        break

@@ -107,24 +107,29 @@ translation_right = Vector(0.1, 0.5, -1.3)
 translation_left = Vector(0, 0, -1.3)
 
 while not simulation_manager.is_shutdown():
-    data,_ = sock.recvfrom(1024)
-    if data is not None:
-        print(data)
-        psm_info = json.loads(data)
-        if psm_info['camera'] == 'true':
-            ecm.servo_jp([psm_info['yaw'], psm_info['pitch'], psm_info['insert'], psm_info['roll']])
-        else:
-            psm = psms[psm_info['psm']]
-            if psm_info['psm'] == 'right':
-                cmd_rpy = Rotation.RPY(-1 * psm_info['yaw'] + np.pi, psm_info['pitch'], psm_info['roll'] - (np.pi / 4))
-                if psm_info['transformation'] == 'true':
-                    translation_right = set_psm_translation(psm_info, 'right')
-                psm.servo_cp(Frame(cmd_rpy, translation_right))
-                end_effector_right = set_end_effector(psm_info, psm, 'right', end_effector_right)
+    try:
+        data,_ = sock.recvfrom(1024)
+        if data is not None:
+            print(data)
+            psm_info = json.loads(data)
+            if psm_info['camera'] == 'true':
+                ecm.servo_jp([psm_info['yaw'], psm_info['pitch'], psm_info['insert'], psm_info['roll']])
             else:
-                cmd_rpy = Rotation.RPY(psm_info['pitch'], psm_info['yaw'], psm_info['roll'])
-                if psm_info['transformation'] == 'true':
-                    translation_left = set_psm_translation(psm_info, 'left')
-                psm.servo_cp(Frame(cmd_rpy, translation_left))
-                end_effector_left = set_end_effector(psm_info, psm, 'left', end_effector_left)
-    rate.sleep()
+                psm = psms[psm_info['psm']]
+                if psm_info['psm'] == 'right':
+                    cmd_rpy = Rotation.RPY(-1 * psm_info['yaw'] + np.pi, psm_info['pitch'], psm_info['roll'] - (np.pi / 4))
+                    if psm_info['transformation'] == 'true':
+                        translation_right = set_psm_translation(psm_info, 'right')
+                    psm.servo_cp(Frame(cmd_rpy, translation_right))
+                    end_effector_right = set_end_effector(psm_info, psm, 'right', end_effector_right)
+                else:
+                    cmd_rpy = Rotation.RPY(psm_info['pitch'], psm_info['yaw'], psm_info['roll'])
+                    if psm_info['transformation'] == 'true':
+                        translation_left = set_psm_translation(psm_info, 'left')
+                    psm.servo_cp(Frame(cmd_rpy, translation_left))
+                    end_effector_left = set_end_effector(psm_info, psm, 'left', end_effector_left)
+        rate.sleep()
+    except Exception as e:
+        print(e)
+        print('Goodbye')
+        break

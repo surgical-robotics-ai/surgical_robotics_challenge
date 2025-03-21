@@ -321,19 +321,24 @@ def test():
     # d.set_tip_frame(tip_offset)
     g_ral.spin()
     while not g_ral.is_shutdown():
-        if d.coag_button_pressed:
-            d.optimize_wrist_platform()
-        else:
-            if d.is_active():
-                d.move_cp(d.pre_coag_pose_msg)
+        try:
+            if d.coag_button_pressed:
+                d.optimize_wrist_platform()
+            else:
+                if d.is_active():
+                    d.move_cp(d.pre_coag_pose_msg)
 
-        # [r, p, y] = d.measured_cp().M.GetRPY()
-        # f = 180.0 / 3.1404
-        # r = round(r * f, 2)
-        # p = round(p * f, 2)
-        # y = round(y * f, 2)
-        # print('Roll: ', r, ', Pitch: ', p, ', Yaw: ', y)
-        time.sleep(0.05)
+            # [r, p, y] = d.measured_cp().M.GetRPY()
+            # f = 180.0 / 3.1404
+            # r = round(r * f, 2)
+            # p = round(p * f, 2)
+            # y = round(y * f, 2)
+            # print('Roll: ', r, ', Pitch: ', p, ', Yaw: ', y)
+            time.sleep(0.05)
+        except Exception as e:
+            print(e)
+            print('Goodbye')
+            break
 
 
 if __name__ == '__main__':
