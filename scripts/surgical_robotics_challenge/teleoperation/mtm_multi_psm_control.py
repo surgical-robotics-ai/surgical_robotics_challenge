@@ -46,7 +46,6 @@ import sys
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.psm_arm import PSM
 import time
-import rospy
 from PyKDL import Frame, Rotation, Vector, Wrench
 from argparse import ArgumentParser
 from input_devices.mtm_device_crtk import MTM
@@ -224,19 +223,20 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        leader = MTM(parsed_args.mtm_name)
+        leader = MTM(simulation_manager.get_ral(), parsed_args.mtm_name)
         leader.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
         controller1 = ControllerInterface(leader, psm_arms, cam)
         controllers.append(controller1)
 
-        rate = rospy.Rate(200)
-
-        try:
-            while not rospy.is_shutdown():
+        rate = simulation_manager.get_ral().create_rate(200)
+        
+        while not simulation_manager.is_shutdown():
+            try:
                 for cont in controllers:
                     cont.run()
                 rate.sleep()
-        except Exception as e:
-            print(e)
-            print('Exception! Goodbye')
+            except Exception as e:
+                print(e)
+                print('Goodbye')
+                break
             

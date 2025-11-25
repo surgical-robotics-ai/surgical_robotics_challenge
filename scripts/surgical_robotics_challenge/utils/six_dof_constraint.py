@@ -1,7 +1,6 @@
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from PyKDL import Frame, Vector, Rotation
 import numpy as np
-import rospy
 import time
 import Tkinter
 
@@ -102,9 +101,9 @@ ang_proximity_trigger = False
 
 last_time = time.time()
 cur_time = time.time()
-rate = rospy.Rate(1000)
+rate = simulation_manager.get_ral().create_rate(1000)
 
-while not rospy.is_shutdown():
+while not simulation_manager.is_shutdown():
     # Linear
     box_pos = box.get_pos()
     last_lin_error = lin_error

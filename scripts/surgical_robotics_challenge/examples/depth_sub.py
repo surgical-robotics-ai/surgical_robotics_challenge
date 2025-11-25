@@ -43,22 +43,26 @@
 # */
 # //==============================================================================
 
-import rospy
+from ros_abstraction_layer import ral
 import math
 import random
 import numpy as np
 from sensor_msgs.msg import PointCloud2
-import sensor_msgs.point_cloud2 as pc2
+
+try:
+    from sensor_msgs import point_cloud2 # ROS 1
+except:
+    from sensor_msgs_py import point_cloud2 # ROS 2
 
 
 class DepthSub:
-    def __init__(self, depth_topic="/ambf/env/cameras/cameraL/DepthData"):
-        self.depth_sub = rospy.Subscriber(
+    def __init__(self, ral, depth_topic="/ambf/env/cameras/cameraL/DepthData"):
+        self.depth_sub = ral.subscriber(
             depth_topic, PointCloud2, self.depth_cb)
 
     def depth_cb(self, depth_msg):
         print('Receiving Depth Msg')
-        gen = pc2.read_points(depth_msg, skip_nans=True,
+        gen = point_cloud2.read_points(depth_msg, skip_nans=True,
                               field_names=("x", "y", "z"))
         print(type(gen))
         print(len(list(gen)))
@@ -66,6 +70,6 @@ class DepthSub:
         #     print(" x : %f  y: %f  z: %f" % (p[0], p[1], p[2]))
 
 
-rospy.init_node('depth_sub')
-ds = DepthSub()
-rospy.sleep(5.0)
+g_ral = ral('depth_sub')
+ds = DepthSub(g_ral)
+g_ral.spin()

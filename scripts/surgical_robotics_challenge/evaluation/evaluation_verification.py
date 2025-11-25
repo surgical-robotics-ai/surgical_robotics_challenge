@@ -1,8 +1,6 @@
 import time
 
-from ambf_client import Client
 from PyKDL import Frame, Rotation, Vector
-import rospy
 from geometry_msgs.msg import PoseStamped
 from surgical_robotics_challenge import units_conversion
 from surgical_robotics_challenge.utils.utilities import *

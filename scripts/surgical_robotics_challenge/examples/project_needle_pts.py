@@ -22,7 +22,6 @@ import time
 import tf_conversions.posemath as pm
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-import rospy
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.units_conversion import SimToSI
@@ -32,9 +31,9 @@ np.set_printoptions(precision=3, suppress=True)
 
 
 class ImageSub:
-    def __init__(self):
+    def __init__(self, ral):
         self.bridge = CvBridge()
-        self.img_subs = rospy.Subscriber(
+        self.img_subs = ral.subscriber(
             "/ambf/env/cameras/cameraL/ImageData", Image, self.left_callback
         )
 
@@ -42,7 +41,7 @@ class ImageSub:
         self.left_ts = None
 
         # Wait a until subscribers and publishers are ready
-        rospy.sleep(0.5)
+        ral.sleep(0.5)
 
     def left_callback(self, msg):
         try:
@@ -55,11 +54,9 @@ class ImageSub:
 
 if __name__ == "__main__":
     # Connect to AMBF and setup image suscriber
-    rospy.init_node("image_listener")
-    saver = ImageSub()
-
     simulation_manager = SimulationManager("needle_projection_ex")
     time.sleep(0.5)
+    saver = ImageSub(simulation_manager.get_ral())
     # cam = simulation_manager.get_obj_handle("cameraL")
     scene = Scene(simulation_manager)  # Provides access to needle and entry/exit points
     ambf_cam_l = Camera(simulation_manager, "/ambf/env/cameras/cameraL")

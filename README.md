@@ -5,39 +5,8 @@ For more information regarding the challenge, please visit [Surgical Robotics Ch
 Please checkout the [Discussions Tab](https://github.com/surgical-robotics-ai/surgical_robotics_challenge/discussions) for asking questions, posting suggestions, connecting with the community, and for keeping up to date with the challenge.
 
 # 1. Install AMBF and ROS Prerequisites
-Ensure that the correct version of ROS is installed and sourced on your system. For streaming the image and depth data out of AMBF, please also install the following ROS packages
-- cv_bridge
-- image_transport
+Clone, build and source `ambf-3.0` using these [instructions](https://github.com/WPI-AIM/ambf/wiki/Installing-AMBF)
 
-```bash
-apt-get install ros-<version>-cv-bridge ros-<version>-image-transport
-```
-Then, clone, build, and source AMBF's `ambf-2.0` branch.
-
-
-https://github.com/WPI-AIM/ambf/tree/ambf-2.0
-
-First time cloning:
-```bash
-git clone https://github.com/WPI-AIM/ambf.git
-cd ambf
-git checkout -b ambf-2.0 origin/ambf-2.0
-```
-
-In case there are updates to AMBF, you can simply update your local copy by:
-```bash
-git pull
-```
-
-Don't forget to build the repo using the instructions on AMBF's Readme.
-The `ambf_simulator` binary resides in `<path>/ambf/bin/lin-x86_64`, the `<path>` is where you cloned AMBF, In the AMBF instructions the `<path>` is the home folder `~`, so the correct path is `~/ambf/bin/lin-x86_64`.
-If you haven't done so, please create an alias for the `ambf_simulator` in your `.bashrc` file. This way you do not need to be in the `<path>/ambf/bin/lin-x86_64` folder to run `ambf_simulator`.
-The alias can be created by typing (make sure that the path `~/ambf/bin/lin-x86_64` is the correct path in the command below):
-
-```bash
-echo "alias ambf_simulator=~/ambf/bin/lin-x86_64/ambf_simulator" >> ~/.bashrc
-```
-Restart any running terminals for the alias to be available in them.
 
 # 2. Clone this repo to your local machine OR use a Dockerfile
 
@@ -45,15 +14,20 @@ Restart any running terminals for the alias to be available in them.
  Please refer to [README](./scripts/README.md) in the [scripts](./scripts) folder for instructions on installing the Python package for system-wide access.
 
 #### Option 2: (Use Dockerfile)
-
  You can alternatively use Dockerfiles to create Docker images by following the instructions here:
-
  https://github.com/surgical-robotics-ai/docker_surgical_robotics_challenge
 
 
 # 3. Running the simulation
-
- For convenience, we have provided several `.sh` scripts which can be used directly to launch the surgical scenes. For example, with `roscore` already running, you can run the `run_env_LND_420006.sh` script in your terminal as:
+ For convenience, we have provided several bash (`.sh`) scripts to launch different suturing scenes/setups.
+ 
+ **FOR ROS 1 `roscore` MUST BE RUNNIG BEFOREHAND. NOT REQUIRED FOR ROS 2**
+ 
+ To run roscore, open a new terminal and run:
+```bash
+roscore
+```
+Then, you can run the `run_env_LND_420006.sh`, for example, in your terminal as:
   
  ```bash
   ./run_env_LND_420006.sh
@@ -65,29 +39,22 @@ Restart any running terminals for the alias to be available in them.
   <img src=Media/3d_med_phantom_with_420006_psms.png width="480"/>
   </p>
 
-This script assumes that AMBF is located in your home `~` folder. If it is not, please edit the scripts accordingly.
-
 ### 3a. The launch file:
- To understand the launch file, visit the following link:
+ To understand the launch file, refer to this [link](https://github.com/WPI-AIM/ambf/wiki/Selecting-Robots)
 
- https://github.com/WPI-AIM/ambf/wiki/Selecting-Robots
 
 ### 3b. Simulated Cameras
- The simulated camera(s) is defined in the World file ([`world_stereo.yaml`](./ADF/world/world_stereo.yaml)) which is set in the [`launch.yaml`](./launch.yaml) file.
- To enable the camera(s) to publish the scene image or depth data, follow the instructions on this page:
-
- https://github.com/WPI-AIM/ambf/wiki/Camera-feed-and-depth-camera
+ The simulated camera(s) are defined in the World file ([`world_stereo.yaml`](./ADF/world/world_stereo.yaml)) which is set in the [`launch.yaml`](./launch.yaml) file.
+ To enable the camera(s) to publish the scene image or depth data, follow the [instructions](https://github.com/WPI-AIM/ambf/wiki/Camera-feed-and-depth-camera) on this page:
 
 ### 3c. Camera Coordinate frames
- To better understand the different camera coordinate frames and the difference between the AMBF and the Opencv camera convention, please refer to [camera_convention.md](./docs/camera_conventions.md)
+ Camera coordinate frames and the difference between the AMBF and the `OpenCV` camera convention is described in [camera_convention.md](./docs/camera_conventions.md)
 
 ### 3c. Resetting the Simulation
- You can press `CTRL+R` to reset the rigid bodies in simulation, and `CTRL+V` to reset the camera pose if you changed it with the mouse.
+ You can press `CTRL+R` to reset the rigid bodies in simulation, and `CTRL+V` to reset the camera pose.
 
 ### 3d. Launch Arguments:
- To manually control what objects are spawing in the scene, please review the `.sh` scripts in this folder. For a full list of arguments to provide to AMBF, please refer to this link:
-
- https://github.com/WPI-AIM/ambf/wiki/Command-Line-Arguments
+ To manually control what objects are spawing in the scene, please review the `.sh` scripts in this folder. For a full list of arguments to provide to AMBF, please refer to these [instructions](https://github.com/WPI-AIM/ambf/wiki/Command-Line-Arguments)
 
 
 # 4. Interacting with Simulated Robots using Python Scripts:

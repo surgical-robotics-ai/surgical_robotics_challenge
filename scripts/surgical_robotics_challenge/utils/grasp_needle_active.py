@@ -4,7 +4,6 @@ from PyKDL import Vector, Rotation, Frame
 from scipy.spatial.transform import Rotation as R
 import numpy as np
 import time
-import rospy
 import sys
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.ecm_arm import ECM

@@ -47,7 +47,7 @@ import PyKDL
 from PyKDL import Frame, Rotation, Vector
 from geomagic_control.msg import DeviceFeedback, DeviceButtonEvent
 from geometry_msgs.msg import PoseStamped, Twist
-import rospy
+from ros_abstraction_layer import ral
 import time
 
 # Utilities
@@ -85,7 +85,7 @@ def pose_msg_to_kdl_frame(msg_pose):
 # Init everything related to Geomagic
 class GeomagicDevice:
     # The name should include the full qualified prefix. I.e. '/Geomagic/', or '/omniR_' etc.
-    def __init__(self, name):
+    def __init__(self, ral, name):
         pose_topic_name = name + 'pose'
         twist_topic_name = name + 'twist'
         button_topic_name = name + 'button'
@@ -110,19 +110,21 @@ class GeomagicDevice:
         self._force.position.y = 0
         self._force.position.z = 0
 
-        self._pose_sub = rospy.Subscriber(
+        self.ral = ral
+
+        self._pose_sub = self.ral.subscriber(
             pose_topic_name, PoseStamped, self.pose_cb, queue_size=1)
-        self._twist_sub = rospy.Subscriber(
+        self._twist_sub = self.ral.subscriber(
             twist_topic_name, Twist, self.twist_cb, queue_size=1)
-        self._button_sub = rospy.Subscriber(
+        self._button_sub = self.ral.sSubscriber(
             button_topic_name, DeviceButtonEvent, self.buttons_cb, queue_size=1)
-        self._force_pub = rospy.Publisher(
+        self._force_pub = self.ral.publisher(
             force_topic_name, DeviceFeedback, queue_size=1)
 
         self.switch_psm = False
 
-        self._button_msg_time = rospy.Time.now()
-        self._switch_psm_duration = rospy.Duration(0.5)
+        self._button_msg_time = self.ral.now()
+        self._switch_psm_duration = self.ral.create_duration(0.5)
 
         print('Creating Geomagic Device Named: ', name, ' From ROS Topics')
         self._msg_counter = 0
@@ -166,11 +168,11 @@ class GeomagicDevice:
         self.clutch_button_pressed = msg.grey_button
 
         if self.clutch_button_pressed:
-            time_diff = rospy.Time.now() - self._button_msg_time
-            if time_diff.to_sec() < self._switch_psm_duration.to_sec():
+            time_diff = self.ral.now() - self._button_msg_time
+            if self.ral.to_sec(time_diff) < self.ral.to_sec(self._switch_psm_duration):
                 print('Allow PSM Switch')
                 self.switch_psm = True
-            self._button_msg_time = rospy.Time.now()
+            self._button_msg_time = self.ral.now()
 
     def command_force(self, force):
         pass
@@ -189,18 +191,23 @@ class GeomagicDevice:
 
 
 def test():
-    rospy.init_node('test_geomagic')
+    g_ral = ral('test_geomagic')
 
-    d = GeomagicDevice('/Geomagic/')
-
-    while not rospy.is_shutdown():
-        [r, p, y] = d.measured_cp().M.GetRPY()
-        f = 180.0 / 3.1404
-        r = round(r * f, 2)
-        p = round(p * f, 2)
-        y = round(y * f, 2)
-        print('Roll: ', r, ', Pitch: ', p, ', Yaw: ', y)
-        time.sleep(0.05)
+    d = GeomagicDevice(ral, '/Geomagic/')
+    g_ral.spin()
+    while not g_ral.is_shutdown():
+        try:
+            [r, p, y] = d.measured_cp().M.GetRPY()
+            f = 180.0 / 3.1404
+            r = round(r * f, 2)
+            p = round(p * f, 2)
+            y = round(y * f, 2)
+            print('Roll: ', r, ', Pitch: ', p, ', Yaw: ', y)
+            time.sleep(0.05)
+        except Exception as e:
+            print(e)
+            print('Goodbye')
+            break
 
 
 if __name__ == '__main__':

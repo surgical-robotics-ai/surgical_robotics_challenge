@@ -46,7 +46,6 @@ from surgical_robotics_challenge.kinematics.psmKinematics import *
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.psm_arm import PSM
 import time
-import rospy
 from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
 from surgical_robotics_challenge.utils.obj_control_gui import ObjectGUI
@@ -119,7 +118,7 @@ if __name__ == "__main__":
     parsed_args.run_ecm = get_boolean_from_opt(parsed_args.run_ecm)
     simulation_manager = SimulationManager(parsed_args.client_name)
 
-    time.sleep(0.5)
+    time.sleep(2.0)
     controllers = []
 
     if parsed_args.run_psm_one is True:
@@ -172,7 +171,13 @@ if __name__ == "__main__":
         print('Exiting')
 
     else:
-        while not rospy.is_shutdown():
-            for cont in controllers:
-                cont.run()
-            time.sleep(0.005)
+        rate = simulation_manager.create_rate(200)
+        while not simulation_manager.is_shutdown():
+            try:
+                for cont in controllers:
+                    cont.run()
+                rate.sleep()
+            except Exception as e:
+                print(e)
+                print('Goodbye')
+                break

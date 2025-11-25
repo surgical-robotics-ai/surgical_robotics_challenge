@@ -43,7 +43,7 @@
 # */
 # //==============================================================================
 import numpy as np
-import rospy
+from ros_abstraction_layer import ral
 from sensor_msgs.msg import ChannelFloat32
 from random import random
 
@@ -52,8 +52,9 @@ class JointErrorsModel:
         self._arm_name = arm_name
         self.num_jnts = num_joints
         self._joint_errors = [0.] * num_joints
+        self.ral = ral(arm_name+'_joint_errors_model')
         # Subscriber to set errors on the fly
-        self._errors_sub = rospy.Subscriber('/ambf/env/' + arm_name + '/errors_model/set_errors',
+        self._errors_sub = self.ral.subscriber('/ambf/env/' + arm_name + '/errors_model/set_errors',
                                             ChannelFloat32, self._errors_sub, queue_size=1)
 
     def _errors_sub(self, msg):

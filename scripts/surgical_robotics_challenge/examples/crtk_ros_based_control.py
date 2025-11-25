@@ -46,7 +46,7 @@
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import TwistStamped
-import rospy
+from ros_abstraction_layer import ral
 import math
 from PyKDL import Rotation
 from surgical_robotics_challenge.units_conversion import *
@@ -69,7 +69,7 @@ def measured_cp_cb(msg):
     robData.measured_cp = msg
 
 
-rospy.init_node("sur_chal_crtk_test")
+g_ral = ral("sur_chal_crtk_test")
 
 namespace = "/CRTK/"
 arm_name = "psm1"
@@ -78,13 +78,13 @@ measured_cp_name = namespace + arm_name + "/measured_cp"
 servo_jp_name = namespace + arm_name + "/servo_jp"
 servo_cp_name = namespace + arm_name + "/servo_cp"
 
-measured_js_sub = rospy.Subscriber(measured_js_name, JointState, measured_js_cb, queue_size=1)
-measured_cp_sub = rospy.Subscriber(measured_cp_name, PoseStamped, measured_cp_cb, queue_size=1)
+measured_js_sub = g_ral.subscriber(measured_js_name, JointState, measured_js_cb, queue_size=1)
+measured_cp_sub = g_ral.subscriber(measured_cp_name, PoseStamped, measured_cp_cb, queue_size=1)
 
-servo_jp_pub = rospy.Publisher(servo_jp_name, JointState, queue_size=1)
-servo_cp_pub = rospy.Publisher(servo_cp_name, PoseStamped, queue_size=1)
+servo_jp_pub = g_ral.publisher(servo_jp_name, JointState, queue_size=1)
+servo_cp_pub = g_ral.publisher(servo_cp_name, PoseStamped, queue_size=1)
 
-rate = rospy.Rate(50)
+rate = g_ral.create_rate(50)
 
 servo_jp_msg = JointState()
 servo_jp_msg.position = [0., 0., 0.1 * SimToSI.linear_factor, 0., 0., 0.]
@@ -119,26 +119,31 @@ while not valid_key:
     else:
         print("Invalid Entry")
 
-while not rospy.is_shutdown():
-    # ######
-    # The following 3 lines display the joint positions and Cartesian pose state
-    if key == 1:
-        print("measured_js: ", robData.measured_js)
-        print("------------------------------------")
-        print("measured_cp: ", robData.measured_cp.pose)
+while not g_ral.is_shutdown():
+    try:
+        # ######
+        # The following 3 lines display the joint positions and Cartesian pose state
+        if key == 1:
+            print("measured_js: ", robData.measured_js)
+            print("------------------------------------")
+            print("measured_cp: ", robData.measured_cp.pose)
 
-    # ######
-    # The following 3 lines move the first two joints in a sinusoidal pattern
-    elif key == 2:
-        servo_jp_msg.position[0] = 0.2 * math.sin(rospy.Time.now().to_sec())
-        servo_jp_msg.position[1] = 0.2 * math.cos(rospy.Time.now().to_sec())
-        servo_jp_pub.publish(servo_jp_msg)
+        # ######
+        # The following 3 lines move the first two joints in a sinusoidal pattern
+        elif key == 2:
+            servo_jp_msg.position[0] = 0.2 * math.sin(g_ral.to_sec(g_ral.now()))
+            servo_jp_msg.position[1] = 0.2 * math.cos(g_ral.to_sec(g_ral.now()))
+            servo_jp_pub.publish(servo_jp_msg)
 
-    # ######
-    # The following 3 lines move the robot in cartesian space in sinusoidal fashion
-    elif key == 3:
-        servo_cp_msg.pose.position.x = 0.02 * SimToSI.linear_factor * math.sin(rospy.Time.now().to_sec())
-        servo_cp_msg.pose.position.y = 0.02 * SimToSI.linear_factor * math.cos(rospy.Time.now().to_sec())
-        servo_cp_pub.publish(servo_cp_msg)
+        # ######
+        # The following 3 lines move the robot in cartesian space in sinusoidal fashion
+        elif key == 3:
+            servo_cp_msg.pose.position.x = 0.02 * SimToSI.linear_factor * math.sin(g_ral.to_sec(g_ral.now()))
+            servo_cp_msg.pose.position.y = 0.02 * SimToSI.linear_factor * math.cos(g_ral.to_sec(g_ral.now()))
+            servo_cp_pub.publish(servo_cp_msg)
 
-    rate.sleep()
+        rate.sleep()
+    except Exception as e:
+        print(e)
+        print('Goodbye')
+        break

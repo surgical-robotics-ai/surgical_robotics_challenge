@@ -4,7 +4,6 @@ from surgical_robotics_challenge.utils.utilities import *
 from surgical_robotics_challenge.utils.coordinate_frames import *
 from ambf_msgs.msg import RigidBodyState
 from PyKDL import Frame, Rotation, Vector
-import rospy
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Bool
 import numpy as np
@@ -15,14 +14,14 @@ from argparse import ArgumentParser
 from surgical_robotics_challenge import units_conversion
 
 
-def frame_to_pose_stamped_msg(frame):
+def frame_to_pose_stamped_msg(frame, stamp):
     """
 
     :param frame:
     :return:
     """
     msg = PoseStamped()
-    msg.header.stamp = rospy.Time.now()
+    msg.header.stamp = stamp
     msg.pose.position.x = frame.p[0]
     msg.pose.position.y = frame.p[1]
     msg.pose.position.z = frame.p[2]
@@ -76,12 +75,12 @@ class NeedleKinematics:
     T_mINn = Needle.T_mid_origin
     # Tip in Needle Origin
     T_tINn = Needle.T_tip_origin
-    def __init__(self):
+    def __init__(self, ral):
         """
 
         :return:
         """
-        self._needle_sub = rospy.Subscriber('/ambf/env/Needle/State', RigidBodyState, self.needle_cb, queue_size=1)
+        self._needle_sub = ral.subscriber('/ambf/env/Needle/State', RigidBodyState, self.needle_cb, queue_size=1)
         # Needle in World
         self._T_nINw = Frame()
 
@@ -167,20 +166,16 @@ class Task_1_Evaluation:
         :return:
         """
         self._world = client.get_world_handle()
-        self._needle_kinematics = NeedleKinematics()
-        self._ecm_sub = rospy.Subscriber('/ambf/env/CameraFrame/State', RigidBodyState, self._ecm_cb, queue_size=1)
+        self.client = client
+        self._needle_kinematics = NeedleKinematics(self.client.get_ral())
+        self._ecm_sub = self.client.get_ral().subscriber('/ambf/env/CameraFrame/State', RigidBodyState, self._ecm_cb, queue_size=1)
         self._T_ecmINw = Frame()
         self._team_name = team_name
-        try:
-            rospy.init_node('challenge_evaluation_node')
-        except:
-            # Already initialized, so ignore
-            done_nothing = True
         prefix = '/surgical_robotics_challenge/completion_report/' + self._team_name
-        self._task_sub = rospy.Subscriber(prefix + '/task1/', PoseStamped, self.task_completion_cb, queue_size=1)
+        self._task_sub = self.client.get_ral().subscriber(prefix + '/task1/', PoseStamped, self.task_completion_cb, queue_size=1)
 
         time.sleep(1.0)
-        self._start_time = rospy.Time.now().to_sec()
+        self._start_time = self.client.get_time()
         self._T_nINw_reported = Frame()
         self._done = False
         self._report = Task_1_Evaluation_Report()
@@ -201,7 +196,7 @@ class Task_1_Evaluation:
         :param msg:
         :return:
         """
-        self._report.completion_time = rospy.Time.now().to_sec() - self._start_time
+        self._report.completion_time = self.client.get_time() - self._start_time
         T_nINe = pose_stamped_msg_to_frame(msg)
         self._T_nINw_reported = self._T_ecmINw * T_nINe
         self._done = True
@@ -460,8 +455,9 @@ class Task_2_Evaluation():
         :param team_name:
         :return:
         """
+        self.client = client
         self._world = client.get_world_handle()
-        self._needle_kinematics = NeedleKinematics()
+        self._needle_kinematics = NeedleKinematics(self.client.get_ral())
         self._hole_objs = dict()
         self._hole_objs[HoleType.ENTRY] = []
         self._hole_objs[HoleType.EXIT] = []
@@ -474,19 +470,14 @@ class Task_2_Evaluation():
         self._needle_holes_proximity_events[HoleType.ENTRY] = [deque() for _ in range(GlobalParams.hole_count)]
         self._needle_holes_proximity_events[HoleType.EXIT] = [deque() for _ in range(GlobalParams.hole_count)]
 
-        try:
-            rospy.init_node('challenge_evaluation_node')
-        except:
-            # Already initialized, so ignore
-            done_nothing = True
         prefix = '/surgical_robotics_challenge/completion_report/' + team_name
-        self._task_sub = rospy.Subscriber(prefix + '/task2/', Bool, self.task_completion_cb, queue_size=1)
+        self._task_sub = self.client.get_ral().subscriber(prefix + '/task2/', Bool, self.task_completion_cb, queue_size=1)
 
         self._done = False
         self._report = Task_2_Evaluation_Report()
         self._report.team_name = team_name
         self._entry_exit_idx = -1
-        self._start_time = rospy.Time.now().to_sec()
+        self._start_time = self.client.get_time()
         time.sleep(1.0)
 
     def capture_scene_kinematics(self):
@@ -536,7 +527,7 @@ class Task_2_Evaluation():
         if msg.data is False:
             print('Error!, Task 2 Completion Message must be True')
 
-        self._report.completion_time = rospy.Time.now().to_sec() - self._start_time
+        self._report.completion_time = self.client.get_time() - self._start_time
         self._done = True
 
     def evaluate(self):
@@ -649,6 +640,7 @@ class Task_3_Evaluation():
         :param team_name:
         :return:
         """
+        self.client = client
         self._world = client.get_world_handle()
         self._needle_kinematics = NeedleKinematics()
         self._hole_objs = dict()
@@ -663,19 +655,14 @@ class Task_3_Evaluation():
         self._needle_holes_proximity_events[HoleType.ENTRY] = [deque() for _ in range(GlobalParams.hole_count)]
         self._needle_holes_proximity_events[HoleType.EXIT] = [deque() for _ in range(GlobalParams.hole_count)]
 
-        try:
-            rospy.init_node('challenge_evaluation_node')
-        except:
-            # Already initialized, so ignore
-            done_nothing = True
         prefix = '/surgical_robotics_challenge/completion_report/' + team_name
-        self._task_sub = rospy.Subscriber(prefix + '/task3/', Bool, self.task_completion_cb, queue_size=1)
+        self._task_sub = self.client.get_ral().subscriber(prefix + '/task3/', Bool, self.task_completion_cb, queue_size=1)
 
         self._done = False
         self._report = Task_3_Evaluation_Report()
         self._report.team_name = team_name
         self._entry_exit_idx = -1
-        self._start_time = rospy.Time.now().to_sec()
+        self._start_time = self.client.get_time()
         time.sleep(1.0)
 
     def capture_scene_kinematics(self):
@@ -725,7 +712,7 @@ class Task_3_Evaluation():
         if msg.data is False:
             print('Error!, Task 3 Completion Message must be True')
 
-        self._report.completion_time = rospy.Time.now().to_sec() - self._start_time
+        self._report.completion_time = self.client.get_time() - self._start_time
         self._done = True
 
     def evaluate(self):

@@ -46,7 +46,6 @@
 from surgical_robotics_challenge.kinematics.psmKinematics import *
 from surgical_robotics_challenge.utils.joint_errors_model import JointErrorsModel
 from surgical_robotics_challenge.utils import coordinate_frames
-import rospy
 import time
 from threading import Thread, Lock
 from surgical_robotics_challenge.utils.interpolation import Interpolation
@@ -134,7 +133,13 @@ class PSM:
     def get_tool_id(self) -> int:
         # Assuming the rostopic name is in the format /ambf/env/psm1/tool_id/420006
         rostopic_name = self.tool_id_body.get_ros_name()
-        tool_id = int(rostopic_name.split('/')[-1])
+        try: 
+            tool_id = int(rostopic_name.split('/')[-1])
+        except:
+            try:
+                tool_id = int(rostopic_name.split('_')[-1])
+            except:
+                raise('Cannot find integer tool_id in', rostopic_name)
         return tool_id
 
     def validate_tool_id(self):
@@ -240,18 +245,18 @@ class PSM:
         self._force_exit_thread = True
         trajectory_execute_thread.start()
     
-    def _execute_trajectory(self, trajectory_gen, execute_time, control_rate):
+    def _execute_trajectory(self, trajectory_gen, execute_time, rate):
         self._thread_lock.acquire()
         self._force_exit_thread = False
-        init_time = rospy.Time.now().to_sec()
-        control_rate = rospy.Rate(control_rate)
-        while not rospy.is_shutdown() and not self._force_exit_thread:
-            cur_time = rospy.Time.now().to_sec() - init_time
+        init_time = self.simulation_manager.get_time()
+        rate_ctrl = self.simulation_manager.create_rate(rate)
+        while not self.simulation_manager.is_shutdown() and not self._force_exit_thread:
+            cur_time = self.simulation_manager.get_time() - init_time
             if cur_time > execute_time:
                 break
             val = trajectory_gen.get_interpolated_x(np.array(cur_time, dtype=np.float32))
             self.servo_jp(val)
-            control_rate.sleep()
+            rate_ctrl.sleep()
         self._thread_lock.release()
 
     def servo_jv(self, jv):

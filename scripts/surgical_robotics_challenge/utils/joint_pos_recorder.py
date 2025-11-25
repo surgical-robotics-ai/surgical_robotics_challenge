@@ -135,7 +135,7 @@ if __name__ == '__main__':
     #     pprint(m)
     # elif choice == 4:
     m, l = JointPosLoader.load_by_prefix('JP#2021-05-11 01')
-    pprint(m)
+    print(m)
     # elif choice == 5:
     #     import random
     #     recorder = JointPosRecorder()

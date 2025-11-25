@@ -49,7 +49,6 @@ from PyKDL import Vector, Rotation
 from surgical_robotics_challenge.utils.utilities import cartesian_interpolate_step
 import numpy as np
 import time
-import rospy
 import sys
 if sys.version_info[0] >= 3:
     from tkinter import *
@@ -72,23 +71,26 @@ def attach_needle(needle, link, T_offset):
         print('Not a valid link, returning')
         return
     T_nINw = needle.get_pose()
-    while not reached and not rospy.is_shutdown():
-        T_tINw = link.get_pose()
-        T_nINw_cmd = T_tINw * T_offset
-
-        T_delta, error_max = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01)
-        r_delta = T_delta.M.GetRPY()
-        # print(error_max)
-        if error_max < 0.01:
-            reached = True
+    while not reached:
+        try:
+            T_tINw = link.get_pose()
+            T_nINw_cmd = T_tINw * T_offset
+    
+            T_delta, error_max = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01)
+            r_delta = T_delta.M.GetRPY()
+            # print(error_max)
+            if error_max < 0.01:
+                reached = True
+                break
+            
+            T_cmd = Frame()
+            T_cmd.p = T_nINw.p + T_delta.p
+            T_cmd.M = T_nINw.M * Rotation.RPY(r_delta[0], r_delta[1], r_delta[2])
+            T_nINw = T_cmd
+            needle.set_pose(T_cmd)
+            time.sleep(0.001)
+        except KeyboardInterrupt:
             break
-
-        T_cmd = Frame()
-        T_cmd.p = T_nINw.p + T_delta.p
-        T_cmd.M = T_nINw.M * Rotation.RPY(r_delta[0], r_delta[1], r_delta[2])
-        T_nINw = T_cmd
-        needle.set_pose(T_cmd)
-        time.sleep(0.001)
         # T_nINw = get_obj_trans(needle)
 
     # Wait for the needle to get there

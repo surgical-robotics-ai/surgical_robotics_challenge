@@ -46,7 +46,6 @@ from surgical_robotics_challenge.kinematics.ecmFK import *
 from surgical_robotics_challenge.utils.utilities import cartesian_interpolate_step
 from PyKDL import Frame, Rotation, Vector, Twist
 import time
-import rospy
 from threading import Thread
 
 
@@ -95,7 +94,7 @@ class ECM:
                     pos_goal_reached = True
                     rot_goal_reached = True
 
-                if rospy.is_shutdown():
+                if self.simulation_manager.is_shutdown():
                     self._force_exit_thread = True
                 time.sleep(0.01)
             self._thread_busy = False

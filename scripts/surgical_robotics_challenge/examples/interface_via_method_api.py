@@ -3,7 +3,6 @@
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.scene import Scene
-import rospy
 from sensor_msgs.msg import Image
 from surgical_robotics_challenge.task_completion_report import TaskCompletionReport, PoseStamped
 from surgical_robotics_challenge.kinematics.psmKinematics import ToolType
@@ -22,8 +21,8 @@ def add_break(s):
 
 
 class ImageSub:
-    def __init__(self, image_topic):
-        self.image_sub = rospy.Subscriber(image_topic, Image, self.image_cb)
+    def __init__(self, ral, image_topic):
+        self.image_sub = ral.subscriber(image_topic, Image, self.image_cb)
         self.image_msg = Image()
 
     def image_cb(self, image_msg):
@@ -49,8 +48,8 @@ task_report = TaskCompletionReport(team_name='my_team_name')
 add_break(0.5)
 
 # Add you camera stream subs
-cameraL_sub = ImageSub('/ambf/env/cameras/cameraL/ImageData')
-cameraR_sub = ImageSub('/ambf/env/cameras/cameraR/ImageData')
+cameraL_sub = ImageSub(simulation_manager.get_ral(), '/ambf/env/cameras/cameraL/ImageData')
+cameraR_sub = ImageSub(simulation_manager.get_ral(), '/ambf/env/cameras/cameraR/ImageData')
 
 print("Resetting the world")
 world_handle.reset()
