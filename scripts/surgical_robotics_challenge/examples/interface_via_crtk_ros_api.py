@@ -130,7 +130,7 @@ class SceneInterface:
         suffix = '/measured_cp'
         for k, i in self._scene_object_poses.items():
             self._subs.append(self.ral.subscriber(namespace + k.name + suffix, PoseStamped,
-                                               self.state_cb, callback_args=k, queue_size=1))
+                                               lambda msg, key=k: self.state_cb(msg, key), queue_size=1))
 
         self._task_3_ready = False
         self._task_3_setup_init_pub = self.ral.publisher('/CRTK/scene/task_3_setup/init', Empty, queue_size=1)
@@ -169,7 +169,7 @@ class WorldInterface:
 # Create an instance of the client
 g_ral = ral('crtk_ros_api')
 time.sleep(0.5)
-world_handle = WorldInterface()
+world_handle = WorldInterface(g_ral)
 
 # Get a handle to PSM1
 psm1 = ARMInterface(g_ral, ArmType.PSM1)

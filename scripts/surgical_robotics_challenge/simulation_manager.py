@@ -86,6 +86,9 @@ class SimulationManager:
     def get_time(self):
         return self._client.get_time()
 
+    def get_time_msg(self):
+        return self._client.ral.now_msg()
+
     def create_rate(self, rate):
         return self._client.create_rate(rate)
 

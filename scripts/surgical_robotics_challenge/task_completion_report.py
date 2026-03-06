@@ -23,8 +23,10 @@ class TaskCompletionReport:
 
     def task_2_report(self, complete):
         print(self._team_name, 'reporting task 2 complete with result: ', complete)
-        self._task2_pub.publish(complete)
+        msg = complete if isinstance(complete, Bool) else Bool(data=bool(complete))
+        self._task2_pub.publish(msg)
 
     def task_3_report(self, complete):
         print(self._team_name, 'reporting task 3 complete with result: ', complete)
-        self._task3_pub.publish(complete)
+        msg = complete if isinstance(complete, Bool) else Bool(data=bool(complete))
+        self._task3_pub.publish(msg)
