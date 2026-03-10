@@ -22,7 +22,7 @@ The virtual environment includes a pair of stereo cameras that are fixed with re
 ```
 
 
-<img src="./figures/camera_frames.png" width="600" />
+<img src="./figures/camera_frames_white_bg.jpg" width="600" />
 
 ## Intrinsic parameter matrix.
 
@@ -46,7 +46,7 @@ To use Opencv 3D calibration functions, it is necessary to convert between the A
 where `T_CN_AMBF` is the extrinsic camera matrix.
 
 
-<img src="./figures/camera_convention.png" width="640"  />
+<img src="./figures/camera_convention_white_bg.jpg" width="640"  />
 
 
 ## Examples
