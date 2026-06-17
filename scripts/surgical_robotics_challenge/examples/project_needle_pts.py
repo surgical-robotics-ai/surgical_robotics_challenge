@@ -19,29 +19,29 @@ from surgical_robotics_challenge.scene import Scene
 from surgical_robotics_challenge.camera import Camera
 from ambf_client import Client
 import time
-import tf_conversions.posemath as pm
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.units_conversion import SimToSI
+from surgical_robotics_challenge.utils.utilities import convert_frame_to_mat
 
 
 np.set_printoptions(precision=3, suppress=True)
 
 
 class ImageSub:
-    def __init__(self, ral):
+    def __init__(self, ral, topic_name):
         self.bridge = CvBridge()
         self.img_subs = ral.subscriber(
-            "/ambf/env/cameras/cameraL/ImageData", Image, self.left_callback
+            topic_name, Image, self.left_callback
         )
 
         self.left_frame = None
         self.left_ts = None
 
         # Wait a until subscribers and publishers are ready
-        ral.sleep(0.5)
+        time.sleep(0.5)
 
     def left_callback(self, msg):
         try:
@@ -55,14 +55,17 @@ class ImageSub:
 if __name__ == "__main__":
     # Connect to AMBF and setup image suscriber
     simulation_manager = SimulationManager("needle_projection_ex")
+    camera_name = "/ambf/env/stereo/left"
+    camera_reference_frame_name = "CameraFrame"
     time.sleep(0.5)
-    saver = ImageSub(simulation_manager.get_ral())
+    saver = ImageSub(simulation_manager.get_ral(), camera_name+'/ImageData')
     # cam = simulation_manager.get_obj_handle("cameraL")
     scene = Scene(simulation_manager)  # Provides access to needle and entry/exit points
-    ambf_cam_l = Camera(simulation_manager, "/ambf/env/cameras/cameraL")
-    ambf_cam_frame = ECM(simulation_manager, "CameraFrame")
+    ambf_cam_l = Camera(simulation_manager, camera_name)
+    ambf_cam_frame = ECM(simulation_manager, camera_reference_frame_name)
 
     assert ambf_cam_l is not None, "CameraL not found"
+    assert ambf_cam_frame is not None, "CameraFrame not found"
     print(ambf_cam_l)
 
     # Calculate opencv camera intrinsics
@@ -82,9 +85,9 @@ if __name__ == "__main__":
     print(f"Needle measured cp:\n {scene.needle_measured_cp()}")
     print(f"Camera Left frame cp: {ambf_cam_l.get_T_c_w()}")
 
-    T_WN = pm.toMatrix(scene.needle_measured_cp())  # Needle to world
-    T_FL = pm.toMatrix(ambf_cam_l.get_T_c_w())  # CamL to CamFrame
-    T_WF = pm.toMatrix(ambf_cam_frame.get_T_c_w())  # CamFrame to world
+    T_WN = convert_frame_to_mat(scene.needle_measured_cp())  # Needle to world
+    T_FL = convert_frame_to_mat(ambf_cam_l.get_T_c_w())  # CamL to CamFrame
+    T_WF = convert_frame_to_mat(ambf_cam_frame.get_T_c_w())  # CamFrame to world
 
     # Get image
     img = saver.left_frame
@@ -130,7 +133,6 @@ if __name__ == "__main__":
     # Display image
     for i in range(img_pt.shape[0]):
         img = cv2.circle(img, (int(img_pt[i, 0, 0]), int(img_pt[i, 0, 1])), 3, (255, 0, 0), -1)
-
     cv2.imshow("img", img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
