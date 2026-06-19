@@ -1,89 +1,121 @@
-### INFO
+## Scripts Package
 
-### Installation:
+This folder contains the Python package used to control and evaluate the simulation.
 
-Please install this package so that it is accessible externally.
-In a terminal, navigate to this folder:
-```
-cd surgical_robotics_challenge/scripts/
-```
-Depending upon your Python version
+## Installation
 
-For Python 2
-```
-pip install -e .
-```
+Install the package in editable mode so it is importable from other locations.
 
-For Python 3
+Optional: create and activate a virtual environment.
 
-```
-pip3 install -e .
+```bash
+cd ~
+python3 -m venv venv_src --system-site-packages
+source ~/venv_src/bin/activate
 ```
 
-### Description:
-The module names should be self-evident but a brief description is provided below:
+Note: Activate the virtual environment in each terminal that needs these scripts. You can also add the `source` command to your `.bashrc` if you want it loaded automatically.
 
-### Controlling Simulated Robots:
-After launching the `ambf_simulator` as described in the main [README](../README.md), there are two ways to control the simulated PSMs and ECM, and read the pose (state) of the needle and entry exit points
+Then install the package:
 
-1. Using the scripts with CRTK Method API:
-    With this option, the following scripts `psm_arm.py`, `ecm_arm.py` and `scene.py` can be imported inside an application. Each script provides a CRTK compatible method API for controlling the robot or reading relevant data (pose of entry / exits markers).
-2. Using the CRTK-ROS interface:
-    With this option, there is no need to import any scripts. Simply run the `launch_crtk_interface.py` script. This script will consequently use the `psm_arm.py`, `ecm_arm.py` and `scene.py` scripts and create ROS topics to publish and receive commands.
+```bash
+cd ~/surgical_robotics_challenge/scripts
+python3 -m pip install -e .
+```
 
+## Control Options
 
-  The [examples](./surgical_robotics_challenge/examples) folder contains demonstrations of using both these ways to control the simulation.
+After launching one of the environments as described in the main [README](../README.md), you can control the simulated PSMs/ECM and read scene state in two ways:
 
+1. CRTK method API (import-based)
+Import and use `psm_arm.py`, `ecm_arm.py`, and `scene.py` directly in your application.
 
-### 1. Wrappers for simulation components
-| # | Script Name                | Description                                                                                                                                                                                      |
-|---|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1 | `psm_arm.py`               | Wraps the simulated PSMs (in AMBF simulation) using their ROS topics.                                                                                                                            |
-| 2 | `ecm_arm.py`               | Wraps the simulated ECM (in AMBF simulation) using its ROS topics.                                                                                                                               |
-| 3 | `scene.py`                 | Wraps the simulated needle, entry, and exit holes (in AMBF simulation) using their ROS topics.                                                                                                   |
-| 4 | `launch_crtk_interface.py` | Spawns CRTK based ROS topics for each simulated PSM, ECM, and scene objects (needle, entry, and exits). By using this script, the PSMs and ECM can be controlled via CRTK compatible ROS topics. |
-| 5 | `camera.py`                | Provides access to a kinematic frame that is used a parent for the Simulated ECM. (Not used at the moment)   
+2. CRTK-ROS interface
+Run `launch_crtk_interface.py` to expose CRTK-compatible ROS topics backed by the same wrappers.
 
-### 2. Kinematics
-| # | Script Name | Description                                   |
-|---|-------------|-----------------------------------------------|
-| 1 | `psmIK.py`  | Analytical Inverse Kinematics for the PSM arm |
-| 2 | `ecmIK.py`  | Analytical Inverse Kinematics for the ECM arm |
-| 3 | `psmFK.py`  | Forward Kinematics for the PSM arm            |
-| 4 | `DH.py`     | DH implementation                             |
+The [examples](./surgical_robotics_challenge/examples) folder demonstrates both approaches.
 
+## Control via Meta Quest
 
-### 3. Examples
-| # | Script Name                 | Description                                                                            |
-|---|-----------------------------|----------------------------------------------------------------------------------------|
-| 1 | `gui_based_control.py`      | Uses GUI-based sliders to control the Cartesian pose of the PSMs.                      |
-| 2 | `depth_sub.py`              | Example showing a ROS subscriber for a camera depth message.                           |
-| 3 | `image_sub.py`              | Example showing a ROS subscriber for a camera image message.                           |
-| 4 | `crtk_ros_based_control.py` | Example showcasing the control of PSM using the CRTK-ROS interface.                    |
-| 5 | `ecm_control.py`            | Example showcasing the control of ECM using the CRTK-method interface.                 |
-| 6 | `ik_test.py`                | Tests the PSM IK implementation using a random trajectory.                             |
-| 7 | `camera_frame_control.py`   | Controls the kinematic frame which is used as a parent for the ECM. (Not used for now) |
+After launching the simulation:
 
-### 4. Teleoperation
-| # | Script Name                     | Description                                                                                                                                                                                                                                                                                        |
-|---|---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1 | `mtm_multi_psm_control.py`      | Uses the `mtm_device.py` and multiple `psm_arm.py` to bind a single MTM to multiple PSMs. Only one PSM is controllable at a time and the next PSM can be selected by quickly double-tapping the clutch foot pedal. Run the script with `-h` to see allowed command-line options.                   |
-| 2 | `geomagic_multi_psm_control.py` | Uses the `geomagic_device.py` and multiple `psm_arm.py` to bind a single Geomagic to multiple PSMs. Only one PSM is controllable at a time and the next PSM can be selected by quickly double-tapping the grey button on the device. Run the script with `-h` to see allowed command-line options. |
-| 3 | `razer_multi_psm_control.py`    | Uses the `razer_device.py` and multiple `psm_arm.py` to bind a single Razer Hydra to multiple PSMs. Not tested fully.        
+1. Enable the CRTK interface:
 
-#### 4a. Input Devices (teleoperation/input_devices)
+```bash
+cd ~/surgical_robotics_challenge/scripts/surgical_robotics_challenge
+python3 launch_crtk_interface.py --scene False
+```
 
-| # | Script Name          | Description                                                                                        |
-|---|----------------------|----------------------------------------------------------------------------------------------------|
-| 1 | `mtm_device.py`      | Wraps the MTM device using its ROS topics **(OLD, sawIntuitiveResearchKit < 2.0 branch)**          |
-| 2 | `mtm_device_crtk.py` | Wraps the MTM device using its CRTK based ROS topics **(Current, sawIntuitiveResearchKit >= 2.0)** |
-| 3 | `geomagic_device.py` | Wraps the Geomagic device using its ROS topics                                                     |
+The `scene` argument is relevant for suturing environments with entry/exit holes. Set it to `False` for other environments, including the pegboard challenge.
 
-### 5. Utils
+2. Open the teleoperation directory:
 
-Consists of various helper scripts that are used in this package.
+```bash
+cd ~/surgical_robotics_challenge/scripts/surgical_robotics_challenge/teleoperation
+```
 
-| # | Script Name          | Description                                                                                        |
-|---|----------------------|----------------------------------------------------------------------------------------------------|
-| 1 | `approx_sync_data.py` | Example of collecting ros messages using approximate time synchronizer|
+3. Run the UDP bridge:
+
+```bash
+python3 udp_crtk_bridge.py --quest-ip <ip-address> --offset-rpy 180 0 180 --swap --home
+```
+
+Replace `<ip-address>` with the master device IP (for example, Quest 3).
+
+This bridge converts CRTK-compatible UDP JSON commands to CRTK-compatible ROS 2 topics used by AMBF.
+
+## 1. Wrappers for Simulation Components
+
+| # | Script Name                | Description |
+|---|----------------------------|-------------|
+| 1 | `psm_arm.py`               | Wraps simulated PSMs through ROS topics. |
+| 2 | `ecm_arm.py`               | Wraps the simulated ECM through ROS topics. |
+| 3 | `scene.py`                 | Wraps the simulated needle, entry, and exit holes through ROS topics. |
+| 4 | `launch_crtk_interface.py` | Publishes CRTK-compatible ROS topics for PSMs, ECM, and scene objects. |
+| 5 | `camera.py`                | Provides access to the kinematic frame used as parent for the simulated ECM (currently not used). |
+
+## 2. Kinematics
+
+| # | Script Name | Description |
+|---|-------------|-------------|
+| 1 | `psmKinematics.py` | PSM forward/inverse kinematics implementation. |
+| 2 | `ecmFK.py`         | ECM forward kinematics implementation. |
+| 3 | `DH.py`            | DH convention helper implementation. |
+
+## 3. Examples
+
+| # | Script Name                  | Description |
+|---|------------------------------|-------------|
+| 1 | `gui_based_control.py`       | GUI sliders for Cartesian control of PSMs. |
+| 2 | `depth_sub.py`               | Example ROS subscriber for camera depth messages. |
+| 3 | `image_sub.py`               | Example ROS subscriber for camera image messages. |
+| 4 | `crtk_ros_based_control.py`  | PSM control via the CRTK-ROS interface. |
+| 5 | `ecm_control.py`             | ECM control via the CRTK method API. |
+| 6 | `ik_test.py`                 | Random-trajectory test for PSM kinematics. |
+| 7 | `interface_via_method_api.py`| Minimal method-API control example. |
+| 8 | `interface_via_crtk_ros_api.py` | Minimal CRTK-ROS API control example. |
+
+## 4. Teleoperation
+
+| # | Script Name                     | Description |
+|---|---------------------------------|-------------|
+| 1 | `mtm_multi_psm_control.py`      | Binds one MTM to multiple PSMs; switch active arm by double-tapping clutch pedal. |
+| 2 | `geomagic_multi_psm_control.py` | Binds one Geomagic to multiple PSMs; switch active arm by double-tapping the device button. |
+| 3 | `hydra_multi_psm_control.py`    | Binds one Razer Hydra to multiple PSMs. |
+
+### 4a. Input Devices (`teleoperation/input_devices`)
+
+| # | Script Name          | Description |
+|---|----------------------|-------------|
+| 1 | `mtm_device_crtk.py` | Wraps MTM using CRTK-based ROS topics (for `sawIntuitiveResearchKit >= 2.0`). |
+| 2 | `geomagic_device.py` | Wraps Geomagic using ROS topics. |
+| 3 | `hydra_device.py`    | Wraps Razer Hydra using ROS topics. |
+
+## 5. Utils
+
+Helper scripts used across this package.
+
+| # | Script Name                     | Description |
+|---|---------------------------------|-------------|
+| 1 | `utils/approx_sync_data.py`     | Example for collecting ROS messages with an approximate time synchronizer. |
 

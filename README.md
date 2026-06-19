@@ -1,20 +1,18 @@
-# AMBF Surgical Robotics Challenge for ICRA 2026
+# AMBF Surgical Robotics Challenge
 
-This branch provides specific instructions for the [ICRA 2026 Surgical Robotics Challenge](https://surgical-robotics-ai.github.io/icra-competition-2026/index.html), which implements a peg transfer task using ROS2.
+This repository provides an open simulation environment for robotic suturing.
 
 Please check out the [Discussions tab](https://github.com/surgical-robotics-ai/surgical_robotics_challenge/discussions) to ask questions, post suggestions, connect with the community, and stay up to date with the challenge.
 
 ## Installation
 
-1. Install ROS2 Jazzy, which can be found [here](https://docs.ros.org/en/jazzy/Installation.html).
+1. Install ROS2 (any version should do). Instructions for Jazzy can be found [here](https://docs.ros.org/en/jazzy/Installation.html).
 
-2. Clone, build, and source `ambf-3.0` using these [instructions](https://github.com/WPI-AIM/ambf/wiki/Installing-AMBF).
+2. Clone, build, and source `ambf-3.0` using these [instructions](https://github.com/WPI-AIM/ambf/wiki/Installing-AMBF). AMBF 3.0 also requires ROS, so skip the ROS-related instructions if you followed step 1 and vice-versa.
 
-3. Clone this repository (`icra2026-challenge` branch) to your local machine (recommended) OR use a Dockerfile
-
-   a. Option 1: Clone repo to your local machine: Please refer to the [README](./scripts/README.md) in the [scripts](./scripts) folder for instructions on installing the Python package for system-wide access.
-
-   b. Option 2: Use Dockerfile: You can create Docker images by following the instructions [here](https://github.com/surgical-robotics-ai/docker_surgical_robotics_challenge).
+3. Set up this repository using one of the following options:
+  1. Local install (recommended): Refer to the [README](./scripts/README.md) in the [scripts](./scripts) folder for instructions on installing the Python package.
+  2. Docker: Create Docker images by following the instructions [here](https://github.com/surgical-robotics-ai/docker_surgical_robotics_challenge).
 
 ## Running the simulation
 
@@ -22,46 +20,62 @@ Please check out the [Discussions tab](https://github.com/surgical-robotics-ai/s
 
 2. Navigate to the `surgical_robotics_challenge` folder, which is `~/surgical_robotics_challenge` if you cloned it in your home directory.
 
-3. Run the following in your terminal:
+3. Run one of the environments below in your terminal:
+
+a. 3D Med Complex Suturing Phantom
+
+```bash
+./run_env_3D_MED_COMPLEX_LND_420006.sh
+```
+
+b. 3D Med Simple Suturing Phantom
+
+```bash
+./run_env_3D_MED_STRAIGHT_LND_420006.sh
+```
+
+c. Simple Suturing Phantom
+
+```bash
+./run_env_SIMPLE_LND_420006.sh
+```
+
+d. Asymmetric Pegboard with Wall
+
+```bash
+./run_env_pegboard_asymmetric.sh
+```
+
+e. Symmetric Pegboard with Wall
 
 ```bash
 ./run_env_pegboard_symmetric_with_wall.sh
 ```
 
-A pair of windows showing a pegboard environment should appear.
+f. Legacy Simple Phantom
+
+```bash
+./run_env_SIMPLE_LND_420006.sh
+```
+
+Example media showing a few different environments.
 
   <p align="center">
-  <img src=Media/sample_scene_pegboard_symmetric.png width="600"/>
+  <img src=Media/figure_eight.gif width="600"/>
   </p>
 
-## Teleoperating the simulated robots
+  <p align="center">
+  <img src=Media/3d_med_complex_rim_light.png width="600"/>
+  </p>
 
-After completing the steps above to run the simulation:
+  <p align="center">
+  <img src=Media/3d_med_straight_rim_light.png width="600"/>
+  </p>
 
-1. Enable the Collaborative Robotics Toolkit (CRTK) interface, by running the following script:
+  <p align="center">
+  <img src=Media/pegboard_symmetric_rim_light.png width="600"/>
+  </p>
 
-```bash
-cd scripts/surgical_robotics_challenge
-python launch_crtk_interface --scene False
-```
-
-The `scene` argument above is relevant for the suturing environment with entry and exit holes, so it should be disabled (`False`) for other environments, including the pegboard used for the ICRA 2026 challenge.
-
-2. Change to the teleoperation directory:
-
-```bash
-cd surgical-robotics-challenge/scripts/surgical_robotics_challenge/teleoperation
-```
-
-3. Run the teleoperation control using the following command line:
-
-```
-python udp_crtk_bridge.py --quest-ip <ip-address> --offset-rpy 180 0 180 --swap --home
-```
-
-where `<ip-address>` is the IP address of the master device (e.g., Quest 3).
-
-This control script converts CRTK-compatible JSON commands sent/received via UDP from the master device (e.g., Quest 3) to CRTK-compatible ROS2 topics for AMBF.
 
 ## Technical Details
 
