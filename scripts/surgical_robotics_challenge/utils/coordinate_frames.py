@@ -35,4 +35,4 @@ class Needle:
 
 
 class TeleopScale:
-    scale_factor = 0.005
+    scale_factor = 1.0

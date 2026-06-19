@@ -43,11 +43,41 @@
 # */
 # //==============================================================================
 
+import os
+import yaml
 import PyKDL
+from enum import Enum
 from PyKDL import Frame, Rotation, Vector
-from geometry_msgs.msg import Pose, PoseStamped, TransformStamped, TwistStamped, WrenchStamped, Wrench
+
+
+_HAPTICS_GAINS_DEFAULTS = {
+    'kp_pos': 120.0,
+    'kd_pos': 0.0,
+    'kp_rot': 0.0,
+    'kd_rot': 0.05,
+    'max_force': 2.0,
+    'max_torque': 0.0,
+    'linear_deadband': 0.001,
+    'angular_deadband': 0.01,
+}
+
+_HAPTICS_YAML = os.path.join(os.path.dirname(__file__), '..', 'mtm_haptics_gains.yaml')
+
+
+def load_haptics_gains(yaml_path=None):
+    path = yaml_path or _HAPTICS_YAML
+    defaults = dict(_HAPTICS_GAINS_DEFAULTS)
+    try:
+        with open(path, 'r') as f:
+            data = yaml.safe_load(f)
+        if isinstance(data, dict) and 'haptics_gains' in data:
+            defaults.update({k: float(v) for k, v in data['haptics_gains'].items() if k in defaults})
+    except Exception as e:
+        print('[mtm_device_crtk] Warning: could not load haptics gains from {}: {}'.format(path, e))
+    return defaults
+from geometry_msgs.msg import PoseStamped, TransformStamped, TwistStamped, WrenchStamped, Quaternion
 from sensor_msgs.msg import Joy, JointState
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Empty, Float32
 from ros_abstraction_layer import ral
 import time
 import numpy as np
@@ -157,6 +187,12 @@ def get_crtk_cp_msg_type_from_str(msg_type_str):
         raise TypeError
 
 
+class TeleopMode(Enum):
+    CLUTCH = 0
+    COAG = 1
+    HOLD = 2
+
+
 # Init everything related to Geomagic
 class MTM:
     # The name should include the full qualified prefix. I.e. '/Geomagic/', or '/omniR_' etc.
@@ -168,17 +204,26 @@ class MTM:
         gripper_topic_name = name + 'gripper/measured_js'
         clutch_topic_name = '/console1/clutch'
         coag_topic_name = '/console1/operator_present'
+        camera_topic_name = '/console1/camera'
 
         pose_pub_topic_name = name + 'servo_cp'
         wrench_pub_topic_name = name + 'body/servo_cf'
+        set_wrench_orientation_absolute_topic_name = name + 'body/set_cf_orientation_absolute'
+
         effort_pub_topic_name = name + 'servo_jf'
         grav_comp_topic_name = name + 'use_gravity_compensation'
+
+        hold_topic_name = name + 'hold'
+        free_topic_name = name + 'free'
+        lock_orientation_topic_name = name + 'lock_orientation'
+        unlock_orientation_topic_name = name + 'unlock_orientation'
+
+        haptics_gains_prefix = name + 'haptics/gains'
 
         self.cur_pos_msg = None
         self.pre_coag_pose_msg = None
 
         self._active = False
-        self._scale = 1.0
         self.pose = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
         self.twist = PyKDL.Twist()
         R_off = Rotation.RPY(0, 0, 0)
@@ -187,13 +232,17 @@ class MTM:
         self._T_tipoffset = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
         self.clutch_button_pressed = False  # Used as Position Engage Clutch
         self.coag_button_pressed = False  # Used as Position Engage Coag
+        self.camera_button_pressed = False  # Used as Camera Control Button
         self.gripper_angle = 0
 
         self.switch_psm = False
         self._button_msg_time = self.ral.now()
         self._switch_psm_duration = self.ral.create_duration(0.5)
 
+        self._pose_error_wrench_params = load_haptics_gains()
+
         self._arm_publishing = False
+        self._teleop_mode = TeleopMode.HOLD
 
         self._jp = []
         self._jv = []
@@ -202,27 +251,35 @@ class MTM:
         self.MEASURED_CP_MESSAGE_TYPE = PoseStamped
         self.SERVO_CP_MESSAGE_TYPE = PoseStamped
 
-        self._pose_sub = self.ral.subscriber(
-            pose_sub_topic_name, self.MEASURED_CP_MESSAGE_TYPE, self.pose_cb, queue_size=1)
-        self._state_sub = self.ral.subscriber(
-            joint_state_sub_topic_name, JointState, self.state_cb, queue_size=1)
-        self._gripper_sub = self.ral.subscriber(
-            gripper_topic_name, JointState, self.gripper_cb, queue_size=1)
-        self._twist_sub = self.ral.subscriber(
-            twist_topic_name, TwistStamped, self.twist_cb, queue_size=1)
-        self._clutch_button_sub = self.ral.subscriber(
-            clutch_topic_name, Joy, self.clutch_buttons_cb, queue_size=1)
-        self._coag_button_sub = self.ral.subscriber(
-            coag_topic_name, Joy, self.coag_buttons_cb, queue_size=1)
+        self._pose_sub = self.ral.subscriber(pose_sub_topic_name, self.MEASURED_CP_MESSAGE_TYPE, self.pose_cb, queue_size=1)
+        self._state_sub = self.ral.subscriber(joint_state_sub_topic_name, JointState, self.state_cb, queue_size=1)
+        self._gripper_sub = self.ral.subscriber(gripper_topic_name, JointState, self.gripper_cb, queue_size=1)
+        self._twist_sub = self.ral.subscriber(twist_topic_name, TwistStamped, self.twist_cb, queue_size=1)
+        self._clutch_button_sub = self.ral.subscriber(clutch_topic_name, Joy, self.clutch_buttons_cb, queue_size=1)
+        self._coag_button_sub = self.ral.subscriber(coag_topic_name, Joy, self.coag_buttons_cb, queue_size=1)
+        self._camera_button_sub = self.ral.subscriber(camera_topic_name, Joy, self.camera_buttons_cb, queue_size=1)
 
-        self._pos_pub = self.ral.publisher(
-            pose_pub_topic_name, self.SERVO_CP_MESSAGE_TYPE, queue_size=1)
-        self._wrench_pub = self.ral.publisher(
-            wrench_pub_topic_name, WrenchStamped, queue_size=1)
-        self._effort_pub = self.ral.publisher(
-            effort_pub_topic_name, JointState, queue_size=1)
-        self._gravity_comp_pub = self.ral.publisher(
-            grav_comp_topic_name, Bool, queue_size=1)
+        self._haptics_kp_pos_sub = self.ral.subscriber(haptics_gains_prefix + '/kp_pos', Float32, self._haptics_kp_pos_cb, queue_size=1)
+        self._haptics_kd_pos_sub = self.ral.subscriber(haptics_gains_prefix + '/kd_pos', Float32, self._haptics_kd_pos_cb, queue_size=1)
+        self._haptics_kp_rot_sub = self.ral.subscriber(haptics_gains_prefix + '/kp_rot', Float32, self._haptics_kp_rot_cb, queue_size=1)
+        self._haptics_kd_rot_sub = self.ral.subscriber(haptics_gains_prefix + '/kd_rot', Float32, self._haptics_kd_rot_cb, queue_size=1)
+        self._haptics_max_force_sub = self.ral.subscriber(haptics_gains_prefix + '/max_force', Float32, self._haptics_max_force_cb, queue_size=1)
+        self._haptics_max_torque_sub = self.ral.subscriber(haptics_gains_prefix + '/max_torque', Float32, self._haptics_max_torque_cb, queue_size=1)
+        self._haptics_linear_deadband_sub = self.ral.subscriber(haptics_gains_prefix + '/linear_deadband', Float32, self._haptics_linear_deadband_cb, queue_size=1)
+        self._haptics_angular_deadband_sub = self.ral.subscriber(haptics_gains_prefix + '/angular_deadband', Float32, self._haptics_angular_deadband_cb, queue_size=1)
+
+        self._pos_pub = self.ral.publisher(pose_pub_topic_name, self.SERVO_CP_MESSAGE_TYPE, queue_size=1)
+        self._wrench_pub = self.ral.publisher(wrench_pub_topic_name, WrenchStamped, queue_size=1)
+        self._set_orientation_absolute_pub = self.ral.publisher(set_wrench_orientation_absolute_topic_name, Bool, queue_size=1)
+        self._effort_pub = self.ral.publisher(effort_pub_topic_name, JointState, queue_size=1)
+        self._gravity_comp_pub = self.ral.publisher(grav_comp_topic_name, Bool, queue_size=1)
+        self._hold_pub = self.ral.publisher(hold_topic_name, Empty, queue_size=1)
+        self._free_pub = self.ral.publisher(free_topic_name, Empty, queue_size=1)
+        self._lock_orientation_pub = self.ral.publisher(lock_orientation_topic_name, Quaternion, queue_size=1)
+        self._unlock_orientation_pub = self.ral.publisher(unlock_orientation_topic_name, Empty, queue_size=1)
+
+        # Set the force command frame to be absolute (not relative to current orientation)
+        self._set_orientation_absolute_pub.publish(Bool(data=True))
 
         print('Creating MTM Device Named: ', name, ' From ROS Topics')
         self._msg_counter = 0
@@ -268,7 +325,8 @@ class MTM:
         tau_4 = Kp_4 * e * sign - Kd_4 * vs[3]
         tau_4 = np.clip(tau_4, -lim_4, lim_4)
 
-        tau_6 = -Kp_6 * qs[5] - Kd_6 * vs[5]
+        tau_6 = -Kp_6 * qs[5] - Kd_6 * vs[5]# Set the force command frame to be absolute (not relative to current orientation)
+        self._set_orientation_absolute_pub.publish(Bool(data=True))
         tau_6 = np.clip(tau_6, -lim_6, lim_6)
 
         js_cmd = [0.0]*7
@@ -280,12 +338,6 @@ class MTM:
         self._T_tipoffset = frame
         pass
 
-    def set_scale(self, scale):
-        self._scale = scale
-
-    def get_scale(self):
-        return self._scale
-
     def pose_cb(self, msg):
         self.cur_pos_msg = msg
         if self.pre_coag_pose_msg is None:
@@ -294,7 +346,6 @@ class MTM:
             cur_frame = pose_msg_to_kdl_frame(msg)
         elif type(msg) == TransformStamped:
             cur_frame = transform_msg_to_kdl_frame(msg)
-        cur_frame.p = cur_frame.p * self._scale
         self.pose = self._T_baseoffset_inverse * cur_frame * self._T_tipoffset
         # Mark active as soon as first message comes through
         self._active = True
@@ -330,7 +381,7 @@ class MTM:
         twist[3] = omega.angular.x
         twist[4] = omega.angular.y
         twist[5] = omega.angular.z
-        self.twist = self._T_baseoffset_inverse * twist
+        self.twist = self._T_baseoffset_inverse.M * twist
         pass
 
     def clutch_buttons_cb(self, msg):
@@ -346,6 +397,36 @@ class MTM:
     def coag_buttons_cb(self, msg):
         self.coag_button_pressed = msg.buttons[0]
         self.pre_coag_pose_msg = self.cur_pos_msg
+
+    def camera_buttons_cb(self, msg):
+        self.camera_button_pressed = msg.buttons[0]
+
+    def _haptics_kp_pos_cb(self, msg):
+        self._pose_error_wrench_params['kp_pos'] = float(msg.data)
+
+    def _haptics_kd_pos_cb(self, msg):
+        self._pose_error_wrench_params['kd_pos'] = float(msg.data)
+
+    def _haptics_kp_rot_cb(self, msg):
+        self._pose_error_wrench_params['kp_rot'] = float(msg.data)
+
+    def _haptics_kd_rot_cb(self, msg):
+        self._pose_error_wrench_params['kd_rot'] = float(msg.data)
+
+    def _haptics_max_force_cb(self, msg):
+        self._pose_error_wrench_params['max_force'] = float(msg.data)
+
+    def _haptics_max_torque_cb(self, msg):
+        self._pose_error_wrench_params['max_torque'] = float(msg.data)
+
+    def _haptics_linear_deadband_cb(self, msg):
+        self._pose_error_wrench_params['linear_deadband'] = float(msg.data)
+
+    def _haptics_angular_deadband_cb(self, msg):
+        self._pose_error_wrench_params['angular_deadband'] = float(msg.data)
+
+    def get_pose_error_wrench_params(self):
+        return dict(self._pose_error_wrench_params)
 
     def command_force(self, force):
         pass
@@ -376,7 +457,9 @@ class MTM:
         self._pos_pub.publish(servo_cp_msg)
 
     def servo_cf(self, wrench):
-        wrench = self._T_baseoffset_inverse * wrench
+        # Set the force command frame to be absolute (not relative to current orientation)
+        self._set_orientation_absolute_pub.publish(Bool(data=True))
+        wrench = self._T_baseoffset.M * wrench
         wrench_msg = kdl_wrench_to_wrench_msg(wrench)
         self._wrench_pub.publish(wrench_msg)
 
@@ -408,6 +491,46 @@ class MTM:
         msg = Bool()
         msg.data = False
         self._gravity_comp_pub.publish(msg)
+
+    def hold(self):
+        self._hold_pub.publish(Empty())
+
+    def free(self):
+        self._free_pub.publish(Empty())
+
+    def free_with_orientation_lock(self):
+        self.free()
+        curr_quat = self.pose.M.GetQuaternion()
+        self.lock_orientation(curr_quat)
+
+    def set_teleop_mode(self, mode: TeleopMode):
+        previous_mode = self._teleop_mode
+
+        if mode == TeleopMode.CLUTCH:
+            if previous_mode != TeleopMode.CLUTCH:
+                self.free_with_orientation_lock()
+        elif mode == TeleopMode.COAG:
+            if previous_mode != TeleopMode.COAG:
+                self.unlock_orientation()
+                self.free()
+        else:
+            self.hold()
+
+        self._teleop_mode = mode
+
+    def get_teleop_mode(self):
+        return self._teleop_mode
+
+    def lock_orientation(self, quat):
+        quat_msg = Quaternion()
+        quat_msg.x = quat[0]
+        quat_msg.y = quat[1]
+        quat_msg.z = quat[2]
+        quat_msg.w = quat[3]
+        self._lock_orientation_pub.publish(quat_msg)
+
+    def unlock_orientation(self):
+        self._unlock_orientation_pub.publish(Empty())
 
 
 def test():

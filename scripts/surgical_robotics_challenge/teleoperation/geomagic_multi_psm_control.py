@@ -57,7 +57,7 @@ import sys
 
 
 class ControllerInterface:
-    def __init__(self, leader, psm_arms, ecm):
+    def __init__(self, leader, psm_arms, ecm, update_frequency):
         self.counter = 0
         self.leader = leader
         self.psm_arms = cycle(psm_arms)
@@ -69,6 +69,7 @@ class ControllerInterface:
         self.cmd_rpy = None
         self.T_IK = None
         self._ecm = ecm
+        self.update_dt = 1.0 / update_frequency
 
         self._T_c_b = None
         self._update_T_c_b = True
@@ -95,7 +96,7 @@ class ControllerInterface:
         twist = self.leader.measured_cv()
         self.cmd_xyz = self.active_psm.T_t_b_home.p
         if not self.leader.clutch_button_pressed:
-            delta_t = self._T_c_b.M * twist.vel * 0.000002
+            delta_t = self._T_c_b.M * twist.vel * coordinate_frames.TeleopScale.scale_factor * self.update_dt
             self.cmd_xyz = self.cmd_xyz + delta_t
             self.active_psm.T_t_b_home.p = self.cmd_xyz
 
@@ -134,6 +135,7 @@ if __name__ == "__main__":
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=False)
+    parser.add_argument('--update_frequency', action='store', dest='update_frequency', help='Update Frequency', default=200)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
@@ -197,10 +199,10 @@ if __name__ == "__main__":
         theta_tip = -theta_base
         leader.set_base_frame(Frame(Rotation.RPY(theta_base, 0, 0), Vector(0, 0, 0)))
         leader.set_tip_frame(Frame(Rotation.RPY(theta_base + theta_tip, 0, 0), Vector(0, 0, 0)))
-        controller = ControllerInterface(leader, psm_arms, cam)
+        controller = ControllerInterface(leader, psm_arms, cam, update_frequency=int(parsed_args.update_frequency))
         controllers.append(controller)
 
-        rate = simulation_manager.get_ral().create_rate(200)
+        rate = simulation_manager.get_ral().create_rate(int(parsed_args.update_frequency))
 
         while not simulation_manager.is_shutdown():
             try:

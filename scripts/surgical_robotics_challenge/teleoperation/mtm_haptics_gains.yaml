@@ -1,0 +1,24 @@
+# Default haptics gain values for MTM pose-error wrench computation.
+# These are loaded by:
+#   - mtm_device_crtk.py  (runtime defaults)
+#   - mtm_haptics_gain_gui.py  (GUI spinbox initial values)
+#
+# Units:
+#   kp_pos        [N/m]   - position spring gain
+#   kd_pos        [N*s/m] - position damping gain
+#   kp_rot        [Nm/rad]- rotation spring gain
+#   kd_rot        [Nm*s/rad] - rotation damping gain
+#   max_force     [N]     - force saturation limit
+#   max_torque    [Nm]    - torque saturation limit
+#   linear_deadband  [m]  - position error deadband
+#   angular_deadband [rad]- rotation error deadband
+
+haptics_gains:
+  kp_pos: 120.0
+  kd_pos: 0.0
+  kp_rot: 0.0
+  kd_rot: 0.05
+  max_force: 2.0
+  max_torque: 0.0
+  linear_deadband: 0.001
+  angular_deadband: 0.01

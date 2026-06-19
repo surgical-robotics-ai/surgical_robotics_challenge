@@ -56,7 +56,7 @@ except:
 
 
 class DepthSub:
-    def __init__(self, ral, depth_topic="/ambf/env/cameras/cameraL/DepthData"):
+    def __init__(self, ral, depth_topic="/ambf/env/stereo/left/DepthData"):
         self.depth_sub = ral.subscriber(
             depth_topic, PointCloud2, self.depth_cb)
 

@@ -44,29 +44,38 @@
 #     \version   1.0
 # */
 # //==============================================================================
-import sys
 from surgical_robotics_challenge.simulation_manager import SimulationManager
-from surgical_robotics_challenge.psm_arm import PSM
 import time
-from PyKDL import Frame, Rotation, Vector, Wrench
+from PyKDL import Frame, Rotation, Vector
 from argparse import ArgumentParser
-from input_devices.mtm_device_crtk import MTM
-from itertools import cycle
+from surgical_robotics_challenge.teleoperation.input_devices.mtm_device_crtk import MTM
 from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.utils.jnt_control_gui import JointGUI
-from surgical_robotics_challenge.utils import coordinate_frames
+from surgical_robotics_challenge.utils.utilities import get_boolean_from_opt
+from surgical_robotics_challenge.teleoperation.mtm_teleop_common import apply_mtm_to_psm_command, load_selected_psm_arms
 from threading import Thread
 from std_msgs.msg import Float64MultiArray
 
 
 class ControllerInterface:
-    def __init__(self, ral, leader_l, leader_r, psm_arm_l, psm_arm_r, ecm):
+    def __init__(
+        self,
+        ral,
+        leader_l,
+        leader_r,
+        psm_arm_l,
+        psm_arm_r,
+        ecm,
+        update_frequency,
+        enable_force_feedback=False,
+    ):
         self.counter = 0
         self.leader_1 = leader_l
         self.leader_2 = leader_r
         self.psm_1 = psm_arm_l
         self.psm_2 = psm_arm_r
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
+        self.update_dt = 1.0 / update_frequency
 
         self.cmd1_xyz = self.psm_1.T_t_b_home.p
         self.cmd1_rpy = None
@@ -79,6 +88,7 @@ class ControllerInterface:
         self._T1_c_b = None
         self._T2_c_b = None
         self._update_T_c_b = True
+        self._enable_force_feedback = enable_force_feedback
         self._pub_ecm = ral.publisher('/ecm/setpoint_js', Float64MultiArray, queue_size=1)
         self.leader_1.enable_gravity_comp()
         self.leader_2.enable_gravity_comp()
@@ -98,45 +108,27 @@ class ControllerInterface:
         self.gui.App.update()
         self._ecm.servo_jp(self.gui.jnt_cmds)
 
-    def teleop_pair_1(self):
-        if self.leader_1.coag_button_pressed or self.leader_1.clutch_button_pressed:
-            # self.leader.optimize_wrist_platform()
-            f = Wrench()
-            self.leader_1.servo_cf(f)
+    def _teleop_arm(self, leader, psm, T_c_b, idx):
+        cmd_xyz, T_ik = apply_mtm_to_psm_command(
+            leader,
+            psm,
+            T_c_b,
+            self.update_dt,
+            set_jaw_only_when_coag=False,
+            enable_force_feedback=self._enable_force_feedback,
+        )
+        if idx == 1:
+            self.cmd1_xyz = cmd_xyz
+            self.T1_IK = T_ik
         else:
-            if self.leader_1.is_active():
-                self.leader_1.servo_cp(self.leader_1.pre_coag_pose_msg)
-        twist = self.leader_1.measured_cv() * coordinate_frames.TeleopScale.scale_factor
-        self.cmd1_xyz = self.psm_1.T_t_b_home.p
-        if not self.leader_1.clutch_button_pressed:
-            delta_t = self._T1_c_b.M * twist.vel
-            self.cmd1_xyz = self.cmd1_xyz + delta_t
-            self.psm_1.T_t_b_home.p = self.cmd1_xyz
-        if self.leader_1.coag_button_pressed:
-            self.cmd1_rpy = self._T1_c_b.M * self.leader_1.measured_cp().M
-            self.T1_IK = Frame(self.cmd1_rpy, self.cmd1_xyz)
-            self.psm_1.servo_cp(self.T1_IK)
-            self.psm_1.set_jaw_angle(self.leader_1.get_jaw_angle())
+            self.cmd2_xyz = cmd_xyz
+            self.T2_IK = T_ik
+
+    def teleop_pair_1(self):
+        self._teleop_arm(self.leader_1, self.psm_1, self._T1_c_b, idx=1)
 
     def teleop_pair_2(self):
-        if self.leader_2.coag_button_pressed or self.leader_2.clutch_button_pressed:
-            # self.leader.optimize_wrist_platform()
-            f = Wrench()
-            self.leader_2.servo_cf(f)
-        else:
-            if self.leader_2.is_active():
-                self.leader_2.servo_cp(self.leader_2.pre_coag_pose_msg)
-        twist = self.leader_2.measured_cv() * coordinate_frames.TeleopScale.scale_factor
-        self.cmd2_xyz = self.psm_2.T_t_b_home.p
-        if not self.leader_2.clutch_button_pressed:
-            delta_t = self._T2_c_b.M * twist.vel
-            self.cmd2_xyz = self.cmd2_xyz + delta_t
-            self.psm_2.T_t_b_home.p = self.cmd2_xyz
-        if self.leader_2.coag_button_pressed:
-            self.cmd2_rpy = self._T2_c_b.M * self.leader_2.measured_cp().M
-            self.T2_IK = Frame(self.cmd2_rpy, self.cmd2_xyz)
-            self.psm_2.servo_cp(self.T2_IK)
-            self.psm_2.set_jaw_angle(self.leader_2.get_jaw_angle())
+        self._teleop_arm(self.leader_2, self.psm_2, self._T2_c_b, idx=2)
 
     def update_arm_pose(self):
         self.update_T_b_c()
@@ -182,24 +174,17 @@ if __name__ == "__main__":
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=False)
+    parser.add_argument('--update_frequency', action='store', dest='update_frequency', help='Update Frequency', default=200)
+    parser.add_argument('-e', '--enable_force_feedback', action='store', dest='enable_force_feedback', help='Enable MTM force feedback', default=False)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
     print(parsed_args)
 
-    if parsed_args.run_psm_one in ['True', 'true', '1']:
-        parsed_args.run_psm_one = True
-    elif parsed_args.run_psm_one in ['False', 'false', '0']:
-        parsed_args.run_psm_one = False
-
-    if parsed_args.run_psm_two in ['True', 'true', '1']:
-        parsed_args.run_psm_two = True
-    elif parsed_args.run_psm_two in ['False', 'false', '0']:
-        parsed_args.run_psm_two = False
-    if parsed_args.run_psm_three in ['True', 'true', '1']:
-        parsed_args.run_psm_three = True
-    elif parsed_args.run_psm_three in ['False', 'false', '0']:
-        parsed_args.run_psm_three = False
+    parsed_args.run_psm_one = get_boolean_from_opt(parsed_args.run_psm_one)
+    parsed_args.run_psm_two = get_boolean_from_opt(parsed_args.run_psm_two)
+    parsed_args.run_psm_three = get_boolean_from_opt(parsed_args.run_psm_three)
+    parsed_args.enable_force_feedback = get_boolean_from_opt(parsed_args.enable_force_feedback)
 
     simulation_manager = SimulationManager(parsed_args.client_name)
 
@@ -209,47 +194,20 @@ if __name__ == "__main__":
     time.sleep(0.5)
 
     controllers = []
-    psm_arms = []
 
-    if parsed_args.run_psm_one is True:
-        # Initial Target Offset for PSM1
-        # init_xyz = [0.1, -0.85, -0.15]
-        arm_name = 'psm1'
-        print('LOADING CONTROLLER FOR ', arm_name)
-        psm1 = PSM(simulation_manager, arm_name, add_joint_errors=False)
-        if psm1.is_present():
-            T_psmtip_c = coordinate_frames.PSM1.T_tip_cam
-            T_psmtip_b = psm1.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
-            psm1.set_home_pose(T_psmtip_b)
-            psm_arms.append(psm1)
+    psm_by_name = load_selected_psm_arms(
+        simulation_manager,
+        cam,
+        parsed_args.run_psm_one,
+        parsed_args.run_psm_two,
+        parsed_args.run_psm_three,
+    )
 
-    if parsed_args.run_psm_two is True:
-        # Initial Target Offset for PSM1
-        # init_xyz = [0.1, -0.85, -0.15]
-        arm_name = 'psm2'
-        print('LOADING CONTROLLER FOR ', arm_name)
-        theta_base = -0.7
-        psm2 = PSM(simulation_manager, arm_name, add_joint_errors=False)
-        if psm2.is_present():
-            T_psmtip_c = coordinate_frames.PSM2.T_tip_cam
-            T_psmtip_b = psm2.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
-            psm2.set_home_pose(T_psmtip_b)
-            psm_arms.append(psm2)
-
-    if parsed_args.run_psm_three is True:
-        # Initial Target Offset for PSM1
-        # init_xyz = [0.1, -0.85, -0.15]
-        arm_name = 'psm3'
-        print('LOADING CONTROLLER FOR ', arm_name)
-        psm = PSM(simulation_manager, arm_name, add_joint_errors=False)
-        if psm.is_present():
-            T_psmtip_c = coordinate_frames.PSM3.T_tip_cam
-            T_psmtip_b = psm.get_T_w_b() * cam.get_T_c_w() * T_psmtip_c
-            psm.set_home_pose(T_psmtip_b)
-            psm_arms.append(psm)
-
-    if len(psm_arms) == 0:
+    psm1 = psm_by_name.get('psm1')
+    psm2 = psm_by_name.get('psm2')
+    if psm1 is None or psm2 is None:
         print('No Valid PSM Arms Specified')
+        print('Pair teleoperation requires both psm1 and psm2')
         print('Exiting')
 
     else:
@@ -257,10 +215,19 @@ if __name__ == "__main__":
         leader_r = MTM(simulation_manager.get_ral(), '/MTMR/')
         leader_l.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
         leader_r.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
-        controller1 = ControllerInterface(simulation_manager.get_ral(), leader_l, leader_r, psm1, psm2, cam)
+        controller1 = ControllerInterface(
+            simulation_manager.get_ral(),
+            leader_l,
+            leader_r,
+            psm1,
+            psm2,
+            cam,
+            update_frequency=int(parsed_args.update_frequency),
+            enable_force_feedback=parsed_args.enable_force_feedback,
+        )
         controllers.append(controller1)
 
-        rate = simulation_manager.create_rate(200)
+        rate = simulation_manager.create_rate(int(parsed_args.update_frequency))
 
         while not simulation_manager.is_shutdown():
             try:

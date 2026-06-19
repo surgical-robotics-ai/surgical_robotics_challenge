@@ -48,7 +48,7 @@ from sensor_msgs.msg import Image
 
 
 class ImageSub:
-    def __init__(self, ral, image_topic="/ambf/env/cameras/cameraL/ImageData"):
+    def __init__(self, ral, image_topic="/ambf/env/stereo/left/ImageData"):
         self.image_sub = ral.subscriber(image_topic, Image, self.image_cb)
 
     def image_cb(self, image_msg):

@@ -68,7 +68,7 @@ from threading import Thread
 
 
 class ControllerInterface:
-    def __init__(self, leader_l, leader_r, psm_arm_l, psm_arm_r, ecm):
+    def __init__(self, leader_l, leader_r, psm_arm_l, psm_arm_r, ecm, update_frequency):
         self.counter = 0
         self.leader_1 = leader_l
         self.leader_2 = leader_r
@@ -83,6 +83,7 @@ class ControllerInterface:
         self.T1_IK = None
         self.T2_IK = None
         self._ecm = ecm
+        self.update_dt = 1.0 / update_frequency
 
         self._T1_c_b = None
         self._T2_c_b = None
@@ -102,7 +103,7 @@ class ControllerInterface:
         twist = self.leader_1.measured_cv()
         self.cmd1_xyz = self.psm_1.T_t_b_home.p
         if not self.leader_1.clutch_button_pressed:
-            delta_t = self._T1_c_b.M * twist.vel * 1.2
+            delta_t = self._T1_c_b.M * twist.vel * coordinate_frames.TeleopScale.scale_factor * self.update_dt
             self.cmd1_xyz = self.cmd1_xyz + delta_t
             self.psm_1.T_t_b_home.p = self.cmd1_xyz
         self.cmd1_rpy = self._T1_c_b.M * self.leader_1.measured_cp().M * Rotation.RPY(3.14, 0, 3.14 / 2.0)
@@ -115,7 +116,7 @@ class ControllerInterface:
         twist = self.leader_2.measured_cv()
         self.cmd2_xyz = self.psm_2.T_t_b_home.p
         if not self.leader_2.clutch_button_pressed:
-            delta_t = self._T2_c_b.M * twist.vel * 1.2
+            delta_t = self._T2_c_b.M * twist.vel * coordinate_frames.TeleopScale.scale_factor * self.update_dt
             self.cmd2_xyz = self.cmd2_xyz + delta_t
             self.psm_2.T_t_b_home.p = self.cmd2_xyz
         self.cmd2_rpy = self._T2_c_b.M * self.leader_2.measured_cp().M * Rotation.RPY(3.14, 0, 3.14 / 2.0)
@@ -165,6 +166,7 @@ if __name__ == "__main__":
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=False)
+    parser.add_argument('--update_frequency', action='store', dest='update_frequency', help='Update Frequency', default=200)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
@@ -244,10 +246,10 @@ if __name__ == "__main__":
         leader_l.set_tip_frame(Frame(Rotation.RPY(theta_base + theta_tip, 0, 0), Vector(0, 0, 0)))
         leader_r.set_base_frame(Frame(Rotation.RPY(theta_base, 0, 0), Vector(0, 0, 0)))
         leader_r.set_tip_frame(Frame(Rotation.RPY(theta_base + theta_tip, 0, 0), Vector(0, 0, 0)))
-        controller = ControllerInterface(leader_l, leader_r, psm1, psm2, cam)
+        controller = ControllerInterface(leader_l, leader_r, psm1, psm2, cam, update_frequency=int(parsed_args.update_frequency))
         controllers.append(controller)
 
-        rate = simulation_manager.get_ral().create_rate(200)
+        rate = simulation_manager.get_ral().create_rate(int(parsed_args.update_frequency))
         
         while not simulation_manager.is_shutdown():
             try:

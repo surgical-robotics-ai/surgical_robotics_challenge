@@ -80,6 +80,9 @@ class PSMCRTKWrapper:
         self.measured_cp_pub = ral.publisher(namespace + '/' + name + '/' + 'measured_cp', PoseStamped,
                                                queue_size=1)
 
+        self.measured_jaw_pub = ral.publisher(namespace + '/' + name + '/jaw/' + 'measured_js', JointState,
+                                         queue_size=1)
+
         self.T_b_w_pub = ral.publisher(namespace + '/' + name + '/' + 'T_b_w', PoseStamped,
                                          queue_size=1)
 
@@ -146,6 +149,7 @@ class PSMCRTKWrapper:
         self._measured_cp_msg.header.stamp = self.simulation_manager.get_time_msg()
         self._measured_cp_msg.pose = np_mat_to_pose(self.arm.measured_cp())
         self.measured_cp_pub.publish(self._measured_cp_msg)
+        self.measured_jaw_pub.publish(JointState(position=[self.arm.get_jaw_angle()]))
 
     def publish_T_b_w(self):
         self._T_b_w_msg.header.stamp = self.simulation_manager.get_time_msg()
@@ -317,7 +321,7 @@ if __name__ == "__main__":
     parser.add_argument('--two', action='store', dest='run_psm_two', help='RUN PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='RUN PSM3', default=False)
     parser.add_argument('--ecm', action='store', dest='run_ecm', help='RUN ECM', default=True)
-    parser.add_argument('--scene', action='store', dest='run_scene', help='RUN Scene', default=True)
+    parser.add_argument('--scene', action='store', dest='run_scene', help='RUN Scene', default=False)
     parser.add_argument('--ns', action='store', dest='namespace', help='Namespace', default='/CRTK')
     parser.add_argument('--rate', action='store', dest='rate', help='Rate of Publishing', default=120)
 

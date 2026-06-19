@@ -133,7 +133,7 @@ class ECM:
     def get_upper_limits(self):
         return self._kd.upper_limits
 
-    def servo_cp(self, T_c_w):
+    def move_cp(self, T_c_w):
         if type(T_c_w) in [np.matrix, np.array]:
             T_c_w = convert_mat_to_frame(T_c_w)
 
@@ -146,6 +146,13 @@ class ECM:
         interpolate_thread = Thread(target=self._interpolate)
         interpolate_thread.start()
 
+        self._pose_changed = True
+
+    def servo_cp(self, T_c_w):
+        if type(T_c_w) in [np.matrix, np.array]:
+            T_c_w = convert_mat_to_frame(T_c_w)
+        self._measured_cp = T_c_w
+        self.camera_handle.set_pose(T_c_w)
         self._pose_changed = True
 
     def servo_cv(self, twist, dt):
@@ -163,13 +170,22 @@ class ECM:
         self.servo_cp(T_c_w * T_cmd)
         pass
 
+    def move_jp(self, jp):
+        j0 = jp[0]
+        j1 = jp[1]
+        j2 = jp[2]
+        j3 = jp[3]
+        cmd = [j0, j1, j2, j3, 0.0]
+        T_t_c = convert_mat_to_frame(compute_FK(cmd, 5)) # Tip in camera frame
+        self.move_cp(self._T_c_w_init * T_t_c)
+
     def servo_jp(self, jp):
         j0 = jp[0]
         j1 = jp[1]
         j2 = jp[2]
         j3 = jp[3]
         cmd = [j0, j1, j2, j3, 0.0]
-        T_t_c = convert_mat_to_frame(compute_FK(cmd, 5)) # Tip if camera frame
+        T_t_c = convert_mat_to_frame(compute_FK(cmd, 5)) # Tip in camera frame
         self.servo_cp(self._T_c_w_init * T_t_c)
 
     def measured_cp(self):

@@ -52,6 +52,7 @@ class Camera:
         self.simulation_manager = simulation_manager
         self.name = name
         self.camera_handle = self.simulation_manager.get_obj_handle(name)
+        assert self.camera_handle is not None, f"Camera {name} not found"
         time.sleep(0.5)
 
         # Transform of Base in World

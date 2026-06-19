@@ -99,7 +99,7 @@ class PSM:
         self.actuators.append(self.simulation_manager._client.get_obj_handle(name + '/Actuator0'))
         time.sleep(0.5)
         self.grasped = [False, False, False]
-        self.graspable_objs_prefix = ["Needle", "Thread", "Puzzle"]
+        self.graspable_objs_prefix = ["Needle", "Thread", "Puzzle", "block"]
         self.grasped_obj_name = None
         self.grasp_actuation_jaw_angle = 0.05
         self.T_t_b_home = coordinate_frames.PSM.T_t_b_home
@@ -272,6 +272,11 @@ class PSM:
         self.base.set_joint_pos(6, jaw_angle)
         self.base.set_joint_pos(7, jaw_angle)
         self.run_grasp_logic(jaw_angle)
+
+    def get_jaw_angle(self):
+        j6 = self.base.get_joint_pos(6)
+        j7 = self.base.get_joint_pos(7)
+        return (j6 + j7) / 2.0
 
     def measured_cp(self):
         jp = self.measured_jp()

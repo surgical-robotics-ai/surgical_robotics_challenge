@@ -1,84 +1,101 @@
-# Surgical Robotics Challenge
-For more information regarding the challenge, please visit [Surgical Robotics Challenge 2021-2022](https://surgical-robotics-ai.github.io/surgical-robotics-challenge/challenge-2021.html) or [Surgical Robotics Challenge 2023-2024](https://surgical-robotics-ai.github.io/surgical-robotics-challenge-2023/challenge-2023.html).
+# AMBF Surgical Robotics Challenge
 
-# [Discussions Forum](https://github.com/surgical-robotics-ai/surgical_robotics_challenge/discussions)
-Please checkout the [Discussions Tab](https://github.com/surgical-robotics-ai/surgical_robotics_challenge/discussions) for asking questions, posting suggestions, connecting with the community, and for keeping up to date with the challenge.
+This repository provides an open simulation environment for robotic suturing.
 
-# 1. Install AMBF and ROS Prerequisites
-Clone, build and source `ambf-3.0` using these [instructions](https://github.com/WPI-AIM/ambf/wiki/Installing-AMBF)
+Please check out the [Discussions tab](https://github.com/surgical-robotics-ai/surgical_robotics_challenge/discussions) to ask questions, post suggestions, connect with the community, and stay up to date with the challenge.
 
+## Installation
 
-# 2. Clone this repo to your local machine OR use a Dockerfile
+1. Install ROS2 (any version should do). Instructions for Jazzy can be found [here](https://docs.ros.org/en/jazzy/Installation.html).
 
-#### Option 1: (Clone repo to your local machine)
- Please refer to [README](./scripts/README.md) in the [scripts](./scripts) folder for instructions on installing the Python package for system-wide access.
+2. Clone, build, and source `ambf-3.0` using these [instructions](https://github.com/WPI-AIM/ambf/wiki/Installing-AMBF). AMBF 3.0 also requires ROS, so skip the ROS-related instructions if you followed step 1 and vice-versa.
 
-#### Option 2: (Use Dockerfile)
- You can alternatively use Dockerfiles to create Docker images by following the instructions here:
- https://github.com/surgical-robotics-ai/docker_surgical_robotics_challenge
+3. Set up this repository using one of the following options:
+  1. Local install (recommended): Refer to the [README](./scripts/README.md) in the [scripts](./scripts) folder for instructions on installing the Python package.
+  2. Docker: Create Docker images by following the instructions [here](https://github.com/surgical-robotics-ai/docker_surgical_robotics_challenge).
 
+## Running the simulation
 
-# 3. Running the simulation
- For convenience, we have provided several bash (`.sh`) scripts to launch different suturing scenes/setups.
- 
- **FOR ROS 1 `roscore` MUST BE RUNNIG BEFOREHAND. NOT REQUIRED FOR ROS 2**
- 
- To run roscore, open a new terminal and run:
+1. Open a terminal and set up for ROS 2, either in every terminal window that interacts with SRC or once in your `.bashrc` file, as described [here](https://github.com/WPI-AIM/ambf/wiki/Installing-AMBF#step-3).
+
+2. Navigate to the `surgical_robotics_challenge` folder, which is `~/surgical_robotics_challenge` if you cloned it in your home directory.
+
+3. Run one of the environments below in your terminal:
+
+a. 3D Med Complex Suturing Phantom
+
 ```bash
-roscore
+./run_env_3D_MED_COMPLEX_LND_420006.sh
 ```
-Then, you can run the `run_env_LND_420006.sh`, for example, in your terminal as:
-  
- ```bash
-  ./run_env_LND_420006.sh
- ```
-  
- and you should see the following scene
+
+b. 3D Med Simple Suturing Phantom
+
+```bash
+./run_env_3D_MED_STRAIGHT_LND_420006.sh
+```
+
+c. Simple Suturing Phantom
+
+```bash
+./run_env_SIMPLE_LND_420006.sh
+```
+
+d. Asymmetric Pegboard with Wall
+
+```bash
+./run_env_pegboard_asymmetric.sh
+```
+
+e. Symmetric Pegboard with Wall
+
+```bash
+./run_env_pegboard_symmetric_with_wall.sh
+```
+
+f. Legacy Simple Phantom
+
+```bash
+./run_env_SIMPLE_LND_420006.sh
+```
+
+Example media showing a few different environments.
 
   <p align="center">
-  <img src=Media/3d_med_phantom_with_420006_psms.png width="480"/>
+  <img src=Media/figure_eight.gif width="600"/>
   </p>
 
-### 3a. The launch file:
- To understand the launch file, refer to this [link](https://github.com/WPI-AIM/ambf/wiki/Selecting-Robots)
+  <p align="center">
+  <img src=Media/3d_med_complex_rim_light.png width="600"/>
+  </p>
+
+  <p align="center">
+  <img src=Media/3d_med_straight_rim_light.png width="600"/>
+  </p>
+
+  <p align="center">
+  <img src=Media/pegboard_symmetric_rim_light.png width="600"/>
+  </p>
 
 
-### 3b. Simulated Cameras
- The simulated camera(s) are defined in the World file ([`world_stereo.yaml`](./ADF/world/world_stereo.yaml)) which is set in the [`launch.yaml`](./launch.yaml) file.
- To enable the camera(s) to publish the scene image or depth data, follow the [instructions](https://github.com/WPI-AIM/ambf/wiki/Camera-feed-and-depth-camera) on this page:
+## Technical Details
 
-### 3c. Camera Coordinate frames
- Camera coordinate frames and the difference between the AMBF and the `OpenCV` camera convention is described in [camera_convention.md](./docs/camera_conventions.md)
+### Launch file
+To understand the launch file, refer to this [link](https://github.com/WPI-AIM/ambf/wiki/Selecting-Robots).
 
-### 3c. Resetting the Simulation
- You can press `CTRL+R` to reset the rigid bodies in simulation, and `CTRL+V` to reset the camera pose.
+### Simulated Cameras
+The simulated camera(s) are defined in the world file ([`world_stereo.yaml`](./ADF/world/world_stereo.yaml)), which is selected in [`launch.yaml`](./launch.yaml).
+To enable the camera(s) to publish scene images or depth data, follow the [instructions](https://github.com/WPI-AIM/ambf/wiki/Camera-feed-and-depth-camera) on this page.
 
-### 3d. Launch Arguments:
- To manually control what objects are spawing in the scene, please review the `.sh` scripts in this folder. For a full list of arguments to provide to AMBF, please refer to these [instructions](https://github.com/WPI-AIM/ambf/wiki/Command-Line-Arguments)
+### Camera Coordinate frames
+Camera coordinate frames, and the difference between the AMBF and `OpenCV` camera conventions, are described in [camera_conventions.md](./docs/camera_conventions.md).
 
+### Resetting the Simulation
+You can press `CTRL+R` to reset the rigid bodies in the simulation and `CTRL+V` to reset the camera pose.
 
-# 4. Interacting with Simulated Robots using Python Scripts:
-Please take a look at the scripts in the [`scripts`](./scripts) folder:
+### Launch Arguments
+To manually control which objects are spawned in the scene, review the `.sh` scripts in this folder. For a full list of arguments that can be passed to AMBF, refer to these [instructions](https://github.com/WPI-AIM/ambf/wiki/Command-Line-Arguments).
 
-
-# 5. Controlling via Input Devices
-The code in the scripts folder allows the dVRK MTMs or Geomagic Touch / Phantom Omni to control the simulated PSMs.
-
-With the simulation already running, run the `dvrk-ros` application for the `dVRK MTMs` or the ROS application for the `Geomagic Touch/Phantom Omni`. You can find the relevant code for them here:
-
-**a. https://github.com/jhu-dvrk/dvrk-ros** (dvrk-ros)
-
-**b. https://github.com/WPI-AIM/ros_geomagic** (geomagic_touch/phantom_omni)
-
-Then run one of the corresponding Python scripts:
-
-**a. scripts/surgical_robotics_challenge/teleoperation/mtm_multi_psm_control.py** (For MTMs)
-
-**b. scripts/surgical_robotics_challenge/geomagic_multi_psm_control.py** (For Geomagic Touch/Phantom Omni)
-
-Refer to the `README` in the scripts folder for further information
-
-# 6. Citation
+## Citation
 If you find this work useful, please cite it as:
 
 ```bibtex
