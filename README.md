@@ -55,7 +55,7 @@ e. Symmetric Pegboard with Wall
 f. Legacy Simple Phantom
 
 ```bash
-./run_env_SIMPLE_LND_420006.sh
+./run_env_LND_400006.sh
 ```
 
 Example media showing a few different environments.
