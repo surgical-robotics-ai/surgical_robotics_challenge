@@ -51,7 +51,7 @@ vec4 shade(vec3 p, vec3 v, vec3 n)
     vec3 Ie = gl_FrontMaterial.emission.rgb;
     vec3 Ia = gl_FrontLightModelProduct.sceneColor.rgb;
     vec3 Il = vec3(0.0);
-    vec3 texColor = texture(diffuseMap, vTexCoord).rgb;
+    vec3 texColor = texture2D(diffuseMap, vTexCoord.xy).rgb;
 
     for (int i = 0; i < gl_MaxLights; ++i)
     {
